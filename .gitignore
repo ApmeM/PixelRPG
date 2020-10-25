@@ -22,4 +22,4 @@ packages/
 *.nuget.props
 *.nuget.targets
 
-/MyONez.Samples.Base/Content/ParticleDesigner/*.pex.tiff
+/PixelRPG.Base/Content/ParticleDesigner/*.pex.tiff

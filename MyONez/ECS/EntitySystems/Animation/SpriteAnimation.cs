@@ -21,7 +21,7 @@
 
         private float iterationDuration;
 
-        private bool loop = true;
+        private bool loop = false;
 
         private bool pingPong;
 
@@ -46,6 +46,14 @@
         public SpriteAnimation(params SubtextureDrawable[] frames)
         {
             this.Frames.AddRange(frames);
+        }
+
+        public SpriteAnimation(IReadOnlyList<SubtextureDrawable> frames, params int[] idx)
+        {
+            foreach (var id in idx)
+            {
+                this.Frames.Add(frames[id]);
+            }
         }
 
         /// <summary>

@@ -13,8 +13,7 @@ namespace MyONez.AdditionalContent.TiledMap.Models
         public List<TiledTileSetTile> Tiles = new List<TiledTileSetTile>();
         public int FirstGid;
         public string Image;
-
-        internal Texture2D ImageTexture;
+        public Texture2D ImageTexture;
 
         public static TiledTileSet Build(int imageWidth, int imageHeight, int tileWidth, int tileHeight, int spacing = 2, int margin = 2, int columns = 2 )
         {
