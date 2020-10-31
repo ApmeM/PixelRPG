@@ -152,6 +152,7 @@ namespace PixelRPG.Base
 			public const string spell_icons = @"assets/spell_icons";
 			public const string status_pane = @"assets/status_pane";
 			public const string surface = @"assets/surface";
+			public const string template = @"assets/template";
 			public const string test = @"assets/test";
 			public const string tiles0 = @"assets/tiles0";
 			public const string tiles1 = @"assets/tiles1";

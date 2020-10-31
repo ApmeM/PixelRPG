@@ -69,6 +69,9 @@
     <Reference Include="LocomotorECS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LocomotorECS.1.1.0\lib\netstandard2.0\LocomotorECS.dll</HintPath>
     </Reference>
+    <Reference Include="MazeGenerators, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MazeGenerators.1.1.0\lib\netstandard2.0\MazeGenerators.dll</HintPath>
+    </Reference>
     <Reference Include="Mono.Android" />
     <Reference Include="MonoGame.Framework, Version=3.7.1.189, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\MyONez\packages\MonoGame.Framework.Android.3.7.1.189\lib\MonoAndroid\MonoGame.Framework.dll</HintPath>

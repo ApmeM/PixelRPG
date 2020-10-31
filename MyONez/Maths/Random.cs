@@ -1,6 +1,7 @@
 ﻿namespace MyONez.Maths
 {
     using System;
+    using System.Collections.Generic;
 
     using Microsoft.Xna.Framework;
 
@@ -190,6 +191,16 @@
                 default:
                     return fourth;
             }
+        }
+
+        /// <summary>
+        ///     randomly returns one of the given values
+        /// </summary>
+        /// <param name="data">list to choose.</param>
+        /// <typeparam name="T">The 1st type parameter.</typeparam>
+        public static T Choose<T>(List<T> data)
+        {
+            return data[NextInt(data.Count)];
         }
     }
 }

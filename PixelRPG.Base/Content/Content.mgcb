@@ -999,8 +999,8 @@
 /processorParam:TextureFormat=Color
 /build:assets/water4.png
 
-#begin assets/test.tmx
+#begin assets/template.tmx
 /importer:TiledMapImporter
 /processor:TiledMapProcessor
-/build:assets/test.tmx
+/build:assets/template.tmx
 
