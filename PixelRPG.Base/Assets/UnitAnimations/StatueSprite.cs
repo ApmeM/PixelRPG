@@ -6,7 +6,7 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class StatueSprite : CharSprite
+    public class StatueSprite : UnitAnimation
     {
         public StatueSprite(ContentManager content)
         {
@@ -14,13 +14,13 @@ namespace PixelRPG.Base.Assets.UnitAnimations
 
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 12, 15);
 
-            this.idle = new SpriteAnimation(frames, 0, 0, 0, 0, 0, 1, 1);
+            this.Idle = new SpriteAnimation(frames, 0, 0, 0, 0, 0, 1, 1);
 
-            this.run = new SpriteAnimation(frames, 2, 3, 4, 5, 6, 7);
+            this.Run = new SpriteAnimation(frames, 2, 3, 4, 5, 6, 7);
 
-            this.attack = new SpriteAnimation(frames, 8, 9, 10);
+            this.Attack = new SpriteAnimation(frames, 8, 9, 10);
 
-            this.die = new SpriteAnimation(frames, 11, 12, 13, 14, 15, 15);
+            this.Die = new SpriteAnimation(frames, 11, 12, 13, 14, 15, 15);
         }
     }
 }

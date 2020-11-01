@@ -6,7 +6,7 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class SheepSprite : CharSprite
+    public class SheepSprite : UnitAnimation
     {
         public SheepSprite(ContentManager content)
         {
@@ -14,13 +14,13 @@ namespace PixelRPG.Base.Assets.UnitAnimations
 
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 16, 15);
 
-            idle = new SpriteAnimation(frames, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0);
+            this.Idle = new SpriteAnimation(frames, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 0);
 
-            run = new SpriteAnimation(frames, 0);
+            this.Run = new SpriteAnimation(frames, 0);
 
-            attack = new SpriteAnimation(frames, 0);
+            this.Attack = new SpriteAnimation(frames, 0);
 
-            die = new SpriteAnimation(frames, 0);
+            this.Die = new SpriteAnimation(frames, 0);
         }
     }
 }

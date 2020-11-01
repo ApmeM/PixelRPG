@@ -6,20 +6,20 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class DM300Sprite :CharSprite {
+    public class DM300Sprite :UnitAnimation {
     
         public DM300Sprite(ContentManager content)
         {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.Enemy.dm300);
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 22, 20);
 
-            this.idle = new SpriteAnimation(frames, 0, 1);
+            this.Idle = new SpriteAnimation(frames, 0, 1);
 
-            this.run = new SpriteAnimation(frames, 2, 3);
+            this.Run = new SpriteAnimation(frames, 2, 3);
 
-            this.attack = new SpriteAnimation(frames, 4, 5, 6);
+            this.Attack = new SpriteAnimation(frames, 4, 5, 6);
 
-            this.die = new SpriteAnimation(frames, 0, 7, 0, 7, 0, 7, 0, 7, 0, 7, 0, 7, 8);
+            this.Die = new SpriteAnimation(frames, 0, 7, 0, 7, 0, 7, 0, 7, 0, 7, 0, 7, 8);
         }
     }
 }

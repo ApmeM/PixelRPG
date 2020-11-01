@@ -1,4 +1,4 @@
-﻿namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.ECS.EntitySystems
 {
     using System;
 
@@ -7,10 +7,13 @@
 
     using MyONez.ECS.Components;
 
+    using PixelRPG.Base.Assets;
+    using PixelRPG.Base.ECS.Components;
+
     public class CharSpriteUpdateSystem : EntityProcessingSystem
     {
         public CharSpriteUpdateSystem()
-            : base(new Matcher().All(typeof(CharSpritesComponent)))
+            : base(new Matcher().All(typeof(UnitComponent)))
         {
         }
 
@@ -18,7 +21,7 @@
         {
             base.DoAction(entity, gameTime);
             var animation = entity.GetOrCreateComponent<AnimationSpriteComponent>();
-            var charSprites = entity.GetComponent<CharSpritesComponent>();
+            var charSprites = entity.GetComponent<UnitComponent>();
             
             if (animation.IsPlaying)
             {
@@ -27,11 +30,11 @@
 
             switch (charSprites.State)
             {
-                case CharState.Idle:
-                    animation.Animation = charSprites.CharSprites.idle;
+                case UnitState.Idle:
+                    animation.Animation = charSprites.UnitAnimations.Idle;
                     break;
-                case CharState.Run:
-                    animation.Animation = charSprites.CharSprites.run;
+                case UnitState.Run:
+                    animation.Animation = charSprites.UnitAnimations.Run;
                     break;
             }
 
@@ -41,10 +44,10 @@
         protected override void OnMatchedEntityAdded(Entity entity)
         {
             base.OnMatchedEntityAdded(entity);
-            var charSprites = entity.GetComponent<CharSpritesComponent>();
+            var charSprites = entity.GetComponent<UnitComponent>();
             var animation = entity.GetOrCreateComponent<AnimationSpriteComponent>();
             var sprite = entity.GetOrCreateComponent<SpriteComponent>();
-            animation.Animation = charSprites.CharSprites.idle;
+            animation.Animation = charSprites.UnitAnimations.Idle;
             animation.IsPlaying = true;
             sprite.Drawable = animation.Animation.Frames[animation.StartFrame];
         }

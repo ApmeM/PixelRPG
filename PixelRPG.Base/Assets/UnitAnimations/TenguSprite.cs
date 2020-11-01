@@ -6,19 +6,19 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class TenguSprite : CharSprite {
+    public class TenguSprite : UnitAnimation {
     
         public TenguSprite(ContentManager content) {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.Enemy.tengu );
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 14, 16 );
 
-            this.idle = new SpriteAnimation( frames, 0, 0, 0, 1 );
+            this.Idle = new SpriteAnimation( frames, 0, 0, 0, 1 );
 
-            this.run = new SpriteAnimation( frames, 2, 3, 4, 5, 0 );
+            this.Run = new SpriteAnimation( frames, 2, 3, 4, 5, 0 );
 
-            this.attack = new SpriteAnimation( frames, 6, 7, 7, 0 );
+            this.Attack = new SpriteAnimation( frames, 6, 7, 7, 0 );
         
-            this.die = new SpriteAnimation( frames, 8, 9, 10, 10, 10, 10, 10, 10 );
+            this.Die = new SpriteAnimation( frames, 8, 9, 10, 10, 10, 10, 10, 10 );
         }
     }
 }

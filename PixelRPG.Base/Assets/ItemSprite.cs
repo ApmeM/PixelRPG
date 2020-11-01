@@ -7,14 +7,14 @@ namespace PixelRPG.Base.Assets
 
     public class ItemSprite
     {
-        public SubtextureDrawable sprite;
+        public SubtextureDrawable Sprite;
 
         public ItemSprite(ContentManager content, ItemSpriteSheet itemType)
         {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.items);
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 16, 16);
 
-            this.sprite = frames[(int)itemType];
+            this.Sprite = frames[(int)itemType];
         }
     }
 }

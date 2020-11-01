@@ -6,20 +6,20 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class GolemSprite : CharSprite {
+    public class GolemSprite : UnitAnimation {
     
         public GolemSprite(ContentManager content)
         {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.Enemy.golem);
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 16, 16);
 
-            this.idle = new SpriteAnimation(frames, 0, 1);
+            this.Idle = new SpriteAnimation(frames, 0, 1);
 
-            this.run = new SpriteAnimation(frames, 2, 3, 4, 5);
+            this.Run = new SpriteAnimation(frames, 2, 3, 4, 5);
 
-            this.attack = new SpriteAnimation(frames, 6, 7, 8);
+            this.Attack = new SpriteAnimation(frames, 6, 7, 8);
 
-            this.die = new SpriteAnimation(frames, 9, 10, 11, 12, 13);
+            this.Die = new SpriteAnimation(frames, 9, 10, 11, 12, 13);
         }
     }
 }

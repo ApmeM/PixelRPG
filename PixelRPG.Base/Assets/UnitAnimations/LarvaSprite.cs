@@ -6,7 +6,7 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class LarvaSprite : CharSprite {
+    public class LarvaSprite : UnitAnimation {
     
         public LarvaSprite(ContentManager content) {
 
@@ -15,13 +15,13 @@ namespace PixelRPG.Base.Assets.UnitAnimations
         
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 12, 8 );
 
-            this.idle = new SpriteAnimation( frames, 4, 4, 4, 4, 4, 5, 5 );
+            this.Idle = new SpriteAnimation( frames, 4, 4, 4, 4, 4, 5, 5 );
 
-            this.run = new SpriteAnimation( frames, 0, 1, 2, 3 );
+            this.Run = new SpriteAnimation( frames, 0, 1, 2, 3 );
 
-            this.attack = new SpriteAnimation( frames, 6, 5, 7 );
+            this.Attack = new SpriteAnimation( frames, 6, 5, 7 );
         
-            this.die = new SpriteAnimation( frames, 8 );
+            this.Die = new SpriteAnimation( frames, 8 );
         }
     }
 }

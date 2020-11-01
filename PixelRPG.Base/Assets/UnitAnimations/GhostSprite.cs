@@ -6,20 +6,20 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class GhostSprite : CharSprite {
+    public class GhostSprite : UnitAnimation {
     
         public GhostSprite(ContentManager content)
         {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.Neutral.ghost);
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 14, 15);
 
-            this.idle = new SpriteAnimation(frames, 0, 1);
+            this.Idle = new SpriteAnimation(frames, 0, 1);
 
-            this.run = new SpriteAnimation(frames, 0, 1);
+            this.Run = new SpriteAnimation(frames, 0, 1);
 
-            this.attack = new SpriteAnimation(frames, 0);
+            this.Attack = new SpriteAnimation(frames, 0);
 
-            this.die = new SpriteAnimation(frames, 0);
+            this.Die = new SpriteAnimation(frames, 0);
         }
     }
 }

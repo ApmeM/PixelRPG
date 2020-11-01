@@ -6,17 +6,17 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class ShopkeeperSprite : CharSprite {
+    public class ShopkeeperSprite : UnitAnimation {
     
         public ShopkeeperSprite(ContentManager content) {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.Neutral.shopkeeper );
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 14, 14 );
         
-            idle = new SpriteAnimation(frames, 1, 1, 1, 1, 1, 0, 0, 0, 0 );
+            this.Idle = new SpriteAnimation(frames, 1, 1, 1, 1, 1, 0, 0, 0, 0 );
 
-            die = new SpriteAnimation(frames, 0);
-            run = new SpriteAnimation(frames, 0);
-            attack = new SpriteAnimation(frames, 0);
+            this.Die = new SpriteAnimation(frames, 0);
+            this.Run = new SpriteAnimation(frames, 0);
+            this.Attack = new SpriteAnimation(frames, 0);
         }
     }
 }

@@ -6,7 +6,7 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class ImpSprite : CharSprite {
+    public class ImpSprite : UnitAnimation {
     
         public ImpSprite(ContentManager content) {
 
@@ -15,15 +15,15 @@ namespace PixelRPG.Base.Assets.UnitAnimations
         
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 12, 14 );
         
-            this.idle = new SpriteAnimation( frames, 
+            this.Idle = new SpriteAnimation( frames, 
                 0, 1, 2, 3, 0, 1, 2, 3, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
                 0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 3, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 4, 4, 4, 4, 4, 4, 4, 4 );
 
-            this.run = new SpriteAnimation( frames, 0 );
+            this.Run = new SpriteAnimation( frames, 0 );
             
-            this.attack = new SpriteAnimation( frames, 0 );
+            this.Attack = new SpriteAnimation( frames, 0 );
 
-            this.die = new SpriteAnimation( frames, 0, 3, 2, 1, 0, 3, 2, 1, 0 );
+            this.Die = new SpriteAnimation( frames, 0, 3, 2, 1, 0, 3, 2, 1, 0 );
         }
     }
 }

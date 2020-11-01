@@ -7,7 +7,7 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class RatKingSprite : CharSprite
+    public class RatKingSprite : UnitAnimation
     {
         public RatKingSprite(ContentManager content)
         {
@@ -15,13 +15,13 @@ namespace PixelRPG.Base.Assets.UnitAnimations
 
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 16, 16);
 
-            this.idle = new SpriteAnimation(frames, 0, 0, 0, 1);
+            this.Idle = new SpriteAnimation(frames, 0, 0, 0, 1);
 
-            this.run = new SpriteAnimation(frames, 2, 3, 4, 5, 6);
+            this.Run = new SpriteAnimation(frames, 2, 3, 4, 5, 6);
 
-            this.attack = new SpriteAnimation(frames, 0);
+            this.Attack = new SpriteAnimation(frames, 0);
 
-            this.die = new SpriteAnimation(frames, 0);
+            this.Die = new SpriteAnimation(frames, 0);
         }
     }
 }

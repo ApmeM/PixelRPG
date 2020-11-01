@@ -6,7 +6,7 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class SeniorSprite : CharSprite
+    public class SeniorSprite : UnitAnimation
     {
         public SeniorSprite(ContentManager content)
         {
@@ -14,13 +14,13 @@ namespace PixelRPG.Base.Assets.UnitAnimations
 
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 15, 14);
 
-            idle = new SpriteAnimation(frames, 18, 17, 18, 19);
+            this.Idle = new SpriteAnimation(frames, 18, 17, 18, 19);
 
-            run = new SpriteAnimation(frames, 28, 29, 30, 31, 32, 33);
+            this.Run = new SpriteAnimation(frames, 28, 29, 30, 31, 32, 33);
 
-            attack = new SpriteAnimation(frames, 20, 21, 20, 21, 22, 23, 22);
+            this.Attack = new SpriteAnimation(frames, 20, 21, 20, 21, 22, 23, 22);
 
-            die = new SpriteAnimation(frames, 18, 24, 25, 25, 26, 27);
+            this.Die = new SpriteAnimation(frames, 18, 24, 25, 25, 26, 27);
         }
     }
 }

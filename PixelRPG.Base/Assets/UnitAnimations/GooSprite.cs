@@ -6,20 +6,20 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class GooSprite : CharSprite
+    public class GooSprite : UnitAnimation
     {
         public GooSprite(ContentManager content)
         {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.Enemy.goo);
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 20, 14);
 
-            this.idle = new SpriteAnimation(frames, 0, 1);
+            this.Idle = new SpriteAnimation(frames, 0, 1);
 
-            this.run = new SpriteAnimation(frames, 0, 1);
+            this.Run = new SpriteAnimation(frames, 0, 1);
 
-            this.attack = new SpriteAnimation(frames, 5, 0, 6);
+            this.Attack = new SpriteAnimation(frames, 5, 0, 6);
 
-            this.die = new SpriteAnimation(frames, 2, 3, 4);
+            this.Die = new SpriteAnimation(frames, 2, 3, 4);
         }
     }
 }

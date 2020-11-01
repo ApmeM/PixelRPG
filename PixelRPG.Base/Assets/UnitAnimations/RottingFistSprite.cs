@@ -7,20 +7,20 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.Graphics.Cameras;
     using MyONez.Graphics.Drawable;
 
-    public class RottingFistSprite : CharSprite {
+    public class RottingFistSprite : UnitAnimation {
     
         public RottingFistSprite(ContentManager content) {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.Enemy.rotting_fist );
         
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 24, 17 );
         
-            this.idle = new SpriteAnimation( frames, 0, 0, 1 );
+            this.Idle = new SpriteAnimation( frames, 0, 0, 1 );
 
-            this.run = new SpriteAnimation( frames, 0, 1 );
+            this.Run = new SpriteAnimation( frames, 0, 1 );
 
-            this.attack = new SpriteAnimation( frames, 0 );
+            this.Attack = new SpriteAnimation( frames, 0 );
 
-            this.die = new SpriteAnimation( frames, 0, 2, 3, 4 );
+            this.Die = new SpriteAnimation( frames, 0, 2, 3, 4 );
         }
     }
 }

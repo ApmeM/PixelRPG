@@ -6,20 +6,20 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using MyONez.ECS.EntitySystems.Animation;
     using MyONez.Graphics.Drawable;
 
-    public class ThiefSprite : CharSprite
+    public class ThiefSprite : UnitAnimation
     {
         public ThiefSprite(ContentManager content)
         {
             var texture = content.Load<Texture2D>(ContentPaths.Assets.Enemy.thief);
             var frames = SubtextureDrawable.SubtexturesFromAtlas(texture, 12, 13);
 
-            this.idle = new SpriteAnimation(frames, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+            this.Idle = new SpriteAnimation(frames, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 
-            this.run = new SpriteAnimation(frames, 0, 0, 2, 3, 3, 4);
+            this.Run = new SpriteAnimation(frames, 0, 0, 2, 3, 3, 4);
 
-            this.die = new SpriteAnimation(frames, 5, 6, 7, 8, 9);
+            this.Die = new SpriteAnimation(frames, 5, 6, 7, 8, 9);
 
-            this.attack = new SpriteAnimation(frames, 10, 11, 12, 0);
+            this.Attack = new SpriteAnimation(frames, 10, 11, 12, 0);
         }
     }
 }

@@ -4,12 +4,14 @@
 
     using System.Collections.Generic;
     using System.Linq;
-    using System.Xml;
+
+    using BrainAI.Pathfinding.AStar;
+
+    using LocomotorECS;
 
     using MazeGenerators;
 
     using Microsoft.Xna.Framework;
-    using Microsoft.Xna.Framework.Graphics;
 
     using MyONez;
     using MyONez.AdditionalContent.TiledMap.ECS.Components;
@@ -22,6 +24,8 @@
     using MyONez.Graphics.ResolutionPolicy;
 
     using PixelRPG.Base.Assets.UnitAnimations;
+    using PixelRPG.Base.ECS.Components;
+    using PixelRPG.Base.ECS.EntitySystems;
 
     #endregion
 
@@ -38,21 +42,47 @@
             this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
             this.AddEntitySystem(new AnimationSpriteUpdateSystem());
             this.AddEntitySystem(new CharSpriteUpdateSystem());
-            this.AddEntitySystem(new CharMoveSystem(this));
+            this.AddEntitySystem(new CharMoveUpdateSystem(this));
             this.AddEntitySystem(new TiledMapUpdateSystem());
             this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
-
-            var entity = this.CreateEntity();
-            entity.AddComponent<CharSpritesComponent>().CharSprites = new HeroSprite(this.Content, ContentPaths.Assets.Characters.warrior, 6);
+            this.AddEntitySystem(new CharMouseControlUpdateSystem());
 
             var map = this.CreateEntity("map");
             var tiledMap = this.Content.Load<TiledMap>(ContentPaths.Assets.template);
             map.AddComponent(new TiledMapComponent(tiledMap));
-
             GenerateMap(tiledMap);
-
+            GeneratePathFinding(map);
             var startPoint = tiledMap.ObjectGroups.First(a => a.Name == "StartPoint").Objects.First(a => a.Name == "Player1StartPoint");
-            entity.GetOrCreateComponent<PositionComponent>().Position = new Vector2(startPoint.X + 8, startPoint.Y + 8);
+            var endPoint = tiledMap.ObjectGroups.First(a => a.Name == "EndPoint").Objects.First(a => a.Name == "EndPoint");
+
+            var entity = this.CreateEntity();
+            entity.AddComponent<PositionComponent>().Position = new Vector2(startPoint.X + 8, startPoint.Y + 8);
+            entity.AddComponent<UnitMoveComponent>().Destination = new Point(endPoint.X + 8, endPoint.Y + 8);
+            entity.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(this.Content, ContentPaths.Assets.Characters.warrior, 6);
+            entity.AddComponent<InputMouseComponent>();
+        }
+
+        private static void GeneratePathFinding(Entity mapEntity)
+        {
+            var map = mapEntity.GetComponent<TiledMapComponent>().TiledMap;
+
+            var graph = new AstarGridGraph(map.Width, map.Height);
+
+            var maze = (TiledTileLayer)map.GetLayer("Maze");
+            for (var x = 0; x < maze.Width; x++)
+            for (var y = 0; y < maze.Height; y++)
+            {
+                if (
+                    maze.GetTile(x, y).Id != 2 &&
+                    maze.GetTile(x, y).Id != 8 &&
+                    maze.GetTile(x, y).Id != 9 &&
+                    maze.GetTile(x, y).Id != 6)
+                {
+                    graph.Walls.Add(new BrainAI.Pathfinding.Point(x, y));
+                }
+            }
+
+            mapEntity.Cache.PutData("PathFinding", graph);
         }
 
         private static void GenerateMap(TiledMap tiledMap)
@@ -60,8 +90,9 @@
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
             var water = (TiledTileLayer)tiledMap.GetLayer("Water");
 
-            maze.Width = 71;
-            maze.Height = 41;
+            tiledMap.Width = maze.Width = 71;
+            tiledMap.Height = maze.Height = 41;
+            
             maze.Tiles = new TiledTile[maze.Width * maze.Height];
 
             var generatedMaze = (new RoomMazeGenerator()).Generate(
@@ -106,11 +137,24 @@
                         }
                     }
                 });
-
             maze.GetTile(startRoomCenter.X, startRoomCenter.Y).Id = 8;
             
             var endRoom = generatedMaze.Rooms[generatedMaze.Rooms.Count - 1];
             var endRoomCenter = new Point(endRoom.X + endRoom.Width / 2, endRoom.Y + endRoom.Height / 2);
+            tiledMap.ObjectGroups.Add(
+                new TiledObjectGroup
+                {
+                    Name = "EndPoint",
+                    Objects = new List<TiledObject>
+                    {
+                        new TiledObject
+                        {
+                            X = endRoomCenter.X * tiledMap.TileWidth,
+                            Y = endRoomCenter.Y * tiledMap.TileHeight,
+                            Name = "EndPoint"
+                        }
+                    }
+                });
             maze.GetTile(endRoomCenter.X, endRoomCenter.Y).Id = 9;
         }
     }
