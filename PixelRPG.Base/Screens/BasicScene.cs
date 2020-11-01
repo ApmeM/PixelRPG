@@ -46,14 +46,15 @@
             this.AddEntitySystem(new TiledMapUpdateSystem());
             this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
             this.AddEntitySystem(new CharMouseControlUpdateSystem());
+            this.AddEntitySystem(new LevelCompleteUpdateSystem(this));
 
             var map = this.CreateEntity("map");
             var tiledMap = this.Content.Load<TiledMap>(ContentPaths.Assets.template);
             map.AddComponent(new TiledMapComponent(tiledMap));
             GenerateMap(tiledMap);
             GeneratePathFinding(map);
-            var startPoint = tiledMap.ObjectGroups.First(a => a.Name == "StartPoint").Objects.First(a => a.Name == "Player1StartPoint");
-            var endPoint = tiledMap.ObjectGroups.First(a => a.Name == "EndPoint").Objects.First(a => a.Name == "EndPoint");
+            var startPoint = tiledMap.GetObjectGroup("StartPoint").Objects.First(a => a.Name == "Player1StartPoint");
+            var endPoint = tiledMap.GetObjectGroup("EndPoint").Objects.First(a => a.Name == "EndPoint");
 
             var entity = this.CreateEntity();
             entity.AddComponent<PositionComponent>().Position = new Vector2(startPoint.X + 8, startPoint.Y + 8);
@@ -62,7 +63,7 @@
             entity.AddComponent<InputMouseComponent>();
         }
 
-        private static void GeneratePathFinding(Entity mapEntity)
+        public static void GeneratePathFinding(Entity mapEntity)
         {
             var map = mapEntity.GetComponent<TiledMapComponent>().TiledMap;
 
@@ -85,15 +86,16 @@
             mapEntity.Cache.PutData("PathFinding", graph);
         }
 
-        private static void GenerateMap(TiledMap tiledMap)
+        public static void GenerateMap(TiledMap tiledMap)
         {
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
             var water = (TiledTileLayer)tiledMap.GetLayer("Water");
 
-            tiledMap.Width = maze.Width = 71;
-            tiledMap.Height = maze.Height = 41;
+            tiledMap.Width = maze.Width = 31;
+            tiledMap.Height = maze.Height = 21;
             
             maze.Tiles = new TiledTile[maze.Width * maze.Height];
+            tiledMap.ObjectGroups.Clear();
 
             var generatedMaze = (new RoomMazeGenerator()).Generate(
                 new RoomMazeGenerator.Settings(maze.Width, maze.Height) { ExtraConnectorChance = 5, WindingPercent = 50 });
