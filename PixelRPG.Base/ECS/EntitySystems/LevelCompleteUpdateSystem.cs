@@ -9,6 +9,7 @@
     using Microsoft.Xna.Framework;
     using Microsoft.Xna.Framework.Graphics;
 
+    using MyONez;
     using MyONez.AdditionalContent.TiledMap.ECS.Components;
     using MyONez.AdditionalContent.TiledMap.Models;
     using MyONez.ECS;
@@ -47,8 +48,8 @@
                 entity.GetComponent<PositionComponent>().Position = new Vector2(startPoint.X + 8, startPoint.Y + 8);
                 entity.GetComponent<UnitMoveComponent>().Destination = new Point(endPoint.X + 8, endPoint.Y + 8);
 
-                tiledMap.TileSets[1].ImageTexture = this.scene.Content.Load<Texture2D>($"{ContentPaths.Assets.water0.Trim('0')}{Random.NextInt(5)}");
-                tiledMap.TileSets[0].ImageTexture = this.scene.Content.Load<Texture2D>($"{ContentPaths.Assets.tiles0.Trim('0')}{Random.NextInt(5)}");
+                tiledMap.TileSets[1].ImageTexture = Core.Instance.Content.Load<Texture2D>($"{ContentPaths.Assets.water0.Trim('0')}{Random.NextInt(5)}");
+                tiledMap.TileSets[0].ImageTexture = Core.Instance.Content.Load<Texture2D>($"{ContentPaths.Assets.tiles0.Trim('0')}{Random.NextInt(5)}");
             }
         }
     }

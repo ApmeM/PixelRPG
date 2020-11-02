@@ -49,7 +49,7 @@
             this.AddEntitySystem(new LevelCompleteUpdateSystem(this));
 
             var map = this.CreateEntity("map");
-            var tiledMap = this.Content.Load<TiledMap>(ContentPaths.Assets.template);
+            var tiledMap = Core.Instance.Content.Load<TiledMap>(ContentPaths.Assets.template);
             map.AddComponent(new TiledMapComponent(tiledMap));
             GenerateMap(tiledMap);
             GeneratePathFinding(map);
@@ -59,7 +59,7 @@
             var entity = this.CreateEntity();
             entity.AddComponent<PositionComponent>().Position = new Vector2(startPoint.X + 8, startPoint.Y + 8);
             entity.AddComponent<UnitMoveComponent>().Destination = new Point(endPoint.X + 8, endPoint.Y + 8);
-            entity.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(this.Content, ContentPaths.Assets.Characters.warrior, 6);
+            entity.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, ContentPaths.Assets.Characters.warrior, 6);
             entity.AddComponent<InputMouseComponent>();
         }
 
