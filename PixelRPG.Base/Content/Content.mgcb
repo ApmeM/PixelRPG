@@ -10,8 +10,8 @@
 
 #-------------------------------- References --------------------------------#
 
-/reference:..\..\MyONez.PipelineImporter\bin\Debug\net48\MyONez.PipelineImporter.dll
-/reference:..\..\MyONez.PipelineImporter\bin\Release\net48\MyONez.PipelineImporter.dll
+/reference:..\..\PixelRPG.PipelineImporter\bin\Debug\net48\PixelRPG.PipelineImporter.dll
+/reference:..\..\PixelRPG.PipelineImporter\bin\Release\net48\PixelRPG.PipelineImporter.dll
 
 #---------------------------------- Content ---------------------------------#
 

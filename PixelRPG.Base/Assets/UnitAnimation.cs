@@ -1,6 +1,6 @@
 namespace PixelRPG.Base.Assets
 {
-    using MyONez.ECS.EntitySystems.Animation;
+    using SpineEngine.ECS.EntitySystems.Animation;
 
     public class UnitAnimation
     {

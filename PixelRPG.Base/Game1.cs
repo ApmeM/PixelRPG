@@ -8,12 +8,11 @@ namespace PixelRPG.Base
     using Microsoft.Xna.Framework.Content;
     using Microsoft.Xna.Framework.Graphics;
 
-    using MyONez;
-    using MyONez.AdditionalContent.FaceUI.Utils;
-    using MyONez.AdditionalContent.Scenes;
-    using MyONez.AdditionalContent.TiledMap.Models;
+    using PixelRPG.Base.AdditionalStuff.Scenes;
+    using PixelRPG.Base.AdditionalStuff.TiledMap.Models;
 
     using PixelRPG.Base.Screens;
+    using SpineEngine;
 
     #endregion
 

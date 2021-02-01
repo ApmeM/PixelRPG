@@ -3,7 +3,7 @@ namespace PixelRPG.Base.Assets
     using Microsoft.Xna.Framework.Content;
     using Microsoft.Xna.Framework.Graphics;
 
-    using MyONez.Graphics.Drawable;
+    using SpineEngine.Graphics.Drawable;
 
     public class ItemSprite
     {

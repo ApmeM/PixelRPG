@@ -3,9 +3,9 @@ namespace PixelRPG.Base.Assets.UnitAnimations
     using Microsoft.Xna.Framework.Content;
     using Microsoft.Xna.Framework.Graphics;
 
-    using MyONez.ECS.EntitySystems.Animation;
-    using MyONez.Graphics.Cameras;
-    using MyONez.Graphics.Drawable;
+    using SpineEngine.ECS.EntitySystems.Animation;
+    using SpineEngine.Graphics.Cameras;
+    using SpineEngine.Graphics.Drawable;
 
     public class RottingFistSprite : UnitAnimation {
     

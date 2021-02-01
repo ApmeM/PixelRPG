@@ -13,19 +13,19 @@
 
     using Microsoft.Xna.Framework;
 
-    using MyONez;
-    using MyONez.AdditionalContent.TiledMap.ECS.Components;
-    using MyONez.AdditionalContent.TiledMap.ECS.EntitySystems;
-    using MyONez.AdditionalContent.TiledMap.Models;
-    using MyONez.ECS;
-    using MyONez.ECS.Components;
-    using MyONez.ECS.EntitySystems;
-    using MyONez.Graphics.Renderers;
-    using MyONez.Graphics.ResolutionPolicy;
+    using PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components;
+    using PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems;
+    using PixelRPG.Base.AdditionalStuff.TiledMap.Models;
+    using SpineEngine.ECS;
+    using SpineEngine.ECS.Components;
+    using SpineEngine.ECS.EntitySystems;
+    using SpineEngine.Graphics.Renderers;
+    using SpineEngine.Graphics.ResolutionPolicy;
 
     using PixelRPG.Base.Assets.UnitAnimations;
     using PixelRPG.Base.ECS.Components;
     using PixelRPG.Base.ECS.EntitySystems;
+    using SpineEngine;
 
     #endregion
 

@@ -7,7 +7,7 @@
 
     using Microsoft.Xna.Framework;
 
-    using MyONez.ECS.Components;
+    using SpineEngine.ECS.Components;
 
     using PixelRPG.Base.ECS.Components;
 
