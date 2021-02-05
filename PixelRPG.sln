@@ -4,15 +4,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelRPG.Desktop", "PixelRPG.Desktop\PixelRPG.Desktop.csproj", "{FB1CACD1-A6AE-4930-A9CF-728FF5A15253}"
+	ProjectSection(ProjectDependencies) = postProject
+		{957EEE75-1249-4FC6-B5D2-1D932883001D} = {957EEE75-1249-4FC6-B5D2-1D932883001D}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PixelRPG.Android", "PixelRPG.Android\PixelRPG.Android.csproj", "{C105EEBC-F50D-45B1-8AFF-53AE0AE49729}"
+	ProjectSection(ProjectDependencies) = postProject
+		{957EEE75-1249-4FC6-B5D2-1D932883001D} = {957EEE75-1249-4FC6-B5D2-1D932883001D}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelRPG.Tests", "PixelRPG.Tests\PixelRPG.Tests.csproj", "{DE118076-3738-43D4-B49B-ED54A4FCD7D6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelRPG.Base", "PixelRPG.Base\PixelRPG.Base.csproj", "{E6A31345-45A1-4B1D-B9CD-8E2BD9760247}"
-	ProjectSection(ProjectDependencies) = postProject
-		{957EEE75-1249-4FC6-B5D2-1D932883001D} = {957EEE75-1249-4FC6-B5D2-1D932883001D}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelRPG.Browser", "PixelRPG.Browser\PixelRPG.Browser.csproj", "{C3BB4E98-615E-4F32-9FCE-3903EEB0F686}"
 EndProject
