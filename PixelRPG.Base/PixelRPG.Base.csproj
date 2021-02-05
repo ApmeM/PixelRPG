@@ -20,6 +20,11 @@
   <ItemGroup Condition=" '$(Configuration)' != 'Web' ">
     <PackageReference Include="MonoGame.Framework.Portable" Version="3.7.1.189" />
     <PackageReference Include="MazeGenerators" Version="1.0.0.0" />
+    <PackageReference Include="SpineEngine" Version="1.1.0.0" />
+    <PackageReference Include="FaceUI" Version="2.1.0.0" />   
+    <PackageReference Include="BrainAI" Version="2.2.0.0" />
+    <PackageReference Include="LocomotorECS" Version="1.1.0.0" />
+    <PackageReference Include="FateRandom" Version="1.0.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(Configuration)' == 'Web' ">
@@ -27,6 +32,11 @@
     <PackageReference Include="Bridge" Version="17.6.0" />
     <PackageReference Include="MonoGame.Framework.Bridge" Version="3.7.0.2" />
     <PackageReference Include="MazeGenerators-BridgeNet" Version="1.0.0.0" />
+    <PackageReference Include="SpineEngine-BridgeNet" Version="1.1.0" />
+    <PackageReference Include="FaceUI-BridgeNet" Version="2.1.0" /> 
+    <PackageReference Include="BrainAI-BridgeNet" Version="2.2.0.0" />
+    <PackageReference Include="LocomotorECS-BridgeNet" Version="1.1.0.0" />
+    <PackageReference Include="FateRandom-BridgeNet" Version="1.0.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,11 +46,6 @@
     <EmbeddedResource Remove="obj\**" />
     <None Remove="Content\**" />
     <None Remove="obj\**" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\MyONez.AdditionalContent\MyONez.AdditionalContent.csproj" />
-    <ProjectReference Include="..\MyONez\MyONez.csproj" />
   </ItemGroup>
   
   <ItemGroup>

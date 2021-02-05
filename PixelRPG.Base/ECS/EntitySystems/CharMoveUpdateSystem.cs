@@ -10,8 +10,8 @@
 
     using Microsoft.Xna.Framework;
 
-    using MyONez.ECS;
-    using MyONez.ECS.Components;
+    using SpineEngine.ECS;
+    using SpineEngine.ECS.Components;
 
     using PixelRPG.Base.Assets;
     using PixelRPG.Base.ECS.Components;

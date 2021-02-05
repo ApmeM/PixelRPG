@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -16,20 +16,18 @@
   </ItemGroup>
 
   <ItemGroup> 
-    <PackageReference Include="FaceUI.Content" Version="2.0.0" />
+    <PackageReference Include="FaceUI.Content" Version="2.1.0" />
+    <PackageReference Include="SpineEngine.Content" Version="1.1.0" />
     <PackageReference Include="MonoGame.Content.Builder" Version="3.7.0.9" />
     <PackageReference Include="MonoGame.Framework.Portable" version="3.7.1.189" />
     <PackageReference Include="MonoGame.Framework.DesktopGL" version="3.7.1.189" />
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\MyONez\MyONez.csproj" />
     <ProjectReference Include="..\PixelRPG.Base\PixelRPG.Base.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <MonoGameContentReference Include="..\MyONez\Content\Content.mgcb" Link="Content\BaseContent.mgcb" />
-    <MonoGameContentReference Include="..\MyONez.AdditionalContent\Content\Content.mgcb" Link="Content\AdditionalContent.mgcb" />
     <MonoGameContentReference Include="..\PixelRPG.Base\Content\Content.mgcb" Link="Content\Content.mgcb" />
   </ItemGroup>
 

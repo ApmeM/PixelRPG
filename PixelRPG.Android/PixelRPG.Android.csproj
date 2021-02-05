@@ -59,25 +59,31 @@
     <DebugSymbols>false</DebugSymbols>
     <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
   </PropertyGroup>
-  <ItemGroup> 
+  <ItemGroup>
     <Reference Include="BrainAI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\BrainAI.2.1.0\lib\netstandard2.0\BrainAI.dll</HintPath>
+      <HintPath>..\packages\BrainAI.2.2.0\lib\netstandard2.0\BrainAI.dll</HintPath>
+    </Reference>
+    <Reference Include="FateRandom, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FateRandom.1.0.0\lib\netstandard2.0\FateRandom.dll</HintPath>
     </Reference>
     <Reference Include="FaceUI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FaceUI.2.0.0\lib\netstandard2.0\FaceUI.dll</HintPath>
+      <HintPath>..\packages\FaceUI.2.1.0\lib\netstandard2.0\FaceUI.dll</HintPath>
     </Reference>
     <Reference Include="LocomotorECS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\LocomotorECS.1.1.0\lib\netstandard2.0\LocomotorECS.dll</HintPath>
     </Reference>
-    <Reference Include="MazeGenerators, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\MazeGenerators.1.1.0\lib\netstandard2.0\MazeGenerators.dll</HintPath>
-    </Reference>
     <Reference Include="Mono.Android" />
     <Reference Include="MonoGame.Framework, Version=3.7.1.189, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\MyONez\packages\MonoGame.Framework.Android.3.7.1.189\lib\MonoAndroid\MonoGame.Framework.dll</HintPath>
+      <HintPath>..\packages\MonoGame.Framework.Android.3.7.1.189\lib\MonoAndroid\MonoGame.Framework.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="OpenTK-1.0" />
+    <Reference Include="SpineEngine, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SpineEngine.1.1.0\lib\netstandard2.0\SpineEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="MazeGenerators, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\MazeGenerators.1.0.0\lib\netstandard2.0\MazeGenerators.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -89,12 +95,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <MonoGameContentReference Include="..\MyONez\Content\Content.mgcb">
-      <Link>Content\BaseContent.mgcb</Link>
-    </MonoGameContentReference>
-    <MonoGameContentReference Include="..\MyONez.AdditionalContent\Content\Content.mgcb">
-      <Link>Content\AdditionalContent.mgcb</Link>
-    </MonoGameContentReference>
     <MonoGameContentReference Include="..\PixelRPG.Base\Content\Content.mgcb">
       <Link>Content\Content.mgcb</Link>
     </MonoGameContentReference>
@@ -127,22 +127,20 @@
       <Project>{e6a31345-45a1-4b1d-b9cd-8e2bd9760247}</Project>
       <Name>PixelRPG.Base</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MyONez\MyONez.csproj">
-      <Project>{1af2e279-e8eb-43ab-a0d7-eef0b9f1ed6d}</Project>
-      <Name>MyONez</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Novell\Novell.MonoDroid.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\MonoGame\v3.0\MonoGame.Content.Builder.targets" />
-  <Import Project="..\..\MyONez\packages\MonoGame.Framework.Android.3.7.1.189\build\MonoGame.Framework.Android.targets" Condition="Exists('..\..\MyONez\packages\MonoGame.Framework.Android.3.7.1.189\build\MonoGame.Framework.Android.targets')" />
+  <Import Project="..\packages\MonoGame.Framework.Android.3.7.1.189\build\MonoGame.Framework.Android.targets" Condition="Exists('..\packages\MonoGame.Framework.Android.3.7.1.189\build\MonoGame.Framework.Android.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\..\MyONez\packages\MonoGame.Framework.Android.3.7.1.189\build\MonoGame.Framework.Android.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\MyONez\packages\MonoGame.Framework.Android.3.7.1.189\build\MonoGame.Framework.Android.targets'))" />
-    <Error Condition="!Exists('..\packages\FaceUI.Content.2.0.0\build\FaceUI.Content.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\FaceUI.Content.2.0.0\build\FaceUI.Content.targets'))" />
+    <Error Condition="!Exists('..\packages\MonoGame.Framework.Android.3.7.1.189\build\MonoGame.Framework.Android.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Framework.Android.3.7.1.189\build\MonoGame.Framework.Android.targets'))" />
+    <Error Condition="!Exists('..\packages\FaceUI.Content.2.1.0\build\FaceUI.Content.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\FaceUI.Content.2.1.0\build\FaceUI.Content.targets'))" />
+    <Error Condition="!Exists('..\packages\SpineEngine.Content.1.1.0\build\SpineEngine.Content.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SpineEngine.Content.1.1.0\build\SpineEngine.Content.targets'))" />
   </Target>
-  <Import Project="..\packages\FaceUI.Content.2.0.0\build\FaceUI.Content.targets" Condition="Exists('..\packages\FaceUI.Content.2.0.0\build\FaceUI.Content.targets')" />
+  <Import Project="..\packages\FaceUI.Content.2.1.0\build\FaceUI.Content.targets" Condition="Exists('..\packages\FaceUI.Content.2.1.0\build\FaceUI.Content.targets')" />
+  <Import Project="..\packages\SpineEngine.Content.1.1.0\build\SpineEngine.Content.targets" Condition="Exists('..\packages\SpineEngine.Content.1.1.0\build\SpineEngine.Content.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
