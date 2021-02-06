@@ -1,1 +1,0 @@
-Herethis folder will contain web version of the game available in github pages.

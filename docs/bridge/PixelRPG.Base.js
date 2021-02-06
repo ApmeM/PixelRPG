@@ -5073,104 +5073,6 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         }
     });
 
-    Bridge.define("PixelRPG.Base.ECS.Components.UnitMoveComponent", {
-        inherits: [LocomotorECS.Component],
-        props: {
-            Destination: null,
-            Move: null
-        },
-        ctors: {
-            init: function () {
-                this.Move = new (System.Collections.Generic.List$1(Microsoft.Xna.Framework.Point)).ctor();
-            }
-        }
-    });
-
-    Bridge.define("PixelRPG.Base.ECS.EntitySystems.CharMouseControlUpdateSystem", {
-        inherits: [LocomotorECS.EntityProcessingSystem],
-        ctors: {
-            ctor: function () {
-                this.$initialize();
-                LocomotorECS.EntityProcessingSystem.ctor.call(this, new LocomotorECS.Matching.Matcher().All([PixelRPG.Base.ECS.Components.UnitComponent]));
-            }
-        },
-        methods: {
-            DoAction$1: function (entity, gameTime) {
-                LocomotorECS.EntityProcessingSystem.prototype.DoAction$1.call(this, entity, gameTime);
-                var unitMove = entity.GetComponent(PixelRPG.Base.ECS.Components.UnitMoveComponent);
-                var mouse = entity.GetComponent(SpineEngine.ECS.Components.InputMouseComponent);
-
-                if (mouse.LeftMouseButtonPressed) {
-                    unitMove.Destination = new Microsoft.Xna.Framework.Point.$ctor2(((Bridge.Int.clip32(mouse.MousePosition.X) + 8) | 0), ((Bridge.Int.clip32(mouse.MousePosition.Y) + 8) | 0));
-                }
-            }
-        }
-    });
-
-    Bridge.define("PixelRPG.Base.ECS.EntitySystems.CharMoveUpdateSystem", {
-        inherits: [LocomotorECS.EntityProcessingSystem],
-        fields: {
-            scene: null
-        },
-        ctors: {
-            ctor: function (scene) {
-                this.$initialize();
-                LocomotorECS.EntityProcessingSystem.ctor.call(this, new LocomotorECS.Matching.Matcher().All([PixelRPG.Base.ECS.Components.UnitComponent]));
-                this.scene = scene;
-            }
-        },
-        methods: {
-            DoAction$1: function (entity, gameTime) {
-                LocomotorECS.EntityProcessingSystem.prototype.DoAction$1.call(this, entity, gameTime);
-                var unit = entity.GetComponent(PixelRPG.Base.ECS.Components.UnitComponent);
-                var unitMove = entity.GetComponent(PixelRPG.Base.ECS.Components.UnitMoveComponent);
-                var position = entity.GetComponent(SpineEngine.ECS.Components.PositionComponent);
-
-                if (System.Nullable.liftne(Microsoft.Xna.Framework.Point.op_Inequality, System.Nullable.lift1("$clone", unitMove.Destination), null)) {
-                    var start = new BrainAI.Pathfinding.Point.$ctor1(((Bridge.Int.div((((Bridge.Int.clip32(position.Position.X) - 8) | 0)), 16)) | 0), ((Bridge.Int.div((((Bridge.Int.clip32(position.Position.Y) - 8) | 0)), 16)) | 0));
-                    var map = this.scene.FindEntity("map");
-                    var graph = map.Cache.GetData(BrainAI.Pathfinding.AStar.AstarGridGraph, "PathFinding");
-
-                    var end = new BrainAI.Pathfinding.Point.$ctor1(((Bridge.Int.div((((System.Nullable.getValue(unitMove.Destination).X - 8) | 0)), 16)) | 0), ((Bridge.Int.div((((System.Nullable.getValue(unitMove.Destination).Y - 8) | 0)), 16)) | 0));
-
-                    var path = BrainAI.Pathfinding.AStar.AStarPathfinder.Search$1(BrainAI.Pathfinding.Point, graph, start.$clone(), end.$clone());
-
-                    if (path != null) {
-                        unitMove.Move.clear();
-                        unitMove.Move.AddRange(System.Linq.Enumerable.from(path).select($asm.$.PixelRPG.Base.ECS.EntitySystems.CharMoveUpdateSystem.f1));
-                    } else {
-                        unitMove.Move.clear();
-                    }
-                    unitMove.Destination = null;
-                }
-
-                if (unitMove.Move.Count === 0) {
-                    if (unit.State === PixelRPG.Base.Assets.UnitState.Run) {
-                        unit.State = PixelRPG.Base.Assets.UnitState.Idle;
-                    }
-                    return;
-                }
-
-                unit.State = PixelRPG.Base.Assets.UnitState.Run;
-                var destination = unitMove.Move.getItem(0).$clone();
-                if (destination.X === position.Position.X && destination.Y === position.Position.Y) {
-                    unitMove.Move.removeAt(0);
-                    return;
-                }
-
-                position.Position = Microsoft.Xna.Framework.Vector2.op_Addition(position.Position.$clone(), new Microsoft.Xna.Framework.Vector2.$ctor2(Bridge.Int.sign(destination.X - position.Position.X), Bridge.Int.sign(destination.Y - position.Position.Y)));
-            }
-        }
-    });
-
-    Bridge.ns("PixelRPG.Base.ECS.EntitySystems.CharMoveUpdateSystem", $asm.$);
-
-    Bridge.apply($asm.$.PixelRPG.Base.ECS.EntitySystems.CharMoveUpdateSystem, {
-        f1: function (a) {
-            return new Microsoft.Xna.Framework.Point.$ctor2(((Bridge.Int.mul(a.X, 16) + 8) | 0), ((Bridge.Int.mul(a.Y, 16) + 8) | 0));
-        }
-    });
-
     Bridge.define("PixelRPG.Base.ECS.EntitySystems.CharSpriteUpdateSystem", {
         inherits: [LocomotorECS.EntityProcessingSystem],
         ctors: {
@@ -5212,6 +5114,100 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         }
     });
 
+    Bridge.define("PixelRPG.Base.ECS.EntitySystems.CharTurnSelectorUpdateSystem", {
+        inherits: [LocomotorECS.EntityProcessingSystem],
+        fields: {
+            scene: null
+        },
+        ctors: {
+            ctor: function (scene) {
+                this.$initialize();
+                LocomotorECS.EntityProcessingSystem.ctor.call(this, new LocomotorECS.Matching.Matcher().All([PixelRPG.Base.AdditionalStuff.TurnBase.Components.PlayerTurnComponent]));
+                this.scene = scene;
+            }
+        },
+        methods: {
+            DoAction$1: function (entity, gameTime) {
+                LocomotorECS.EntityProcessingSystem.prototype.DoAction$1.call(this, entity, gameTime);
+                var playerTurn = entity.GetComponent(PixelRPG.Base.AdditionalStuff.TurnBase.Components.PlayerTurnComponent);
+
+                if (playerTurn.TurnMade) {
+                    return;
+                }
+
+                var position = entity.GetComponent(SpineEngine.ECS.Components.PositionComponent);
+                var start = new BrainAI.Pathfinding.Point.$ctor1(((Bridge.Int.div((((Bridge.Int.clip32(position.Position.X) - 8) | 0)), 16)) | 0), ((Bridge.Int.div((((Bridge.Int.clip32(position.Position.Y) - 8) | 0)), 16)) | 0));
+                var map = this.scene.FindEntity("map");
+                var graph = map.Cache.GetData(BrainAI.Pathfinding.AStar.AstarGridGraph, "PathFinding");
+
+                var destination = System.Linq.Enumerable.from(this.scene.FindEntity("map").GetComponent(PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent).TiledMap.GetObjectGroup("EndPoint").Objects).first($asm.$.PixelRPG.Base.ECS.EntitySystems.CharTurnSelectorUpdateSystem.f1);
+
+                var end = new BrainAI.Pathfinding.Point.$ctor1(((Bridge.Int.div(destination.X, 16)) | 0), ((Bridge.Int.div(destination.Y, 16)) | 0));
+
+                var path = BrainAI.Pathfinding.AStar.AStarPathfinder.Search$1(BrainAI.Pathfinding.Point, graph, start.$clone(), end.$clone());
+
+                playerTurn.TurnData = playerTurn.TurnData || new PixelRPG.Base.ECS.EntitySystems.Models.TurnData();
+
+                if (path == null || path.Count < 2) {
+                    Bridge.cast(playerTurn.TurnData, PixelRPG.Base.ECS.EntitySystems.Models.TurnData).MoveTo = start.$clone();
+                } else {
+                    Bridge.cast(playerTurn.TurnData, PixelRPG.Base.ECS.EntitySystems.Models.TurnData).MoveTo = path.getItem(1).$clone();
+                }
+
+                Bridge.cast(playerTurn.TurnData, PixelRPG.Base.ECS.EntitySystems.Models.TurnData).Entity = entity;
+
+                playerTurn.TurnMade = true;
+            }
+        }
+    });
+
+    Bridge.ns("PixelRPG.Base.ECS.EntitySystems.CharTurnSelectorUpdateSystem", $asm.$);
+
+    Bridge.apply($asm.$.PixelRPG.Base.ECS.EntitySystems.CharTurnSelectorUpdateSystem, {
+        f1: function (a) {
+            return Bridge.referenceEquals(a.Name, "EndPoint");
+        }
+    });
+
+    Bridge.define("PixelRPG.Base.ECS.EntitySystems.GameTurnAnimationSystem", {
+        inherits: [LocomotorECS.EntityProcessingSystem],
+        ctors: {
+            ctor: function () {
+                this.$initialize();
+                LocomotorECS.EntityProcessingSystem.ctor.call(this, new LocomotorECS.Matching.Matcher().All([PixelRPG.Base.AdditionalStuff.TurnBase.Components.ApplyTurnComponent]));
+
+            }
+        },
+        methods: {
+            DoAction$1: function (entity, gameTime) {
+                LocomotorECS.EntityProcessingSystem.prototype.DoAction$1.call(this, entity, gameTime);
+                var applyTurn = entity.GetComponent(PixelRPG.Base.AdditionalStuff.TurnBase.Components.ApplyTurnComponent);
+                if (applyTurn.TurnApplied) {
+                    return;
+                }
+
+                var moved = false;
+                for (var i = 0; i < applyTurn.TurnsData.Count; i = (i + 1) | 0) {
+                    var turnData = Bridge.cast(applyTurn.TurnsData.getItem(i), PixelRPG.Base.ECS.EntitySystems.Models.TurnData);
+                    var position = turnData.Entity.GetComponent(SpineEngine.ECS.Components.PositionComponent);
+                    var unit = turnData.Entity.GetComponent(PixelRPG.Base.ECS.Components.UnitComponent);
+                    var end = turnData.MoveTo.$clone();
+
+                    if (((Bridge.Int.mul(end.X, 16) + 8) | 0) === position.Position.X && ((Bridge.Int.mul(end.Y, 16) + 8) | 0) === position.Position.Y) {
+                        unit.State = PixelRPG.Base.Assets.UnitState.Idle;
+                        continue;
+                    }
+
+                    unit.State = PixelRPG.Base.Assets.UnitState.Run;
+                    moved = true;
+                    position.Position = Microsoft.Xna.Framework.Vector2.op_Addition(position.Position.$clone(), new Microsoft.Xna.Framework.Vector2.$ctor2(Bridge.Int.sign(((Bridge.Int.mul(end.X, 16) + 8) | 0) - position.Position.X), Bridge.Int.sign(((Bridge.Int.mul(end.Y, 16) + 8) | 0) - position.Position.Y)));
+                }
+
+                applyTurn.TurnApplied = !moved;
+            }
+        }
+    });
+
     Bridge.define("PixelRPG.Base.ECS.EntitySystems.LevelCompleteUpdateSystem", {
         inherits: [LocomotorECS.EntityProcessingSystem],
         fields: {
@@ -5220,29 +5216,52 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         ctors: {
             ctor: function (scene) {
                 this.$initialize();
-                LocomotorECS.EntityProcessingSystem.ctor.call(this, new LocomotorECS.Matching.Matcher().All([PixelRPG.Base.ECS.Components.UnitComponent]));
+                LocomotorECS.EntityProcessingSystem.ctor.call(this, new LocomotorECS.Matching.Matcher().All([PixelRPG.Base.AdditionalStuff.TurnBase.Components.PlayerSwitcherComponent]));
                 this.scene = scene;
             }
         },
         methods: {
             DoAction$1: function (entity, gameTime) {
                 LocomotorECS.EntityProcessingSystem.prototype.DoAction$1.call(this, entity, gameTime);
-                var map = this.scene.FindEntity("map");
-                var tiledMap = map.GetComponent(PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent).TiledMap;
-                var startPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("StartPoint").Objects).first($asm.$.PixelRPG.Base.ECS.EntitySystems.LevelCompleteUpdateSystem.f1);
-                var endPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("EndPoint").Objects).first($asm.$.PixelRPG.Base.ECS.EntitySystems.LevelCompleteUpdateSystem.f2);
-                var position = entity.GetComponent(SpineEngine.ECS.Components.PositionComponent);
 
-                if (((endPoint.X + 8) | 0) === position.Position.X && ((endPoint.Y + 8) | 0) === position.Position.Y) {
-                    PixelRPG.Base.Screens.BasicScene.GenerateMap(tiledMap);
-                    PixelRPG.Base.Screens.BasicScene.GeneratePathFinding(map);
-                    startPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("StartPoint").Objects).first($asm.$.PixelRPG.Base.ECS.EntitySystems.LevelCompleteUpdateSystem.f1);
-                    endPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("EndPoint").Objects).first($asm.$.PixelRPG.Base.ECS.EntitySystems.LevelCompleteUpdateSystem.f2);
-                    entity.GetComponent(SpineEngine.ECS.Components.PositionComponent).Position = new Microsoft.Xna.Framework.Vector2.$ctor2(((startPoint.X + 8) | 0), ((startPoint.Y + 8) | 0));
-                    entity.GetComponent(PixelRPG.Base.ECS.Components.UnitMoveComponent).Destination = new Microsoft.Xna.Framework.Point.$ctor2(((endPoint.X + 8) | 0), ((endPoint.Y + 8) | 0));
+                var playerSwitcher = entity.GetComponent(PixelRPG.Base.AdditionalStuff.TurnBase.Components.PlayerSwitcherComponent);
+                var tiledMap = entity.GetComponent(PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent).TiledMap;
+                var endPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("EndPoint").Objects).first($asm.$.PixelRPG.Base.ECS.EntitySystems.LevelCompleteUpdateSystem.f1);
 
-                    tiledMap.TileSets.getItem(1).ImageTexture = SpineEngine.Core.Instance.Content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, System.String.format("{0}{1}", System.String.trim(PixelRPG.Base.ContentPaths.Assets.water0, [48]), Bridge.box(FateRandom.Fate.GlobalFate.NextInt(5), System.Int32)));
-                    tiledMap.TileSets.getItem(0).ImageTexture = SpineEngine.Core.Instance.Content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, System.String.format("{0}{1}", System.String.trim(PixelRPG.Base.ContentPaths.Assets.tiles0, [48]), Bridge.box(FateRandom.Fate.GlobalFate.NextInt(5), System.Int32)));
+                var found = true;
+                for (var i = 0; i < playerSwitcher.Players.length; i = (i + 1) | 0) {
+                    var turnData = Bridge.cast(playerSwitcher.Players[System.Array.index(i, playerSwitcher.Players)].TurnData, PixelRPG.Base.ECS.EntitySystems.Models.TurnData);
+                    if (turnData == null || turnData.Entity == null) {
+                        found = false;
+                        continue;
+                    }
+
+                    var position = turnData.Entity.GetComponent(SpineEngine.ECS.Components.PositionComponent);
+
+                    if (((endPoint.X + 8) | 0) !== position.Position.X || ((endPoint.Y + 8) | 0) !== position.Position.Y) {
+                        found = false;
+                        continue;
+                    }
+                }
+
+                if (!found) {
+                    return;
+                }
+
+                PixelRPG.Base.Screens.BasicScene.GenerateMap(tiledMap);
+                PixelRPG.Base.Screens.BasicScene.GeneratePathFinding(entity);
+                tiledMap.TileSets.getItem(1).ImageTexture = SpineEngine.Core.Instance.Content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, System.String.format("{0}{1}", System.String.trim(PixelRPG.Base.ContentPaths.Assets.water0, [48]), Bridge.box(FateRandom.Fate.GlobalFate.NextInt(5), System.Int32)));
+                tiledMap.TileSets.getItem(0).ImageTexture = SpineEngine.Core.Instance.Content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, System.String.format("{0}{1}", System.String.trim(PixelRPG.Base.ContentPaths.Assets.tiles0, [48]), Bridge.box(FateRandom.Fate.GlobalFate.NextInt(5), System.Int32)));
+
+                for (var i1 = 0; i1 < playerSwitcher.Players.length; i1 = (i1 + 1) | 0) {
+                    var turnData1 = Bridge.cast(playerSwitcher.Players[System.Array.index(i1, playerSwitcher.Players)].TurnData, PixelRPG.Base.ECS.EntitySystems.Models.TurnData);
+                    var player = turnData1.Entity;
+
+                    var startPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("StartPoint").Objects).first(function (a) {
+                            return Bridge.referenceEquals(a.Name, System.String.format("Player{0}StartPoint", [Bridge.box(((i1 + 1) | 0), System.Int32)]));
+                        });
+                    player.GetComponent(SpineEngine.ECS.Components.PositionComponent).Position = new Microsoft.Xna.Framework.Vector2.$ctor2(((startPoint.X + 8) | 0), ((startPoint.Y + 8) | 0));
+                    turnData1.MoveTo = new BrainAI.Pathfinding.Point.$ctor1(((Bridge.Int.div(startPoint.X, 16)) | 0), ((Bridge.Int.div(startPoint.Y, 16)) | 0));
                 }
             }
         }
@@ -5252,9 +5271,6 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
     Bridge.apply($asm.$.PixelRPG.Base.ECS.EntitySystems.LevelCompleteUpdateSystem, {
         f1: function (a) {
-            return Bridge.referenceEquals(a.Name, "Player1StartPoint");
-        },
-        f2: function (a) {
             return Bridge.referenceEquals(a.Name, "EndPoint");
         }
     });
@@ -5418,8 +5434,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                     var maze = Bridge.cast(tiledMap.GetLayer("Maze"), PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTileLayer);
                     var water = Bridge.cast(tiledMap.GetLayer("Water"), PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTileLayer);
 
-                    tiledMap.Width = (maze.Width = 31);
-                    tiledMap.Height = (maze.Height = 21);
+                    tiledMap.Width = (maze.Width = 41);
+                    tiledMap.Height = (maze.Height = 31);
 
                     maze.Tiles = System.Array.init(Bridge.Int.mul(maze.Width, maze.Height), null, PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTile);
                     tiledMap.ObjectGroups.clear();
@@ -5445,27 +5461,40 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                         tile1.Id = 6;
                     }
 
-                    var startRoom = generatedMaze.Rooms.getItem(0).$clone();
-                    var startRoomCenter = new Microsoft.Xna.Framework.Point.$ctor2(((startRoom.X + ((Bridge.Int.div(startRoom.Width, 2)) | 0)) | 0), ((startRoom.Y + ((Bridge.Int.div(startRoom.Height, 2)) | 0)) | 0));
-                    tiledMap.ObjectGroups.add(($t = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObjectGroup(), $t.Name = "StartPoint", $t.Objects = function (_o1) {
-                            var $t1;
-                            _o1.add(($t1 = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObject(), $t1.X = Bridge.Int.mul(startRoomCenter.X, tiledMap.TileWidth), $t1.Y = Bridge.Int.mul(startRoomCenter.Y, tiledMap.TileHeight), $t1.Name = "Player1StartPoint", $t1));
-                            return _o1;
-                        }(new (System.Collections.Generic.List$1(PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObject)).ctor()), $t));
-                    maze.GetTile(startRoomCenter.X, startRoomCenter.Y).Id = 8;
+                    var startGroup = ($t = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObjectGroup(), $t.Name = "StartPoint", $t.Objects = new (System.Collections.Generic.List$1(PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObject)).ctor(), $t);
+                    tiledMap.ObjectGroups.add(startGroup);
+
+                    PixelRPG.Base.Screens.BasicScene.GenerateStartPoint(tiledMap, 0, maze, generatedMaze, startGroup);
+                    PixelRPG.Base.Screens.BasicScene.GenerateStartPoint(tiledMap, 1, maze, generatedMaze, startGroup);
+                    PixelRPG.Base.Screens.BasicScene.GenerateStartPoint(tiledMap, 2, maze, generatedMaze, startGroup);
+                    PixelRPG.Base.Screens.BasicScene.GenerateStartPoint(tiledMap, 3, maze, generatedMaze, startGroup);
+                    PixelRPG.Base.Screens.BasicScene.GenerateStartPoint(tiledMap, 4, maze, generatedMaze, startGroup);
 
                     var endRoom = generatedMaze.Rooms.getItem(((generatedMaze.Rooms.Count - 1) | 0)).$clone();
                     var endRoomCenter = new Microsoft.Xna.Framework.Point.$ctor2(((endRoom.X + ((Bridge.Int.div(endRoom.Width, 2)) | 0)) | 0), ((endRoom.Y + ((Bridge.Int.div(endRoom.Height, 2)) | 0)) | 0));
-                    tiledMap.ObjectGroups.add(($t = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObjectGroup(), $t.Name = "EndPoint", $t.Objects = function (_o2) {
+                    tiledMap.ObjectGroups.add(($t = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObjectGroup(), $t.Name = "EndPoint", $t.Objects = function (_o1) {
                             var $t1;
-                            _o2.add(($t1 = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObject(), $t1.X = Bridge.Int.mul(endRoomCenter.X, tiledMap.TileWidth), $t1.Y = Bridge.Int.mul(endRoomCenter.Y, tiledMap.TileHeight), $t1.Name = "EndPoint", $t1));
-                            return _o2;
+                            _o1.add(($t1 = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObject(), $t1.X = Bridge.Int.mul(endRoomCenter.X, tiledMap.TileWidth), $t1.Y = Bridge.Int.mul(endRoomCenter.Y, tiledMap.TileHeight), $t1.Name = "EndPoint", $t1));
+                            return _o1;
                         }(new (System.Collections.Generic.List$1(PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObject)).ctor()), $t));
                     maze.GetTile(endRoomCenter.X, endRoomCenter.Y).Id = 9;
+                },
+                GenerateStartPoint: function (tiledMap, idx, maze, generatedMaze, startGroup) {
+                    var $t;
+                    var startRoom = generatedMaze.Rooms.getItem(idx).$clone();
+                    var startRoomCenter = new Microsoft.Xna.Framework.Point.$ctor2(((startRoom.X + ((Bridge.Int.div(startRoom.Width, 2)) | 0)) | 0), ((startRoom.Y + ((Bridge.Int.div(startRoom.Height, 2)) | 0)) | 0));
+                    startGroup.Objects.add(($t = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledObject(), $t.X = Bridge.Int.mul(startRoomCenter.X, tiledMap.TileWidth), $t.Y = Bridge.Int.mul(startRoomCenter.Y, tiledMap.TileHeight), $t.Name = System.String.format("Player{0}StartPoint", [Bridge.box(((idx + 1) | 0), System.Int32)]), $t));
+                    maze.GetTile(startRoomCenter.X, startRoomCenter.Y).Id = 8;
                 }
             }
         },
+        fields: {
+            availableAnimations: null
+        },
         ctors: {
+            init: function () {
+                this.availableAnimations = $asm.$.PixelRPG.Base.Screens.BasicScene.f1(new (System.Collections.Generic.List$1(System.String)).ctor());
+            },
             ctor: function () {
                 this.$initialize();
                 SpineEngine.ECS.Scene.ctor.call(this);
@@ -5478,25 +5507,33 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems.TiledMapMeshGeneratorSystem(this));
                 this.AddEntitySystem(new SpineEngine.ECS.EntitySystems.AnimationSpriteUpdateSystem());
                 this.AddEntitySystem(new PixelRPG.Base.ECS.EntitySystems.CharSpriteUpdateSystem());
-                this.AddEntitySystem(new PixelRPG.Base.ECS.EntitySystems.CharMoveUpdateSystem(this));
+                this.AddEntitySystem(new PixelRPG.Base.ECS.EntitySystems.GameTurnAnimationSystem());
                 this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems.TiledMapUpdateSystem());
                 this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems.TiledMapMeshGeneratorSystem(this));
-                this.AddEntitySystem(new PixelRPG.Base.ECS.EntitySystems.CharMouseControlUpdateSystem());
+                this.AddEntitySystem(new PixelRPG.Base.ECS.EntitySystems.CharTurnSelectorUpdateSystem(this));
                 this.AddEntitySystem(new PixelRPG.Base.ECS.EntitySystems.LevelCompleteUpdateSystem(this));
+                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.TurnBase.EntitySystems.TurnSelectorUpdateSystem());
+
+                var tiledMap = SpineEngine.Core.Instance.Content.Load(PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledMap, PixelRPG.Base.ContentPaths.Assets.template);
+                PixelRPG.Base.Screens.BasicScene.GenerateMap(tiledMap);
 
                 var map = this.CreateEntity("map");
-                var tiledMap = SpineEngine.Core.Instance.Content.Load(PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledMap, PixelRPG.Base.ContentPaths.Assets.template);
                 map.AddComponent$1(PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent, new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent(tiledMap));
-                PixelRPG.Base.Screens.BasicScene.GenerateMap(tiledMap);
+                map.AddComponent$1(PixelRPG.Base.AdditionalStuff.TurnBase.Components.PlayerSwitcherComponent, new PixelRPG.Base.AdditionalStuff.TurnBase.Components.PlayerSwitcherComponent(PixelRPG.Base.AdditionalStuff.TurnBase.Components.PlayerSwitcherComponent.PlayerSwitchType.AllAtOnce, [this.AddPlayer(tiledMap, "1"), this.AddPlayer(tiledMap, "2"), this.AddPlayer(tiledMap, "3"), this.AddPlayer(tiledMap, "4")]));
+                map.AddComponent(PixelRPG.Base.AdditionalStuff.TurnBase.Components.ApplyTurnComponent);
                 PixelRPG.Base.Screens.BasicScene.GeneratePathFinding(map);
-                var startPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("StartPoint").Objects).first($asm.$.PixelRPG.Base.Screens.BasicScene.f1);
-                var endPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("EndPoint").Objects).first($asm.$.PixelRPG.Base.Screens.BasicScene.f2);
-
-                var entity = this.CreateEntity();
-                entity.AddComponent(SpineEngine.ECS.Components.PositionComponent).Position = new Microsoft.Xna.Framework.Vector2.$ctor2(((startPoint.X + 8) | 0), ((startPoint.Y + 8) | 0));
-                entity.AddComponent(PixelRPG.Base.ECS.Components.UnitMoveComponent).Destination = new Microsoft.Xna.Framework.Point.$ctor2(((endPoint.X + 8) | 0), ((endPoint.Y + 8) | 0));
-                entity.AddComponent(PixelRPG.Base.ECS.Components.UnitComponent).UnitAnimations = new PixelRPG.Base.Assets.UnitAnimations.HeroSprite(SpineEngine.Core.Instance.Content, PixelRPG.Base.ContentPaths.Assets.Characters.warrior, 6);
-                entity.AddComponent(SpineEngine.ECS.Components.InputMouseComponent);
+            }
+        },
+        methods: {
+            AddPlayer: function (tiledMap, playerIndex) {
+                var player1StartPoint = System.Linq.Enumerable.from(tiledMap.GetObjectGroup("StartPoint").Objects).first(function (a) {
+                        return Bridge.referenceEquals(a.Name, System.String.format("Player{0}StartPoint", [playerIndex]));
+                    });
+                var player1 = this.CreateEntity();
+                player1.AddComponent(SpineEngine.ECS.Components.PositionComponent).Position = new Microsoft.Xna.Framework.Vector2.$ctor2(((player1StartPoint.X + 8) | 0), ((player1StartPoint.Y + 8) | 0));
+                player1.AddComponent(PixelRPG.Base.ECS.Components.UnitComponent).UnitAnimations = new PixelRPG.Base.Assets.UnitAnimations.HeroSprite(SpineEngine.Core.Instance.Content, FateRandom.Fate.GlobalFate.Choose$3(System.String, this.availableAnimations), 6);
+                var player1Turn = player1.AddComponent(PixelRPG.Base.AdditionalStuff.TurnBase.Components.PlayerTurnComponent);
+                return player1Turn;
             }
         }
     });
@@ -5504,11 +5541,12 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
     Bridge.ns("PixelRPG.Base.Screens.BasicScene", $asm.$);
 
     Bridge.apply($asm.$.PixelRPG.Base.Screens.BasicScene, {
-        f1: function (a) {
-            return Bridge.referenceEquals(a.Name, "Player1StartPoint");
-        },
-        f2: function (a) {
-            return Bridge.referenceEquals(a.Name, "EndPoint");
+        f1: function (_o1) {
+            _o1.add(PixelRPG.Base.ContentPaths.Assets.Characters.mage);
+            _o1.add(PixelRPG.Base.ContentPaths.Assets.Characters.ranger);
+            _o1.add(PixelRPG.Base.ContentPaths.Assets.Characters.rogue);
+            _o1.add(PixelRPG.Base.ContentPaths.Assets.Characters.warrior);
+            return _o1;
         }
     });
 
@@ -7339,6 +7377,19 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 this.Attack = new SpineEngine.ECS.EntitySystems.Animation.SpriteAnimation.$ctor4(frames, [0]);
 
                 this.Die = new SpineEngine.ECS.EntitySystems.Animation.SpriteAnimation.$ctor4(frames, [0, 7, 8, 9]);
+            }
+        }
+    });
+
+    Bridge.define("PixelRPG.Base.ECS.EntitySystems.Models.TurnData", {
+        inherits: [PixelRPG.Base.AdditionalStuff.TurnBase.ITurnData],
+        props: {
+            Entity: null,
+            MoveTo: null
+        },
+        ctors: {
+            init: function () {
+                this.MoveTo = new BrainAI.Pathfinding.Point();
             }
         }
     });
