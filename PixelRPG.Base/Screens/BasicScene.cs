@@ -26,6 +26,9 @@
     using PixelRPG.Base.ECS.Components;
     using PixelRPG.Base.ECS.EntitySystems;
     using SpineEngine;
+    using PixelRPG.Base.AdditionalStuff.TurnBase.EntitySystems;
+    using PixelRPG.Base.AdditionalStuff.TurnBase.Components;
+    using FateRandom;
 
     #endregion
 
@@ -42,25 +45,44 @@
             this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
             this.AddEntitySystem(new AnimationSpriteUpdateSystem());
             this.AddEntitySystem(new CharSpriteUpdateSystem());
-            this.AddEntitySystem(new CharMoveUpdateSystem(this));
+            this.AddEntitySystem(new GameTurnAnimationSystem());
             this.AddEntitySystem(new TiledMapUpdateSystem());
             this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
-            this.AddEntitySystem(new CharMouseControlUpdateSystem());
+            this.AddEntitySystem(new CharTurnSelectorUpdateSystem(this));
             this.AddEntitySystem(new LevelCompleteUpdateSystem(this));
+            this.AddEntitySystem(new TurnSelectorUpdateSystem());
+
+            var tiledMap = Core.Instance.Content.Load<TiledMap>(ContentPaths.Assets.template);
+            GenerateMap(tiledMap);
 
             var map = this.CreateEntity("map");
-            var tiledMap = Core.Instance.Content.Load<TiledMap>(ContentPaths.Assets.template);
             map.AddComponent(new TiledMapComponent(tiledMap));
-            GenerateMap(tiledMap);
+            map.AddComponent(new PlayerSwitcherComponent(PlayerSwitcherComponent.PlayerSwitchType.AllAtOnce, 
+                AddPlayer(tiledMap, "1"),
+                AddPlayer(tiledMap, "2"),
+                AddPlayer(tiledMap, "3"),
+                AddPlayer(tiledMap, "4")
+                ));
+            map.AddComponent<ApplyTurnComponent>();
             GeneratePathFinding(map);
-            var startPoint = tiledMap.GetObjectGroup("StartPoint").Objects.First(a => a.Name == "Player1StartPoint");
-            var endPoint = tiledMap.GetObjectGroup("EndPoint").Objects.First(a => a.Name == "EndPoint");
+        }
 
-            var entity = this.CreateEntity();
-            entity.AddComponent<PositionComponent>().Position = new Vector2(startPoint.X + 8, startPoint.Y + 8);
-            entity.AddComponent<UnitMoveComponent>().Destination = new Point(endPoint.X + 8, endPoint.Y + 8);
-            entity.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, ContentPaths.Assets.Characters.warrior, 6);
-            entity.AddComponent<InputMouseComponent>();
+        List<string> availableAnimations = new List<string>
+        {
+            ContentPaths.Assets.Characters.mage,
+            ContentPaths.Assets.Characters.ranger,
+            ContentPaths.Assets.Characters.rogue,
+            ContentPaths.Assets.Characters.warrior
+        };
+
+        private PlayerTurnComponent AddPlayer(TiledMap tiledMap, string playerIndex)
+        {
+            var player1StartPoint = tiledMap.GetObjectGroup("StartPoint").Objects.First(a => a.Name == $"Player{playerIndex}StartPoint");
+            var player1 = this.CreateEntity();
+            player1.AddComponent<PositionComponent>().Position = new Vector2(player1StartPoint.X + 8, player1StartPoint.Y + 8);
+            player1.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, Fate.GlobalFate.Choose<string>(availableAnimations), 6);
+            var player1Turn = player1.AddComponent<PlayerTurnComponent>();
+            return player1Turn;
         }
 
         public static void GeneratePathFinding(Entity mapEntity)
@@ -91,9 +113,9 @@
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
             var water = (TiledTileLayer)tiledMap.GetLayer("Water");
 
-            tiledMap.Width = maze.Width = 31;
-            tiledMap.Height = maze.Height = 21;
-            
+            tiledMap.Width = maze.Width = 41;
+            tiledMap.Height = maze.Height = 31;
+
             maze.Tiles = new TiledTile[maze.Width * maze.Height];
             tiledMap.ObjectGroups.Clear();
 
@@ -101,20 +123,20 @@
                 new RoomMazeGenerator.Settings(maze.Width, maze.Height) { ExtraConnectorChance = 5, WindingPercent = 50 });
 
             for (var x = 0; x < generatedMaze.Regions.GetLength(0); x++)
-            for (var y = 0; y < generatedMaze.Regions.GetLength(1); y++)
-            {
-                var tile = new TiledTile();
-                if (generatedMaze.Regions[x, y].HasValue)
+                for (var y = 0; y < generatedMaze.Regions.GetLength(1); y++)
                 {
-                    tile.Id = 2;
-                }
-                else
-                {
-                    tile.Id = 17;
-                }
+                    var tile = new TiledTile();
+                    if (generatedMaze.Regions[x, y].HasValue)
+                    {
+                        tile.Id = 2;
+                    }
+                    else
+                    {
+                        tile.Id = 17;
+                    }
 
-                maze.SetTile(x, y, tile);
-            }
+                    maze.SetTile(x, y, tile);
+                }
 
             for (var i = 0; i < generatedMaze.Junctions.Count; i++)
             {
@@ -123,24 +145,19 @@
                 tile.Id = 6;
             }
 
-            var startRoom = generatedMaze.Rooms[0];
-            var startRoomCenter = new Point(startRoom.X + startRoom.Width / 2, startRoom.Y + startRoom.Height / 2);
-            tiledMap.ObjectGroups.Add(
-                new TiledObjectGroup
-                {
-                    Name = "StartPoint",
-                    Objects = new List<TiledObject>
-                    {
-                        new TiledObject
-                        {
-                            X = startRoomCenter.X * tiledMap.TileWidth,
-                            Y = startRoomCenter.Y * tiledMap.TileHeight,
-                            Name = "Player1StartPoint"
-                        }
-                    }
-                });
-            maze.GetTile(startRoomCenter.X, startRoomCenter.Y).Id = 8;
+            var startGroup = new TiledObjectGroup
+            {
+                Name = "StartPoint",
+                Objects = new List<TiledObject>()
+            };
+            tiledMap.ObjectGroups.Add(startGroup);
             
+            GenerateStartPoint(tiledMap, 0, maze, generatedMaze, startGroup);
+            GenerateStartPoint(tiledMap, 1, maze, generatedMaze, startGroup);
+            GenerateStartPoint(tiledMap, 2, maze, generatedMaze, startGroup);
+            GenerateStartPoint(tiledMap, 3, maze, generatedMaze, startGroup);
+            GenerateStartPoint(tiledMap, 4, maze, generatedMaze, startGroup);
+
             var endRoom = generatedMaze.Rooms[generatedMaze.Rooms.Count - 1];
             var endRoomCenter = new Point(endRoom.X + endRoom.Width / 2, endRoom.Y + endRoom.Height / 2);
             tiledMap.ObjectGroups.Add(
@@ -158,6 +175,20 @@
                     }
                 });
             maze.GetTile(endRoomCenter.X, endRoomCenter.Y).Id = 9;
+        }
+
+        private static void GenerateStartPoint(TiledMap tiledMap, int idx, TiledTileLayer maze, RoomMazeGenerator.Result generatedMaze, TiledObjectGroup startGroup)
+        {
+            var startRoom = generatedMaze.Rooms[idx];
+            var startRoomCenter = new Point(startRoom.X + startRoom.Width / 2, startRoom.Y + startRoom.Height / 2);
+            startGroup.Objects.Add(
+                        new TiledObject
+                        {
+                            X = startRoomCenter.X * tiledMap.TileWidth,
+                            Y = startRoomCenter.Y * tiledMap.TileHeight,
+                            Name = $"Player{idx + 1}StartPoint"
+                        });
+            maze.GetTile(startRoomCenter.X, startRoomCenter.Y).Id = 8;
         }
     }
 }

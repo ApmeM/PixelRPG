@@ -52,10 +52,12 @@ jobs:
         git config --global user.name "Autodeploy"
         git checkout gh-pages
         git merge --no-ff --no-commit origin/master
-        mv ./PixelRPG.Browser/bin/Web/net48/index.html ./docs/index.html -force
-        mv ./PixelRPG.Browser/bin/Web/net48/web.config ./docs/web.config -force
-        mv ./PixelRPG.Browser/bin/Web/net48/bridge ./docs/bridge -force
-        mv ./PixelRPG.Browser/bin/Web/net48/Content ./docs/Content -force
+        rm -recurse -force ./docs
+        mkdir ./docs
+        mv ./PixelRPG.Browser/bin/Web/net48/index.html ./docs/ -force
+        mv ./PixelRPG.Browser/bin/Web/net48/web.config ./docs/ -force
+        mv ./PixelRPG.Browser/bin/Web/net48/bridge ./docs/ -force
+        mv ./PixelRPG.Browser/bin/Web/net48/Content ./docs/ -force
         ls ./docs
         git add --all .
         git status
