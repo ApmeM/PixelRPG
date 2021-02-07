@@ -11,7 +11,6 @@
 
     using MazeGenerators;
 
-    using Microsoft.Xna.Framework;
 
     using PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components;
     using PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems;
@@ -26,48 +25,146 @@
     using PixelRPG.Base.ECS.Components;
     using PixelRPG.Base.ECS.EntitySystems;
     using SpineEngine;
-    using PixelRPG.Base.AdditionalStuff.TurnBase.EntitySystems;
-    using PixelRPG.Base.AdditionalStuff.TurnBase.Components;
     using FateRandom;
+    using LocomotorECS.Matching;
+    using PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages;
+    using Microsoft.Xna.Framework;
+    using PixelRPG.Base.AdditionalStuff.BrainAI.Components;
+    using BrainAI.AI;
+    using PixelRPG.Base.AdditionalStuff.BrainAI.EntitySystems;
 
     #endregion
 
-    public class BasicScene : Scene
+    public class ServerLogicSystem : EntityProcessingSystem
     {
-        public BasicScene()
+        private readonly Scene scene;
+
+        public ServerLogicSystem(Scene scene) : base(new Matcher().All(typeof(ServerComponent)))
         {
-            this.SetDesignResolution(1280, 720, SceneResolutionPolicy.None);
-            Core.Instance.Screen.SetSize(1280, 720);
-
-            this.AddRenderer(new DefaultRenderer());
-
-            this.AddEntitySystem(new TiledMapUpdateSystem());
-            this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
-            this.AddEntitySystem(new AnimationSpriteUpdateSystem());
-            this.AddEntitySystem(new CharSpriteUpdateSystem());
-            this.AddEntitySystem(new GameTurnAnimationSystem());
-            this.AddEntitySystem(new TiledMapUpdateSystem());
-            this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
-            this.AddEntitySystem(new CharTurnSelectorUpdateSystem(this));
-            this.AddEntitySystem(new LevelCompleteUpdateSystem(this));
-            this.AddEntitySystem(new TurnSelectorUpdateSystem());
-
-            var tiledMap = Core.Instance.Content.Load<TiledMap>(ContentPaths.Assets.template);
-            GenerateMap(tiledMap);
-
-            var map = this.CreateEntity("map");
-            map.AddComponent(new TiledMapComponent(tiledMap));
-            map.AddComponent(new PlayerSwitcherComponent(PlayerSwitcherComponent.PlayerSwitchType.AllAtOnce, 
-                AddPlayer(tiledMap, "1"),
-                AddPlayer(tiledMap, "2"),
-                AddPlayer(tiledMap, "3"),
-                AddPlayer(tiledMap, "4")
-                ));
-            map.AddComponent<ApplyTurnComponent>();
-            GeneratePathFinding(map);
+            this.scene = scene;
         }
 
-        List<string> availableAnimations = new List<string>
+        protected override void DoAction(Entity entity, System.TimeSpan gameTime)
+        {
+            base.DoAction(entity, gameTime);
+            var server = entity.GetComponent<ServerComponent>();
+            var gameState = entity.GetComponent<GameStateComponent>();
+            foreach (var req in server.SerializedRequest)
+            {
+                var messages = req.Value;
+                if (!server.SerializedResponse.ContainsKey(req.Key))
+                {
+                    server.SerializedResponse[req.Key] = new List<object>();
+                }
+
+                for (var i = 0; i < messages.Count; i++)
+                {
+                    if (messages[i].GetType() == typeof(ConnectTransferMessage))
+                    {
+                        var room = gameState.Map.Rooms[gameState.Players.Count];
+                        gameState.Players[req.Key] = new GameStateComponent.Player
+                        {
+                            Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2)
+                        };
+
+                        foreach (var player in gameState.Players)
+                        {
+                            var responses = server.SerializedResponse[player.Key];
+                            responses.Add(new ConnectedCountTransferMessage
+                            {
+                                ExpectedCount = gameState.MaxPlayersCount,
+                                CurrentCount = gameState.Players.Count
+                            });
+
+                            if (gameState.Players.Count == gameState.MaxPlayersCount)
+                            {
+                                responses.Add(new MapTransferMessage
+                                {
+                                    Map = gameState.Map,
+                                    Players = gameState.Players.Values.ToList(),
+                                    Exit = gameState.Exit,
+                                    Me = player.Value,
+                                });
+
+                                responses.Add(new YourTurnTransferMessage());
+                            }
+                        }
+                    }
+                    else if (messages[i].GetType() == typeof(PlayerTurnDoneTransferMessage)) 
+                    {
+                        var message = (PlayerTurnDoneTransferMessage)messages[i];
+                        gameState.Players[req.Key].Position = message.NewPosition;
+                        gameState.MovedPlayers++;
+
+                        foreach (var player in gameState.Players)
+                        {
+                            var responses = server.SerializedResponse[player.Key];
+                            responses.Add(new PlayerTurnReadyTransferMessage
+                            {
+                                Player = gameState.Players[req.Key],
+                            });
+
+                            if (gameState.MovedPlayers == gameState.MaxPlayersCount)
+                            {
+                                responses.Add(new TurnDoneTransferMessage
+                                {
+                                    Players = gameState.Players.Values.ToList(),
+                                    Me = player.Value,
+                                });
+                            }
+                        }
+
+                        if (gameState.MovedPlayers == gameState.MaxPlayersCount)
+                        {
+                            gameState.MovedPlayers = 0;
+                        }
+                    }
+                    else
+                    {
+                        SpineEngine.Debug.Logger.Warn($"Unhandled transfer message type {messages[i].GetType()}");
+                    }
+                }
+
+                req.Value.Clear();
+            }
+        }
+    }
+
+    public class GameStateComponent : Component
+    {
+        public RoomMazeGenerator.Result Map;
+        public Dictionary<int, Player> Players;
+        public Point Exit;
+        public int MaxPlayersCount;
+        public int MovedPlayers;
+
+        public class Player
+        {
+            public Point Position;
+        }
+    }
+
+    public class VisiblePlayerComponent : Component
+    {
+        public string MapEntityName;
+
+        public VisiblePlayerComponent(string mapEntityName)
+        {
+            this.MapEntityName = mapEntityName;
+        }
+    }
+
+    public class MapVisiblePlayerSystem : ClientRecieveHandlerSystem<MapTransferMessage>
+    {
+        private readonly Scene scene;
+
+        public MapVisiblePlayerSystem(Scene scene) : base(new Matcher().All(typeof(VisiblePlayerComponent)))
+        {
+            this.scene = scene;
+        }
+
+
+        private static readonly List<string> availableAnimations = new List<string>
         {
             ContentPaths.Assets.Characters.mage,
             ContentPaths.Assets.Characters.ranger,
@@ -75,58 +172,34 @@
             ContentPaths.Assets.Characters.warrior
         };
 
-        private PlayerTurnComponent AddPlayer(TiledMap tiledMap, string playerIndex)
+        protected override void DoAction(MapTransferMessage message, Entity entity, System.TimeSpan gameTime)
         {
-            var player1StartPoint = tiledMap.GetObjectGroup("StartPoint").Objects.First(a => a.Name == $"Player{playerIndex}StartPoint");
-            var player1 = this.CreateEntity();
-            player1.AddComponent<PositionComponent>().Position = new Vector2(player1StartPoint.X + 8, player1StartPoint.Y + 8);
-            player1.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, Fate.GlobalFate.Choose<string>(availableAnimations), 6);
-            var player1Turn = player1.AddComponent<PlayerTurnComponent>();
-            return player1Turn;
-        }
+            var visiblePlayer = entity.GetComponent<VisiblePlayerComponent>();
 
-        public static void GeneratePathFinding(Entity mapEntity)
-        {
-            var map = mapEntity.GetComponent<TiledMapComponent>().TiledMap;
-
-            var graph = new AstarGridGraph(map.Width, map.Height);
-
-            var maze = (TiledTileLayer)map.GetLayer("Maze");
-            for (var x = 0; x < maze.Width; x++)
-            for (var y = 0; y < maze.Height; y++)
+            for (var i = 0; i < message.Players.Count; i++)
             {
-                if (
-                    maze.GetTile(x, y).Id != 2 &&
-                    maze.GetTile(x, y).Id != 8 &&
-                    maze.GetTile(x, y).Id != 9 &&
-                    maze.GetTile(x, y).Id != 6)
-                {
-                    graph.Walls.Add(new BrainAI.Pathfinding.Point(x, y));
-                }
+                var playerUnit = this.scene.CreateEntity($"PlayerUnit{i}");
+                playerUnit.AddComponent<PositionComponent>().Position = new Vector2(message.Players[i].Position.X * 16 + 8, message.Players[i].Position.Y * 16 + 8);
+                playerUnit.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, Fate.GlobalFate.Choose<string>(availableAnimations), 6);
             }
 
-            mapEntity.Cache.PutData("PathFinding", graph);
-        }
+            var map = this.scene.FindEntity(visiblePlayer.MapEntityName);
+            var tiledMap = map.GetComponent<TiledMapComponent>().TiledMap;
 
-        public static void GenerateMap(TiledMap tiledMap)
-        {
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
             var water = (TiledTileLayer)tiledMap.GetLayer("Water");
 
-            tiledMap.Width = maze.Width = 41;
-            tiledMap.Height = maze.Height = 31;
+            tiledMap.Width = maze.Width = message.Map.Regions.GetLength(0);
+            tiledMap.Height = maze.Height = message.Map.Regions.GetLength(1);
 
             maze.Tiles = new TiledTile[maze.Width * maze.Height];
             tiledMap.ObjectGroups.Clear();
 
-            var generatedMaze = (new RoomMazeGenerator()).Generate(
-                new RoomMazeGenerator.Settings(maze.Width, maze.Height) { ExtraConnectorChance = 5, WindingPercent = 50 });
-
-            for (var x = 0; x < generatedMaze.Regions.GetLength(0); x++)
-                for (var y = 0; y < generatedMaze.Regions.GetLength(1); y++)
+            for (var x = 0; x < message.Map.Regions.GetLength(0); x++)
+                for (var y = 0; y < message.Map.Regions.GetLength(1); y++)
                 {
                     var tile = new TiledTile();
-                    if (generatedMaze.Regions[x, y].HasValue)
+                    if (message.Map.Regions[x, y].HasValue)
                     {
                         tile.Id = 2;
                     }
@@ -138,57 +211,231 @@
                     maze.SetTile(x, y, tile);
                 }
 
-            for (var i = 0; i < generatedMaze.Junctions.Count; i++)
+            for (var i = 0; i < message.Map.Junctions.Count; i++)
             {
-                var junction = generatedMaze.Junctions[i];
+                var junction = message.Map.Junctions[i];
                 var tile = maze.GetTile((int)junction.X, (int)junction.Y);
                 tile.Id = 6;
             }
 
-            var startGroup = new TiledObjectGroup
+            maze.GetTile(message.Exit.X, message.Exit.Y).Id = 9;
+            for (var i = 0; i < message.Players.Count; i++)
             {
-                Name = "StartPoint",
-                Objects = new List<TiledObject>()
-            };
-            tiledMap.ObjectGroups.Add(startGroup);
-            
-            GenerateStartPoint(tiledMap, 0, maze, generatedMaze, startGroup);
-            GenerateStartPoint(tiledMap, 1, maze, generatedMaze, startGroup);
-            GenerateStartPoint(tiledMap, 2, maze, generatedMaze, startGroup);
-            GenerateStartPoint(tiledMap, 3, maze, generatedMaze, startGroup);
-            GenerateStartPoint(tiledMap, 4, maze, generatedMaze, startGroup);
+                maze.GetTile(message.Players[i].Position.X, message.Players[i].Position.Y).Id = 8;
+            }
+        }
+    }
 
-            var endRoom = generatedMaze.Rooms[generatedMaze.Rooms.Count - 1];
-            var endRoomCenter = new Point(endRoom.X + endRoom.Width / 2, endRoom.Y + endRoom.Height / 2);
-            tiledMap.ObjectGroups.Add(
-                new TiledObjectGroup
-                {
-                    Name = "EndPoint",
-                    Objects = new List<TiledObject>
-                    {
-                        new TiledObject
-                        {
-                            X = endRoomCenter.X * tiledMap.TileWidth,
-                            Y = endRoomCenter.Y * tiledMap.TileHeight,
-                            Name = "EndPoint"
-                        }
-                    }
-                });
-            maze.GetTile(endRoomCenter.X, endRoomCenter.Y).Id = 9;
+    public class MapAIPlayerSystem : ClientRecieveHandlerSystem<MapTransferMessage>
+    {
+        public MapAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent)))
+        {
         }
 
-        private static void GenerateStartPoint(TiledMap tiledMap, int idx, TiledTileLayer maze, RoomMazeGenerator.Result generatedMaze, TiledObjectGroup startGroup)
+        protected override void DoAction(MapTransferMessage message, Entity entity, System.TimeSpan gameTime)
         {
-            var startRoom = generatedMaze.Rooms[idx];
-            var startRoomCenter = new Point(startRoom.X + startRoom.Width / 2, startRoom.Y + startRoom.Height / 2);
-            startGroup.Objects.Add(
-                        new TiledObject
-                        {
-                            X = startRoomCenter.X * tiledMap.TileWidth,
-                            Y = startRoomCenter.Y * tiledMap.TileHeight,
-                            Name = $"Player{idx + 1}StartPoint"
-                        });
-            maze.GetTile(startRoomCenter.X, startRoomCenter.Y).Id = 8;
+            var ai = entity.GetComponent<AIComponent>();
+            var simpleAI = (SimpleAI)ai.AIBot;
+            simpleAI.Exit = message.Exit;
+            simpleAI.Map = message.Map;
+            simpleAI.Me = message.Me;
+            simpleAI.Players = message.Players;
+            simpleAI.Pathfinding = new AstarGridGraph(message.Map.Regions.GetLength(0), message.Map.Regions.GetLength(1));
+            for (var x = 0; x < message.Map.Regions.GetLength(0); x++)
+                for (var y = 0; y < message.Map.Regions.GetLength(1); y++)
+                {
+                    var pos = new MazeGenerators.Utils.Vector2(x, y);
+                    var tile = simpleAI.Map.GetTile(pos);
+                    if (!tile.HasValue)
+                    {
+                        simpleAI.Pathfinding.Walls.Add(new BrainAI.Pathfinding.Point(x, y));
+                    }
+                }
+        }
+    }
+
+    public class YourTurnAIPlayerSystem : ClientRecieveHandlerSystem<YourTurnTransferMessage>
+    {
+        public YourTurnAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent)))
+        {
+        }
+
+        protected override void DoAction(YourTurnTransferMessage message, Entity entity, System.TimeSpan gameTime)
+        {
+            var ai = entity.GetComponent<AIComponent>();
+            var simpleAI = (SimpleAI)ai.AIBot;
+            simpleAI.NeedAction = true;
+        }
+    }
+
+    public abstract class ClientSendHandlerSystem<T> : EntityProcessingSystem
+    {
+        public ClientSendHandlerSystem(Matcher matcher) : base(matcher.All(typeof(ClientComponent)))
+        {
+        }
+
+        protected override void DoAction(Entity entity, System.TimeSpan gameTime)
+        {
+            base.DoAction(entity, gameTime);
+            var client = entity.GetComponent<ClientComponent>();
+
+            var data = PrepareSendData(entity, gameTime);
+
+            client.Message = data;
+        }
+
+        protected abstract T PrepareSendData(Entity entity, System.TimeSpan gameTime);
+    }
+
+    public class PlayerTurnDoneAIPlayerSystem : EntityProcessingSystem
+    {
+        public PlayerTurnDoneAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent), typeof(ClientComponent)))
+        {
+        }
+
+        protected override void DoAction(Entity entity, System.TimeSpan gameTime)
+        {
+            base.DoAction(entity, gameTime);
+
+            var client = entity.GetComponent<ClientComponent>();
+            var ai = entity.GetComponent<AIComponent>();
+            var simpleAI = (SimpleAI)ai.AIBot;
+            if (simpleAI.NextTurn == null)
+            {
+                return;
+            }
+
+            client.Message = new PlayerTurnDoneTransferMessage { NewPosition = simpleAI.NextTurn.Value };
+            simpleAI.NextTurn = null;
+        }
+    }
+
+    public class TurnDoneAIPlayerSystem : ClientRecieveHandlerSystem<TurnDoneTransferMessage>
+    {
+        public TurnDoneAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent)))
+        {
+        }
+
+        protected override void DoAction(TurnDoneTransferMessage message, Entity entity, System.TimeSpan gameTime)
+        {
+            var ai = entity.GetComponent<AIComponent>();
+            var simpleAI = (SimpleAI)ai.AIBot;
+
+            simpleAI.Players = message.Players;
+            simpleAI.Me = message.Me;
+            simpleAI.NeedAction = true;
+        }
+    }
+
+    public class TurnDoneVisiblePlayerSystem : ClientRecieveHandlerSystem<TurnDoneTransferMessage>
+    {
+        private readonly Scene scene;
+
+        public TurnDoneVisiblePlayerSystem(Scene scene) : base(new Matcher().All(typeof(VisiblePlayerComponent)))
+        {
+            this.scene = scene;
+        }
+
+        protected override void DoAction(TurnDoneTransferMessage message, Entity entity, System.TimeSpan gameTime)
+        {
+            for (var i = 0; i < message.Players.Count; i++)
+            {
+                var playerUnit = this.scene.FindEntity($"PlayerUnit{i}");
+                playerUnit.GetComponent<PositionComponent>().Position = new Vector2(message.Players[i].Position.X * 16 + 8, message.Players[i].Position.Y * 16 + 8);
+            }
+        }
+    }
+
+    public class SimpleAI : IAITurn
+    {
+        public RoomMazeGenerator.Result Map;
+        public List<GameStateComponent.Player> Players;
+        public GameStateComponent.Player Me;
+        public Point Exit;
+        public AstarGridGraph Pathfinding;
+
+        public bool NeedAction;
+        public Point? NextTurn;
+
+        public void Tick()
+        {
+            if (!NeedAction)
+            {
+                return;
+            }
+
+            if (Fate.GlobalFate.Chance(95))
+            {
+                return;
+            }
+
+            var path = AStarPathfinder.Search(Pathfinding, new BrainAI.Pathfinding.Point(this.Me.Position.X, this.Me.Position.Y), new BrainAI.Pathfinding.Point(this.Exit.X, this.Exit.Y));
+            if (path == null || path.Count < 2)
+            {
+                NextTurn = this.Me.Position;
+                NeedAction = false;
+                return;
+            }
+
+            NextTurn = new Point(path[1].X, path[1].Y);
+            NeedAction = false;
+        }
+    }
+
+    public class BasicScene : Scene
+    {
+        public BasicScene()
+        {
+            this.SetDesignResolution(1280, 720, SceneResolutionPolicy.None);
+            Core.Instance.Screen.SetSize(1280, 720);
+
+            this.AddRenderer(new DefaultRenderer());
+
+
+            this.AddEntitySystem(new ServerLogicSystem(this));
+            this.AddEntitySystem(new LocalServerCommunicatorSystem(this));
+
+            var server = this.CreateEntity("Server");
+            var gameState = server.AddComponent<GameStateComponent>();
+            gameState.Map = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings(41, 31) { ExtraConnectorChance = 5, WindingPercent = 50 });
+            gameState.Players = new Dictionary<int, GameStateComponent.Player>();
+            gameState.Exit = new Point(gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].X + gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Width / 2, gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Y + gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Height / 2);
+            gameState.MaxPlayersCount = 2;
+            server.AddComponent<ServerComponent>();
+            server.AddComponent<LocalServerComponent>();
+            // server.AddComponent<NetworkServerComponent>();
+
+
+
+
+            this.AddEntitySystem(new LocalClientCommunicatorSystem(this));
+            this.AddEntitySystem(new MapVisiblePlayerSystem(this));
+            this.AddEntitySystem(new MapAIPlayerSystem());
+            this.AddEntitySystem(new YourTurnAIPlayerSystem());
+            this.AddEntitySystem(new PlayerTurnDoneAIPlayerSystem());
+            this.AddEntitySystem(new TurnDoneAIPlayerSystem());
+            this.AddEntitySystem(new TurnDoneVisiblePlayerSystem(this));
+
+            this.AddEntitySystem(new AIUpdateSystem());
+            this.AddEntitySystem(new TiledMapUpdateSystem());
+            this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
+            this.AddEntitySystem(new AnimationSpriteUpdateSystem());
+            this.AddEntitySystem(new CharSpriteUpdateSystem());
+
+
+            var map = this.CreateEntity("Map");
+            map.AddComponent(new TiledMapComponent(Core.Instance.Content.Load<TiledMap>(ContentPaths.Assets.template)));
+
+            var player = this.CreateEntity();
+            player.AddComponent<ClientComponent>().Message = new ConnectTransferMessage();
+            player.AddComponent<LocalClientComponent>().Server = server.Name;
+            player.AddComponent<AIComponent>().AIBot = new SimpleAI();
+            player.AddComponent(new VisiblePlayerComponent(map.Name));
+
+            player = this.CreateEntity();
+            player.AddComponent<ClientComponent>().Message = new ConnectTransferMessage();
+            player.AddComponent<LocalClientComponent>().Server = server.Name;
+            player.AddComponent<AIComponent>().AIBot = new SimpleAI();
         }
     }
 }
