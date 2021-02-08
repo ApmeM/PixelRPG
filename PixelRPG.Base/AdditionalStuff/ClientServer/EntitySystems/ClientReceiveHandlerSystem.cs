@@ -3,9 +3,9 @@
     using LocomotorECS;
     using LocomotorECS.Matching;
 
-    public abstract class ClientRecieveHandlerSystem<T> : EntityProcessingSystem
+    public abstract class ClientReceiveHandlerSystem<T> : EntityProcessingSystem
     {
-        public ClientRecieveHandlerSystem(Matcher matcher): base(matcher.All(typeof(ClientComponent)))
+        public ClientReceiveHandlerSystem(Matcher matcher): base(matcher.All(typeof(ClientComponent)))
         {
         }
 

@@ -11,11 +11,8 @@
 
     public class LocalServerCommunicatorSystem : EntityProcessingSystem
     {
-        private readonly Scene scene;
-
-        public LocalServerCommunicatorSystem(Scene scene) : base(new Matcher().All(typeof(LocalServerComponent), typeof(ServerComponent)))
+        public LocalServerCommunicatorSystem() : base(new Matcher().All(typeof(LocalServerComponent), typeof(ServerComponent)))
         {
-            this.scene = scene;
         }
 
         protected override void DoAction(Entity entity, System.TimeSpan gameTime)
