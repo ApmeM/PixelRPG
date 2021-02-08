@@ -35,100 +35,78 @@
 
     #endregion
 
-    public class ServerLogicSystem : EntityProcessingSystem
+    public class ConnectServerRecieveHandler : ServerReceiveHandlerSystem.Handler<ConnectTransferMessage>
     {
-        private readonly Scene scene;
-
-        public ServerLogicSystem(Scene scene) : base(new Matcher().All(typeof(ServerComponent)))
+        protected override void Handle(ServerComponent server, int connectionKey, ConnectTransferMessage message)
         {
-            this.scene = scene;
-        }
+            var gameState = server.Entity.GetComponent<GameStateComponent>();
 
-        protected override void DoAction(Entity entity, System.TimeSpan gameTime)
-        {
-            base.DoAction(entity, gameTime);
-            var server = entity.GetComponent<ServerComponent>();
-            var gameState = entity.GetComponent<GameStateComponent>();
-            foreach (var req in server.SerializedRequest)
+            var room = gameState.Map.Rooms[gameState.Players.Count];
+            gameState.Players[connectionKey] = new GameStateComponent.Player
             {
-                var messages = req.Value;
-                if (!server.SerializedResponse.ContainsKey(req.Key))
+                Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2)
+            };
+
+            foreach (var player in gameState.Players)
+            {
+                var responses = server.SerializedResponse[player.Key];
+                responses.Add(new ConnectedCountTransferMessage
                 {
-                    server.SerializedResponse[req.Key] = new List<object>();
-                }
+                    ExpectedCount = gameState.MaxPlayersCount,
+                    CurrentCount = gameState.Players.Count
+                });
 
-                for (var i = 0; i < messages.Count; i++)
+                if (gameState.Players.Count == gameState.MaxPlayersCount)
                 {
-                    if (messages[i].GetType() == typeof(ConnectTransferMessage))
+                    responses.Add(new MapTransferMessage
                     {
-                        var room = gameState.Map.Rooms[gameState.Players.Count];
-                        gameState.Players[req.Key] = new GameStateComponent.Player
-                        {
-                            Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2)
-                        };
+                        Map = gameState.Map,
+                        Players = gameState.Players.Values.ToList(),
+                        Exit = gameState.Exit,
+                        Me = player.Value,
+                    });
 
-                        foreach (var player in gameState.Players)
-                        {
-                            var responses = server.SerializedResponse[player.Key];
-                            responses.Add(new ConnectedCountTransferMessage
-                            {
-                                ExpectedCount = gameState.MaxPlayersCount,
-                                CurrentCount = gameState.Players.Count
-                            });
-
-                            if (gameState.Players.Count == gameState.MaxPlayersCount)
-                            {
-                                responses.Add(new MapTransferMessage
-                                {
-                                    Map = gameState.Map,
-                                    Players = gameState.Players.Values.ToList(),
-                                    Exit = gameState.Exit,
-                                    Me = player.Value,
-                                });
-
-                                responses.Add(new YourTurnTransferMessage());
-                            }
-                        }
-                    }
-                    else if (messages[i].GetType() == typeof(PlayerTurnDoneTransferMessage)) 
-                    {
-                        var message = (PlayerTurnDoneTransferMessage)messages[i];
-                        gameState.Players[req.Key].Position = message.NewPosition;
-                        gameState.MovedPlayers++;
-
-                        foreach (var player in gameState.Players)
-                        {
-                            var responses = server.SerializedResponse[player.Key];
-                            responses.Add(new PlayerTurnReadyTransferMessage
-                            {
-                                Player = gameState.Players[req.Key],
-                            });
-
-                            if (gameState.MovedPlayers == gameState.MaxPlayersCount)
-                            {
-                                responses.Add(new TurnDoneTransferMessage
-                                {
-                                    Players = gameState.Players.Values.ToList(),
-                                    Me = player.Value,
-                                });
-                            }
-                        }
-
-                        if (gameState.MovedPlayers == gameState.MaxPlayersCount)
-                        {
-                            gameState.MovedPlayers = 0;
-                        }
-                    }
-                    else
-                    {
-                        SpineEngine.Debug.Logger.Warn($"Unhandled transfer message type {messages[i].GetType()}");
-                    }
+                    responses.Add(new YourTurnTransferMessage());
                 }
-
-                req.Value.Clear();
             }
         }
     }
+
+    public class PlayerTurnDoneServerRecieveHandler : ServerReceiveHandlerSystem.Handler<PlayerTurnDoneTransferMessage>
+    {
+        protected override void Handle(ServerComponent server, int connectionKey, PlayerTurnDoneTransferMessage message)
+        {
+            var gameState = server.Entity.GetComponent<GameStateComponent>();
+
+            gameState.Players[connectionKey].Position = message.NewPosition;
+            gameState.MovedPlayers++;
+
+            foreach (var player in gameState.Players)
+            {
+                var responses = server.SerializedResponse[player.Key];
+                responses.Add(new PlayerTurnReadyTransferMessage
+                {
+                    Player = gameState.Players[connectionKey],
+                });
+
+                if (gameState.MovedPlayers == gameState.MaxPlayersCount)
+                {
+                    responses.Add(new TurnDoneTransferMessage
+                    {
+                        Players = gameState.Players.Values.ToList(),
+                        Me = player.Value,
+                    });
+                }
+            }
+
+            if (gameState.MovedPlayers == gameState.MaxPlayersCount)
+            {
+                gameState.MovedPlayers = 0;
+            }
+        }
+    }
+
+
 
     public class GameStateComponent : Component
     {
@@ -154,7 +132,7 @@
         }
     }
 
-    public class MapVisiblePlayerSystem : ClientRecieveHandlerSystem<MapTransferMessage>
+    public class MapVisiblePlayerSystem : ClientReceiveHandlerSystem<MapTransferMessage>
     {
         private readonly Scene scene;
 
@@ -226,7 +204,7 @@
         }
     }
 
-    public class MapAIPlayerSystem : ClientRecieveHandlerSystem<MapTransferMessage>
+    public class MapAIPlayerSystem : ClientReceiveHandlerSystem<MapTransferMessage>
     {
         public MapAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent)))
         {
@@ -254,7 +232,7 @@
         }
     }
 
-    public class YourTurnAIPlayerSystem : ClientRecieveHandlerSystem<YourTurnTransferMessage>
+    public class YourTurnAIPlayerSystem : ClientReceiveHandlerSystem<YourTurnTransferMessage>
     {
         public YourTurnAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent)))
         {
@@ -268,49 +246,28 @@
         }
     }
 
-    public abstract class ClientSendHandlerSystem<T> : EntityProcessingSystem
+    public class PlayerTurnDoneAIPlayerSystem : ClientSendHandlerSystem<PlayerTurnDoneTransferMessage>
     {
-        public ClientSendHandlerSystem(Matcher matcher) : base(matcher.All(typeof(ClientComponent)))
+        public PlayerTurnDoneAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent)))
         {
         }
 
-        protected override void DoAction(Entity entity, System.TimeSpan gameTime)
+        protected override PlayerTurnDoneTransferMessage PrepareSendData(Entity entity, System.TimeSpan gameTime)
         {
-            base.DoAction(entity, gameTime);
-            var client = entity.GetComponent<ClientComponent>();
-
-            var data = PrepareSendData(entity, gameTime);
-
-            client.Message = data;
-        }
-
-        protected abstract T PrepareSendData(Entity entity, System.TimeSpan gameTime);
-    }
-
-    public class PlayerTurnDoneAIPlayerSystem : EntityProcessingSystem
-    {
-        public PlayerTurnDoneAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent), typeof(ClientComponent)))
-        {
-        }
-
-        protected override void DoAction(Entity entity, System.TimeSpan gameTime)
-        {
-            base.DoAction(entity, gameTime);
-
-            var client = entity.GetComponent<ClientComponent>();
             var ai = entity.GetComponent<AIComponent>();
             var simpleAI = (SimpleAI)ai.AIBot;
             if (simpleAI.NextTurn == null)
             {
-                return;
+                return null;
             }
 
-            client.Message = new PlayerTurnDoneTransferMessage { NewPosition = simpleAI.NextTurn.Value };
+            var result = new PlayerTurnDoneTransferMessage { NewPosition = simpleAI.NextTurn.Value };
             simpleAI.NextTurn = null;
+            return result;
         }
     }
 
-    public class TurnDoneAIPlayerSystem : ClientRecieveHandlerSystem<TurnDoneTransferMessage>
+    public class TurnDoneAIPlayerSystem : ClientReceiveHandlerSystem<TurnDoneTransferMessage>
     {
         public TurnDoneAIPlayerSystem() : base(new Matcher().All(typeof(AIComponent)))
         {
@@ -327,7 +284,7 @@
         }
     }
 
-    public class TurnDoneVisiblePlayerSystem : ClientRecieveHandlerSystem<TurnDoneTransferMessage>
+    public class TurnDoneVisiblePlayerSystem : ClientReceiveHandlerSystem<TurnDoneTransferMessage>
     {
         private readonly Scene scene;
 
@@ -392,8 +349,10 @@
             this.AddRenderer(new DefaultRenderer());
 
 
-            this.AddEntitySystem(new ServerLogicSystem(this));
-            this.AddEntitySystem(new LocalServerCommunicatorSystem(this));
+            this.AddEntitySystem(new ServerReceiveHandlerSystem(
+                new ConnectServerRecieveHandler(), 
+                new PlayerTurnDoneServerRecieveHandler()));
+            this.AddEntitySystem(new LocalServerCommunicatorSystem());
 
             var server = this.CreateEntity("Server");
             var gameState = server.AddComponent<GameStateComponent>();
