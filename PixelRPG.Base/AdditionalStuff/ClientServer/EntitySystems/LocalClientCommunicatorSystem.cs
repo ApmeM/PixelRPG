@@ -2,22 +2,22 @@
 {
     #region Using Directives
 
-    using System.Collections.Generic;
-    using System.Linq;
-
     using LocomotorECS;
     using SpineEngine.ECS;
     using LocomotorECS.Matching;
+    using System;
+    using PixelRPG.Base.AdditionalStuff.ClientServer;
     #endregion
 
     public class LocalClientCommunicatorSystem : EntityProcessingSystem
     {
         private readonly Scene scene;
-        private static int Identifiers = 1;
+        private readonly ITransferMessageParser[] parsers;
 
-        public LocalClientCommunicatorSystem(Scene scene) : base(new Matcher().All(typeof(LocalClientComponent), typeof(ClientComponent)))
+        public LocalClientCommunicatorSystem(Scene scene, params ITransferMessageParser[] parsers) : base(new Matcher().All(typeof(LocalClientComponent), typeof(ClientComponent)))
         {
             this.scene = scene;
+            this.parsers = parsers;
         }
 
         protected override void DoAction(Entity entity, System.TimeSpan gameTime)
@@ -25,39 +25,30 @@
             base.DoAction(entity, gameTime);
             var localClient = entity.GetComponent<LocalClientComponent>();
             var client = entity.GetComponent<ClientComponent>();
-            var serverEntity = this.scene.FindEntity(localClient.Server);
+            var serverEntity = this.scene.FindEntity(localClient.ServerEntity);
             var localServer = serverEntity.GetComponent<LocalServerComponent>();
 
-            if (localClient.Identifier == 0)
+            if (localClient.Identifier == Guid.Empty)
             {
-                Identifiers++;
-                localClient.Identifier = Identifiers;
+                localClient.Identifier = Guid.NewGuid();
+                localServer.PendingConnections.Add(localClient.Identifier);
                 return;
             }
 
             if (client.Message != null)
             {
-                if (!localServer.SerializedRequest.ContainsKey(localClient.Identifier))
-                {
-                    localServer.SerializedRequest[localClient.Identifier] = new List<object>();
-                }
-
-                localServer.SerializedRequest[localClient.Identifier].Add(client.Message);
-
+                localServer.Request[localClient.Identifier].Add(client.Message);
+                //System.Diagnostics.Debug.WriteLine($"Local Client -> {localClient.Identifier} {ParserUtils.FindStringifier(client.Message, parsers).ToData(client.Message)}");
                 client.Message = null;
-                return;
             }
 
-            if (localServer.SerializedResponse.ContainsKey(localClient.Identifier))
+            var response = localServer.Response[localClient.Identifier];
+            client.Response = null;
+            if (response.Count != 0)
             {
-                var response = localServer.SerializedResponse[localClient.Identifier];
-                client.Response = null;
-                if (response.Count != 0)
-                {
-                    client.Response = response[0];
-                    localServer.SerializedResponse[localClient.Identifier].RemoveAt(0);
-                    return;
-                }
+                client.Response = response[0];
+                localServer.Response[localClient.Identifier].RemoveAt(0);
+                //System.Diagnostics.Debug.WriteLine($"Local Client <- {localClient.Identifier} {ParserUtils.FindStringifier(client.Response, parsers).ToData(client.Response)}");
             }
         }
     }

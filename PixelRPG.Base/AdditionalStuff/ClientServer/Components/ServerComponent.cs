@@ -9,7 +9,8 @@
 
     public class ServerComponent : Component
     {
-        public Dictionary<int, List<object>> SerializedRequest = new Dictionary<int, List<object>>();
-        public Dictionary<int, List<object>> SerializedResponse = new Dictionary<int, List<object>>();
+        public int ConnectedPlayers;
+        public Dictionary<int, List<object>> Request = new Dictionary<int, List<object>>();
+        public Dictionary<int, List<object>> Response = new Dictionary<int, List<object>>();
     }
 }

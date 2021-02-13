@@ -1,5 +1,6 @@
 ﻿namespace PixelRPG.Base.Screens
 {
+    using System;
     #region Using Directives
 
     using System.Collections.Generic;
@@ -9,7 +10,12 @@
 
     public class LocalServerComponent : Component
     {
-        public Dictionary<int, List<object>> SerializedRequest = new Dictionary<int, List<object>>();
-        public Dictionary<int, List<object>> SerializedResponse = new Dictionary<int, List<object>>();
+        public Dictionary<Guid, List<object>> Request = new Dictionary<Guid, List<object>>();
+        public Dictionary<Guid, List<object>> Response = new Dictionary<Guid, List<object>>();
+        public List<Guid> PendingConnections = new List<Guid>();
+
+        public Dictionary<Guid, int> ClientToPlayerId = new Dictionary<Guid, int>();
+        public Dictionary<int, Guid> PlayerIdToClient = new Dictionary<int, Guid>();
+        public List<Guid> Clients = new List<Guid>();
     }
 }
