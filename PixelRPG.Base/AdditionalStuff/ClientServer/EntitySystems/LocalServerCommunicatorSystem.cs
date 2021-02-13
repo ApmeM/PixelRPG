@@ -21,25 +21,42 @@
             var localServer = entity.GetComponent<LocalServerComponent>();
             var server = entity.GetComponent<ServerComponent>();
 
-            foreach (var req in localServer.SerializedRequest)
+            if (localServer.PendingConnections.Count > 0)
             {
-                if (!server.SerializedRequest.ContainsKey(req.Key))
+                for (var i = 0; i < localServer.PendingConnections.Count; i++)
                 {
-                    server.SerializedRequest[req.Key] = new List<object>();
+                    server.ConnectedPlayers++;
+                    var tcpClient = localServer.PendingConnections[i];
+                    localServer.Clients.Add(tcpClient);
+                    localServer.PlayerIdToClient[server.ConnectedPlayers] = tcpClient;
+                    localServer.ClientToPlayerId[tcpClient] = server.ConnectedPlayers;
+                    server.Request[localServer.ClientToPlayerId[tcpClient]] = new List<object>();
+                    server.Response[localServer.ClientToPlayerId[tcpClient]] = new List<object>();
+                    localServer.Request[tcpClient] = new List<object>();
+                    localServer.Response[tcpClient] = new List<object>();
                 }
-
-                server.SerializedRequest[req.Key].AddRange(req.Value);
-                req.Value.Clear();
+                localServer.PendingConnections.Clear();
             }
-            foreach (var res in server.SerializedResponse)
+
+            for (var i = 0; i < localServer.Clients.Count; i++)
             {
-                if (!localServer.SerializedResponse.ContainsKey(res.Key))
+                var client = localServer.Clients[i];
+                var id = localServer.ClientToPlayerId[client];
+                if (localServer.Request.ContainsKey(client) && localServer.Request[client].Count > 0)
                 {
-                    localServer.SerializedResponse[res.Key] = new List<object>();
+                    var data = localServer.Request[client];
+                    server.Request[id].AddRange(data);
+                    //System.Diagnostics.Debug.WriteLine($"Local Server <- {client} ({id}) {data.Count} items");
+                    data.Clear();
                 }
 
-                localServer.SerializedResponse[res.Key].AddRange(res.Value);
-                res.Value.Clear();
+                if (server.Response.ContainsKey(id) && server.Response[id].Count > 0)
+                {
+                    var data = server.Response[id];
+                    localServer.Response[client].AddRange(data);
+                    //System.Diagnostics.Debug.WriteLine($"Local Server -> {client} ({id}) {data.Count} items");
+                    data.Clear();
+                }
             }
         }
     }

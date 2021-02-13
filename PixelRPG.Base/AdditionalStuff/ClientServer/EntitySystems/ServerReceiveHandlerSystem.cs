@@ -20,11 +20,11 @@
         {
             base.DoAction(entity, gameTime);
             var server = entity.GetComponent<ServerComponent>();
-            foreach (var req in server.SerializedRequest)
+            foreach (var req in server.Request)
             {
-                if (!server.SerializedResponse.ContainsKey(req.Key))
+                if (!server.Response.ContainsKey(req.Key))
                 {
-                    server.SerializedResponse[req.Key] = new List<object>();
+                    server.Response[req.Key] = new List<object>();
                 }
 
                 for (var i = 0; i < req.Value.Count; i++)

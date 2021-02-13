@@ -32,6 +32,8 @@
     using PixelRPG.Base.AdditionalStuff.BrainAI.Components;
     using BrainAI.AI;
     using PixelRPG.Base.AdditionalStuff.BrainAI.EntitySystems;
+    using System;
+    using PixelRPG.Base.AdditionalStuff.ClientServer;
 
     #endregion
 
@@ -49,7 +51,7 @@
 
             foreach (var player in gameState.Players)
             {
-                var responses = server.SerializedResponse[player.Key];
+                var responses = server.Response[player.Key];
                 responses.Add(new ConnectedCountTransferMessage
                 {
                     ExpectedCount = gameState.MaxPlayersCount,
@@ -83,7 +85,7 @@
 
             foreach (var player in gameState.Players)
             {
-                var responses = server.SerializedResponse[player.Key];
+                var responses = server.Response[player.Key];
                 responses.Add(new PlayerTurnReadyTransferMessage
                 {
                     Player = gameState.Players[connectionKey],
@@ -96,6 +98,8 @@
                         Players = gameState.Players.Values.ToList(),
                         Me = player.Value,
                     });
+
+                    responses.Add(new YourTurnTransferMessage());
                 }
             }
 
@@ -280,7 +284,6 @@
 
             simpleAI.Players = message.Players;
             simpleAI.Me = message.Me;
-            simpleAI.NeedAction = true;
         }
     }
 
@@ -348,11 +351,22 @@
 
             this.AddRenderer(new DefaultRenderer());
 
+            var parsers = new ITransferMessageParser[]
+            {
+                new ConnectedCountTransferMessageParser(),
+                new ConnectTransferMessageParser(),
+                new MapTransferMessageParser(),
+                new PlayerTurnDoneTransferMessageParser(),
+                new PlayerTurnReadyTransferMessageParser(),
+                new TurnDoneTransferMessageParser(),
+                new YourTurnTransferMessageParser(),
+            };
 
             this.AddEntitySystem(new ServerReceiveHandlerSystem(
                 new ConnectServerRecieveHandler(), 
                 new PlayerTurnDoneServerRecieveHandler()));
             this.AddEntitySystem(new LocalServerCommunicatorSystem());
+            this.AddEntitySystem(new NetworkServerCommunicatorSystem(parsers));
 
             var server = this.CreateEntity("Server");
             var gameState = server.AddComponent<GameStateComponent>();
@@ -362,12 +376,11 @@
             gameState.MaxPlayersCount = 2;
             server.AddComponent<ServerComponent>();
             server.AddComponent<LocalServerComponent>();
-            // server.AddComponent<NetworkServerComponent>();
+            server.AddComponent(new NetworkServerComponent("127.0.0.1", 8085));
 
 
-
-
-            this.AddEntitySystem(new LocalClientCommunicatorSystem(this));
+            this.AddEntitySystem(new LocalClientCommunicatorSystem(this, parsers));
+            this.AddEntitySystem(new NetworkClientCommunicatorSystem(parsers));
             this.AddEntitySystem(new MapVisiblePlayerSystem(this));
             this.AddEntitySystem(new MapAIPlayerSystem());
             this.AddEntitySystem(new YourTurnAIPlayerSystem());
@@ -387,14 +400,19 @@
 
             var player = this.CreateEntity();
             player.AddComponent<ClientComponent>().Message = new ConnectTransferMessage();
-            player.AddComponent<LocalClientComponent>().Server = server.Name;
+            player.AddComponent<LocalClientComponent>().ServerEntity = server.Name;
             player.AddComponent<AIComponent>().AIBot = new SimpleAI();
             player.AddComponent(new VisiblePlayerComponent(map.Name));
 
             player = this.CreateEntity();
             player.AddComponent<ClientComponent>().Message = new ConnectTransferMessage();
-            player.AddComponent<LocalClientComponent>().Server = server.Name;
+            player.AddComponent<LocalClientComponent>().ServerEntity = server.Name;
             player.AddComponent<AIComponent>().AIBot = new SimpleAI();
+            /*
+            player.AddComponent<ClientComponent>().Message = new ConnectTransferMessage();
+            player.AddComponent(new NetworkClientComponent(new Uri("ws://127.0.0.1:8085")));
+            player.AddComponent<AIComponent>().AIBot = new SimpleAI();
+            */
         }
     }
 }

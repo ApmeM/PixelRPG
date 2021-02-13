@@ -27,50 +27,51 @@
 
             var progress = this.CreateEntity("progress");
             var progressComponent = progress.AddComponent<ProgressComponent>();
-            progressComponent.Total = loadings.Sum(a => a.Count);
+            progressComponent.Loadings = loadings;
+            progressComponent.TotalItems = loadings.Sum(a => a.Count);
         
-            this.AddEntitySystem(new LoadElementUpdateSystem(loadings, progressComponent));
+            this.AddEntitySystem(new ProgressUpdateSystem());
             this.AddEntitySystem(new ProgressMeshGeneratorSystem());
         }
 
         public class ProgressComponent : Component
         {
-            public int Current;
-
-            public int Total;
+            public int CurrentLoading;
+            public List<LoadingData> Loadings;
+            public int TotalItems;
+            public int CurrentItem;
         }
 
-        public class LoadElementUpdateSystem : EntitySystem
+        public class ProgressUpdateSystem : EntityProcessingSystem
         {
-            private readonly List<LoadingData> loadings;
-
-            private readonly ProgressComponent progress;
-
-            private int currentLoading;
-
-            public LoadElementUpdateSystem(List<LoadingData> loadings, ProgressComponent progress)
+            public ProgressUpdateSystem() : base(new Matcher().All(typeof(ProgressComponent)))
             {
-                this.loadings = loadings;
-                this.progress = progress;
             }
 
-            public override void DoAction(TimeSpan gameTime)
+            protected override void DoAction(Entity entity, TimeSpan gameTime)
             {
-                base.DoAction(gameTime);
-                if (this.loadings.Count == this.currentLoading)
+                base.DoAction(entity, gameTime);
+                var progress = entity.GetComponent<ProgressComponent>();
+                if (progress.Loadings.Count < progress.CurrentLoading)
                 {
+                    return;
+                }
+
+                if (progress.Loadings.Count == progress.CurrentLoading)
+                {
+                    progress.CurrentLoading++;
                     Core.Instance.SwitchScene(new T());
                     return;
                 }
 
-                var enumerator = this.loadings[this.currentLoading].Enumerator;
+                var enumerator = progress.Loadings[progress.CurrentLoading].Enumerator;
                 if (!enumerator.MoveNext())
                 {
-                    this.currentLoading++;
+                    progress.CurrentLoading++;
                     return;
                 }
 
-                this.progress.Current++;
+                progress.CurrentItem++;
             }
         }
 
@@ -89,6 +90,11 @@
 
                 finalRender.Batch.Clear();
 
+                if(progress.TotalItems == 0)
+                {
+                    return;
+                }
+
                 finalRender.Batch.Draw(
                     Graphic.PixelTexture,
                     new RectangleF(
@@ -104,7 +110,7 @@
                     new RectangleF(
                         100,
                         Core.Instance.Screen.Height - 100,
-                        progress.Current * (Core.Instance.Screen.Width - 200f) / progress.Total,
+                        progress.CurrentItem * (Core.Instance.Screen.Width - 200f) / progress.TotalItems,
                         50),
                     Graphic.PixelTexture.Bounds,
                     Color.White);
