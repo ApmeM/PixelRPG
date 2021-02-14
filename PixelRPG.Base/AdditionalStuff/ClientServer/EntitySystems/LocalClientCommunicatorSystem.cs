@@ -1,4 +1,4 @@
-﻿namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems
 {
     #region Using Directives
 
@@ -7,6 +7,7 @@
     using LocomotorECS.Matching;
     using System;
     using PixelRPG.Base.AdditionalStuff.ClientServer;
+    using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
     #endregion
 
     public class LocalClientCommunicatorSystem : EntityProcessingSystem
@@ -20,7 +21,7 @@
             this.parsers = parsers;
         }
 
-        protected override void DoAction(Entity entity, System.TimeSpan gameTime)
+        protected override void DoAction(Entity entity, TimeSpan gameTime)
         {
             base.DoAction(entity, gameTime);
             var localClient = entity.GetComponent<LocalClientComponent>();
@@ -38,7 +39,7 @@
             if (client.Message != null)
             {
                 localServer.Request[localClient.Identifier].Add(client.Message);
-                //System.Diagnostics.Debug.WriteLine($"Local Client -> {localClient.Identifier} {ParserUtils.FindStringifier(client.Message, parsers).ToData(client.Message)}");
+                System.Diagnostics.Debug.WriteLine($"Local Client -> {localClient.Identifier} {ParserUtils.FindStringifier(client.Message, parsers).ToData(client.Message)}");
                 client.Message = null;
             }
 
@@ -48,7 +49,7 @@
             {
                 client.Response = response[0];
                 localServer.Response[localClient.Identifier].RemoveAt(0);
-                //System.Diagnostics.Debug.WriteLine($"Local Client <- {localClient.Identifier} {ParserUtils.FindStringifier(client.Response, parsers).ToData(client.Response)}");
+                System.Diagnostics.Debug.WriteLine($"Local Client <- {localClient.Identifier} {ParserUtils.FindStringifier(client.Response, parsers).ToData(client.Response)}");
             }
         }
     }

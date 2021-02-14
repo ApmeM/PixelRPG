@@ -1,11 +1,12 @@
-﻿namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems
 {
     using LocomotorECS;
     using LocomotorECS.Matching;
+    using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
 
     public abstract class ClientReceiveHandlerSystem<T> : EntityProcessingSystem
     {
-        public ClientReceiveHandlerSystem(Matcher matcher): base(matcher.All(typeof(ClientComponent)))
+        public ClientReceiveHandlerSystem(Matcher matcher) : base(matcher.All(typeof(ClientComponent)))
         {
         }
 

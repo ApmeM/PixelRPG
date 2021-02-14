@@ -1,4 +1,4 @@
-﻿namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems
 {
     #region Using Directives
 
@@ -10,6 +10,7 @@
     using System;
     using System.IO;
     using PixelRPG.Base.AdditionalStuff.ClientServer;
+    using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
     #endregion
 
     public class NetworkClientCommunicatorSystem : EntityProcessingSystem
@@ -50,7 +51,7 @@
                 System.Diagnostics.Debug.WriteLine($"Network Client -> {data}");
                 networkClient.Client.SendAsync(
                     new ArraySegment<byte>(Encoding.UTF8.GetBytes(data)),
-                    WebSocketMessageType.Text, 
+                    WebSocketMessageType.Text,
                     true,
                     CancellationToken.None);
                 client.Message = null;
@@ -64,7 +65,7 @@
 
             if (networkClient.RecievingTask.IsCompleted)
             {
-                WebSocketReceiveResult result = networkClient.RecievingTask.Result;
+                var result = networkClient.RecievingTask.Result;
                 networkClient.RecievingTask = null;
                 ms.Seek(0, SeekOrigin.Begin);
                 ms.SetLength(0);

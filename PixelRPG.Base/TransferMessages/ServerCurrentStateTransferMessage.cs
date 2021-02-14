@@ -1,20 +1,19 @@
 ﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
-using PixelRPG.Base.Screens;
+using PixelRPG.Base.Components;
 using System.Collections.Generic;
 
-namespace PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages
+namespace PixelRPG.Base.TransferMessages
 {
-    public class TurnDoneTransferMessage 
+    public class ServerCurrentStateTransferMessage
     {
         public List<GameStateComponent.Player> Players;
-        public GameStateComponent.Player Me;
     }
 
-    public class TurnDoneTransferMessageParser : TransferMessageParser<TurnDoneTransferMessage>
+    public class ServerCurrentStateTransferMessageParser : TransferMessageParser<ServerCurrentStateTransferMessage>
     {
-        protected override string InternalToData(TurnDoneTransferMessage transferModel)
+        protected override string InternalToData(ServerCurrentStateTransferMessage transferModel)
         {
-            var result = $"{CommonParsers.Player(transferModel.Me)}";
+            var result = $"1";
             for (var i = 0; i < transferModel.Players.Count; i++)
             {
                 result += $":{CommonParsers.Player(transferModel.Players[i])}";
@@ -22,7 +21,7 @@ namespace PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages
             return result;
         }
 
-        protected override TurnDoneTransferMessage InternalToTransferModel(string data)
+        protected override ServerCurrentStateTransferMessage InternalToTransferModel(string data)
         {
             var splittedData = data.Split(':');
             var players = new List<GameStateComponent.Player>();
@@ -31,9 +30,8 @@ namespace PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages
                 players.Add(CommonParsers.Player(splittedData[i]));
             }
 
-            return new TurnDoneTransferMessage
+            return new ServerCurrentStateTransferMessage
             {
-                Me = CommonParsers.Player(splittedData[0]),
                 Players = players
             };
         }

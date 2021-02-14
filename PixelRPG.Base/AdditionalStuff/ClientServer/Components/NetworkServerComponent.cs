@@ -1,5 +1,4 @@
-﻿
-namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer.Components
 {
 #if !Bridge
     using System;
@@ -16,7 +15,7 @@ namespace PixelRPG.Base.Screens
             this.Ip = ip;
             this.Port = port;
         }
-        
+
         public string Ip { get; private set; }
         public int Port { get; private set; }
 

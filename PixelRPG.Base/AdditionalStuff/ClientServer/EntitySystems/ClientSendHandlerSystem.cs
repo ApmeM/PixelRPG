@@ -1,7 +1,8 @@
-﻿namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems
 {
     using LocomotorECS;
     using LocomotorECS.Matching;
+    using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
 
     public abstract class ClientSendHandlerSystem<T> : EntityProcessingSystem
     {
@@ -15,7 +16,7 @@
             var client = entity.GetComponent<ClientComponent>();
 
             var data = PrepareSendData(entity, gameTime);
-            
+
             if (data != null)
             {
                 client.Message = data;
