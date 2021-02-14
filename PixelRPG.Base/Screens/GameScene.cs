@@ -74,11 +74,7 @@
             if (config.IsServer)
             {
                 var server = this.CreateEntity("Server");
-                var gameState = server.AddComponent<GameStateComponent>();
-                gameState.Map = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings(41, 31) { ExtraConnectorChance = 5, WindingPercent = 50 });
-                gameState.Players = new Dictionary<int, GameStateComponent.Player>();
-                gameState.Exit = new Point(gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].X + gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Width / 2, gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Y + gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Height / 2);
-                gameState.MaxPlayersCount = config.TotalPlayers;
+                server.AddComponent<GameStateComponent>().MaxPlayersCount = config.TotalPlayers;
                 server.AddComponent<ServerComponent>();
                 server.AddComponent<LocalServerComponent>();
                 server.AddComponent(new NetworkServerComponent("127.0.0.1", 8085));

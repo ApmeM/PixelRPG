@@ -2,8 +2,6 @@
 {
     #region Using Directives
 
-    using System.Linq;
-    using Microsoft.Xna.Framework;
     using PixelRPG.Base.Components;
     using PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems;
     using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
@@ -17,10 +15,8 @@
         {
             var gameState = server.Entity.GetComponent<GameStateComponent>();
 
-            var room = gameState.Map.Rooms[gameState.Players.Count];
             gameState.Players[connectionKey] = new GameStateComponent.Player
             {
-                Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2),
                 PlayerId = connectionKey + 100500
             };
 
@@ -42,21 +38,17 @@
                         PlayerId = player.Value.PlayerId
                     });
                 }
+            }
 
-                if (gameState.Players.Count == gameState.MaxPlayersCount)
+            if (gameState.Players.Count == gameState.MaxPlayersCount)
+            {
+                var startGameResponse = ServerLogic.StartNewGame(gameState);
+
+                foreach (var player in gameState.Players)
                 {
-                    responses.Add(new ServerGameStartedTransferMessage
-                    {
-                        Map = gameState.Map,
-                        Exit = gameState.Exit,
-                    });
-
-
-                    responses.Add(new ServerCurrentStateTransferMessage
-                    {
-                        Players = gameState.Players.Values.ToList()
-                    });
-
+                    var responses = server.Response[player.Key];
+                    responses.Add(startGameResponse);
+                    responses.Add(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
                     responses.Add(new ServerYourTurnTransferMessage());
                 }
             }

@@ -13,7 +13,7 @@
     public class GameStateComponent : Component
     {
         public RoomMazeGenerator.Result Map;
-        public Dictionary<int, Player> Players;
+        public Dictionary<int, Player> Players = new Dictionary<int, Player>();
         public Point Exit;
         public int MaxPlayersCount;
         public int MovedPlayers;

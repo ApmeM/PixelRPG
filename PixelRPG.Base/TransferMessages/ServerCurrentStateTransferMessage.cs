@@ -1,4 +1,6 @@
-﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+﻿using MazeGenerators;
+using Microsoft.Xna.Framework;
+using PixelRPG.Base.AdditionalStuff.ClientServer;
 using PixelRPG.Base.Components;
 using System.Collections.Generic;
 
@@ -7,6 +9,8 @@ namespace PixelRPG.Base.TransferMessages
     public class ServerCurrentStateTransferMessage
     {
         public List<GameStateComponent.Player> Players;
+        public Point? Exit;
+        public RoomMazeGenerator.Result Map;
     }
 
     public class ServerCurrentStateTransferMessageParser : TransferMessageParser<ServerCurrentStateTransferMessage>

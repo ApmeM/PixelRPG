@@ -23,19 +23,9 @@ namespace PixelRPG.Base.EntitySystems
         {
             var ai = entity.GetComponent<AIComponent>();
             var simpleAI = (SimpleAI)ai.AIBot;
-            simpleAI.Exit = message.Exit;
-            simpleAI.Map = message.Map;
-            simpleAI.Pathfinding = new AstarGridGraph(message.Map.Regions.GetLength(0), message.Map.Regions.GetLength(1));
-            for (var x = 0; x < message.Map.Regions.GetLength(0); x++)
-                for (var y = 0; y < message.Map.Regions.GetLength(1); y++)
-                {
-                    var pos = new MazeGenerators.Utils.Vector2(x, y);
-                    var tile = simpleAI.Map.GetTile(pos);
-                    if (!tile.HasValue)
-                    {
-                        simpleAI.Pathfinding.Walls.Add(new BrainAI.Pathfinding.Point(x, y));
-                    }
-                }
+            simpleAI.Pathfinding = new AstarGridGraph(message.Width, message.Height);
+            simpleAI.Regions = new int?[message.Width, message.Height];
+            simpleAI.Exit = null;
         }
     }
 }

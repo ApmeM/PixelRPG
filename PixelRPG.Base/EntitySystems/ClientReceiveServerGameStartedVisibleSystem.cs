@@ -20,6 +20,7 @@
     using PixelRPG.Base.Components;
     using PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems;
     using PixelRPG.Base.TransferMessages;
+    using Microsoft.Xna.Framework.Graphics;
     #endregion
 
     public class ClientReceiveServerGameStartedVisibleSystem : ClientReceiveHandlerSystem<ServerGameStartedTransferMessage>
@@ -41,36 +42,15 @@
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
             var water = (TiledTileLayer)tiledMap.GetLayer("Water");
 
-            tiledMap.Width = maze.Width = message.Map.Regions.GetLength(0);
-            tiledMap.Height = maze.Height = message.Map.Regions.GetLength(1);
-
-            maze.Tiles = new TiledTile[maze.Width * maze.Height];
+            tiledMap.Width = maze.Width = water.Width = message.Width;
+            tiledMap.Height = maze.Height = water.Height = message.Height;
             tiledMap.ObjectGroups.Clear();
 
-            for (var x = 0; x < message.Map.Regions.GetLength(0); x++)
-                for (var y = 0; y < message.Map.Regions.GetLength(1); y++)
-                {
-                    var tile = new TiledTile();
-                    if (message.Map.Regions[x, y].HasValue)
-                    {
-                        tile.Id = 2;
-                    }
-                    else
-                    {
-                        tile.Id = 17;
-                    }
+            maze.Tiles = new TiledTile[maze.Width * maze.Height];
+            water.Tiles = new TiledTile[water.Width * water.Height];
 
-                    maze.SetTile(x, y, tile);
-                }
-
-            for (var i = 0; i < message.Map.Junctions.Count; i++)
-            {
-                var junction = message.Map.Junctions[i];
-                var tile = maze.GetTile(junction.X, junction.Y);
-                tile.Id = 6;
-            }
-
-            maze.GetTile(message.Exit.X, message.Exit.Y).Id = 9;
+            tiledMap.TileSets[1].ImageTexture = Core.Instance.Content.Load<Texture2D>($"{ContentPaths.Assets.water0.Trim('0')}{Fate.GlobalFate.NextInt(5)}");
+            tiledMap.TileSets[0].ImageTexture = Core.Instance.Content.Load<Texture2D>($"{ContentPaths.Assets.tiles0.Trim('0')}{Fate.GlobalFate.NextInt(5)}");
         }
     }
 }

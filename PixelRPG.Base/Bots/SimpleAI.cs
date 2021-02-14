@@ -3,11 +3,9 @@
     #region Using Directives
 
     using System.Collections.Generic;
-    using System.Linq;
 
     using BrainAI.Pathfinding.AStar;
 
-    using MazeGenerators;
     using FateRandom;
     using Microsoft.Xna.Framework;
     using BrainAI.AI;
@@ -17,9 +15,9 @@
     public class SimpleAI : IAITurn
     {
         public int MePlayerId;
-        public RoomMazeGenerator.Result Map;
+        public int?[,] Regions;
         public List<GameStateComponent.Player> Players;
-        public Point Exit;
+        public Point? Exit;
         public AstarGridGraph Pathfinding;
 
         public bool NeedAction;
@@ -39,7 +37,7 @@
 
             var me = FindMe();
 
-            var path = AStarPathfinder.Search(Pathfinding, new BrainAI.Pathfinding.Point(me.Position.X, me.Position.Y), new BrainAI.Pathfinding.Point(this.Exit.X, this.Exit.Y));
+            var path = AStarPathfinder.Search(Pathfinding, new BrainAI.Pathfinding.Point(me.Position.X, me.Position.Y), new BrainAI.Pathfinding.Point(this.Exit?.X ?? 0, this.Exit?.Y ?? 0));
             if (path == null || path.Count < 2)
             {
                 NextTurn = me.Position;
