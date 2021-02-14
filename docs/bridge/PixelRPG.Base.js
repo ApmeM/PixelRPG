@@ -5418,57 +5418,32 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
                 this.AddRenderer(SpineEngine.Graphics.Renderers.DefaultRenderer, new SpineEngine.Graphics.Renderers.DefaultRenderer());
 
-                var parsers = System.Array.init([new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.ConnectedCountTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.ConnectTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.MapTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.PlayerTurnDoneTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.PlayerTurnReadyTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.TurnDoneTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.YourTurnTransferMessageParser()], PixelRPG.Base.AdditionalStuff.ClientServer.ITransferMessageParser);
+                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.FaceUI.ECS.EntitySystems.UIUpdateSystem(SpineEngine.Core.Instance.Content));
 
-                this.AddEntitySystem(new PixelRPG.Base.Screens.ServerReceiveHandlerSystem([new PixelRPG.Base.Screens.ConnectServerRecieveHandler(), new PixelRPG.Base.Screens.PlayerTurnDoneServerRecieveHandler()]));
-                this.AddEntitySystem(new PixelRPG.Base.Screens.LocalServerCommunicatorSystem());
-                this.AddEntitySystem(new PixelRPG.Base.Screens.NetworkServerCommunicatorSystem(parsers));
+                var uiEntity = this.CreateEntity("UI");
+                var ui = uiEntity.AddComponent(PixelRPG.Base.AdditionalStuff.FaceUI.ECS.Components.UIComponent);
+                ui.UserInterface.ShowCursor = false;
 
-                var server = this.CreateEntity("Server");
-                var gameState = server.AddComponent(PixelRPG.Base.Screens.GameStateComponent);
-                gameState.Map = new MazeGenerators.RoomMazeGenerator().Generate(($t = new MazeGenerators.RoomMazeGenerator.Settings(41, 31), $t.ExtraConnectorChance = 5, $t.WindingPercent = 50, $t));
-                gameState.Players = new (System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.Screens.GameStateComponent.Player))();
-                gameState.Exit = new Microsoft.Xna.Framework.Point.$ctor2(((gameState.Map.Rooms.getItem(((gameState.Map.Rooms.Count - 1) | 0)).$clone().X + ((Bridge.Int.div(gameState.Map.Rooms.getItem(((gameState.Map.Rooms.Count - 1) | 0)).$clone().Width, 2)) | 0)) | 0), ((gameState.Map.Rooms.getItem(((gameState.Map.Rooms.Count - 1) | 0)).$clone().Y + ((Bridge.Int.div(gameState.Map.Rooms.getItem(((gameState.Map.Rooms.Count - 1) | 0)).$clone().Height, 2)) | 0)) | 0));
-                gameState.MaxPlayersCount = 2;
-                server.AddComponent(PixelRPG.Base.Screens.ServerComponent);
-                server.AddComponent(PixelRPG.Base.Screens.LocalServerComponent);
-                server.AddComponent$1(PixelRPG.Base.Screens.NetworkServerComponent, new PixelRPG.Base.Screens.NetworkServerComponent("127.0.0.1", 8085));
+                var panel = new FaceUI.Entities.Panel.$ctor1(new Microsoft.Xna.Framework.Vector2.$ctor2(500, 500));
+                panel.AddChild(new FaceUI.Entities.Label.$ctor1("Server"));
+                panel.AddChild(new FaceUI.Entities.Label.$ctor1("Total Players"));
+                var totalPlayersCount = ($t = new FaceUI.Entities.TextInput.ctor(), $t.Value = "2", $t);
+                panel.AddChild(totalPlayersCount);
+                panel.AddChild(new FaceUI.Entities.Button.$ctor1("Start")).OnClick = function (b) {
+                    var $t1;
+                    SpineEngine.Core.Instance.SwitchScene(new PixelRPG.Base.Screens.GameScene(($t1 = new PixelRPG.Base.Screens.GameSceneConfig(), $t1.IsServer = true, $t1.ClientsCount = System.Int32.parse(totalPlayersCount.Value), $t1.TotalPlayers = System.Int32.parse(totalPlayersCount.Value), $t1)));
+                };
 
+                panel.AddChild(new FaceUI.Entities.Label.$ctor1("Client"));
+                panel.AddChild(new FaceUI.Entities.Label.$ctor1("Network Players"));
+                var networkPlayersCount = ($t = new FaceUI.Entities.TextInput.ctor(), $t.Value = "1", $t);
+                panel.AddChild(networkPlayersCount);
+                panel.AddChild(new FaceUI.Entities.Button.$ctor1("Start")).OnClick = function (b) {
+                    var $t1;
+                    SpineEngine.Core.Instance.SwitchScene(new PixelRPG.Base.Screens.GameScene(($t1 = new PixelRPG.Base.Screens.GameSceneConfig(), $t1.IsServer = false, $t1.ClientsCount = System.Int32.parse(networkPlayersCount.Value), $t1)));
+                };
 
-                this.AddEntitySystem(new PixelRPG.Base.Screens.LocalClientCommunicatorSystem(this, parsers));
-                this.AddEntitySystem(new PixelRPG.Base.Screens.NetworkClientCommunicatorSystem(parsers));
-                this.AddEntitySystem(new PixelRPG.Base.Screens.MapVisiblePlayerSystem(this));
-                this.AddEntitySystem(new PixelRPG.Base.Screens.MapAIPlayerSystem());
-                this.AddEntitySystem(new PixelRPG.Base.Screens.YourTurnAIPlayerSystem());
-                this.AddEntitySystem(new PixelRPG.Base.Screens.PlayerTurnDoneAIPlayerSystem());
-                this.AddEntitySystem(new PixelRPG.Base.Screens.TurnDoneAIPlayerSystem());
-                this.AddEntitySystem(new PixelRPG.Base.Screens.TurnDoneVisiblePlayerSystem(this));
-
-                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.BrainAI.EntitySystems.AIUpdateSystem());
-                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems.TiledMapUpdateSystem());
-                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems.TiledMapMeshGeneratorSystem(this));
-                this.AddEntitySystem(new SpineEngine.ECS.EntitySystems.AnimationSpriteUpdateSystem());
-                this.AddEntitySystem(new PixelRPG.Base.ECS.EntitySystems.CharSpriteUpdateSystem());
-
-
-                var map = this.CreateEntity("Map");
-                map.AddComponent$1(PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent, new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent(SpineEngine.Core.Instance.Content.Load(PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledMap, PixelRPG.Base.ContentPaths.Assets.template)));
-
-                var player = this.CreateEntity();
-                player.AddComponent(PixelRPG.Base.Screens.ClientComponent).Message = new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.ConnectTransferMessage();
-                player.AddComponent(PixelRPG.Base.Screens.LocalClientComponent).ServerEntity = server.Name;
-                player.AddComponent(PixelRPG.Base.AdditionalStuff.BrainAI.Components.AIComponent).AIBot = new PixelRPG.Base.Screens.SimpleAI();
-                player.AddComponent$1(PixelRPG.Base.Screens.VisiblePlayerComponent, new PixelRPG.Base.Screens.VisiblePlayerComponent(map.Name));
-
-                player = this.CreateEntity();
-                player.AddComponent(PixelRPG.Base.Screens.ClientComponent).Message = new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.ConnectTransferMessage();
-                player.AddComponent(PixelRPG.Base.Screens.LocalClientComponent).ServerEntity = server.Name;
-                player.AddComponent(PixelRPG.Base.AdditionalStuff.BrainAI.Components.AIComponent).AIBot = new PixelRPG.Base.Screens.SimpleAI();
-                /* 
-                player.AddComponent<ClientComponent>().Message = new ConnectTransferMessage();
-                player.AddComponent(new NetworkClientComponent(new Uri("ws://127.0.0.1:8085")));
-                player.AddComponent<AIComponent>().AIBot = new SimpleAI();
-                */
+                ui.UserInterface.AddEntity(panel);
             }
         }
     });
@@ -5528,6 +5503,90 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
     Bridge.define("PixelRPG.Base.Screens.ServerReceiveHandlerSystem.IHandler", {
         $kind: "nested interface"
+    });
+
+    Bridge.define("PixelRPG.Base.Screens.GameScene", {
+        inherits: [SpineEngine.ECS.Scene],
+        ctors: {
+            ctor: function (config) {
+                var $t;
+                this.$initialize();
+                SpineEngine.ECS.Scene.ctor.call(this);
+                this.SetDesignResolution(1280, 720, SpineEngine.Graphics.ResolutionPolicy.SceneResolutionPolicy.None);
+                SpineEngine.Core.Instance.Screen.SetSize(1280, 720);
+
+                this.AddRenderer(SpineEngine.Graphics.Renderers.DefaultRenderer, new SpineEngine.Graphics.Renderers.DefaultRenderer());
+
+                var parsers = System.Array.init([new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.ConnectedCountTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.ConnectTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.MapTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.PlayerTurnDoneTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.PlayerTurnReadyTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.TurnDoneTransferMessageParser(), new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.YourTurnTransferMessageParser()], PixelRPG.Base.AdditionalStuff.ClientServer.ITransferMessageParser);
+
+                var map = this.CreateEntity("Map");
+                map.AddComponent$1(PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent, new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent(SpineEngine.Core.Instance.Content.Load(PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledMap, PixelRPG.Base.ContentPaths.Assets.template)));
+
+                this.AddEntitySystem(new PixelRPG.Base.Screens.ServerReceiveHandlerSystem([new PixelRPG.Base.Screens.ConnectServerRecieveHandler(), new PixelRPG.Base.Screens.PlayerTurnDoneServerRecieveHandler()]));
+                this.AddEntitySystem(new PixelRPG.Base.Screens.LocalServerCommunicatorSystem());
+                this.AddEntitySystem(new PixelRPG.Base.Screens.NetworkServerCommunicatorSystem(parsers));
+                this.AddEntitySystem(new PixelRPG.Base.Screens.MapVisiblePlayerSystem(this));
+                this.AddEntitySystem(new PixelRPG.Base.Screens.LocalClientCommunicatorSystem(this, parsers));
+                this.AddEntitySystem(new PixelRPG.Base.Screens.MapAIPlayerSystem());
+                this.AddEntitySystem(new PixelRPG.Base.Screens.YourTurnAIPlayerSystem());
+                this.AddEntitySystem(new PixelRPG.Base.Screens.PlayerTurnDoneAIPlayerSystem());
+                this.AddEntitySystem(new PixelRPG.Base.Screens.TurnDoneAIPlayerSystem());
+                this.AddEntitySystem(new PixelRPG.Base.Screens.TurnDoneVisiblePlayerSystem(this));
+                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.BrainAI.EntitySystems.AIUpdateSystem());
+                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems.TiledMapUpdateSystem());
+                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.TiledMap.ECS.EntitySystems.TiledMapMeshGeneratorSystem(this));
+                this.AddEntitySystem(new SpineEngine.ECS.EntitySystems.AnimationSpriteUpdateSystem());
+                this.AddEntitySystem(new PixelRPG.Base.ECS.EntitySystems.CharSpriteUpdateSystem());
+                this.AddEntitySystem(new PixelRPG.Base.Screens.NetworkClientCommunicatorSystem(parsers));
+
+                if (config.IsServer) {
+                    var server = this.CreateEntity("Server");
+                    var gameState = server.AddComponent(PixelRPG.Base.Screens.GameStateComponent);
+                    gameState.Map = new MazeGenerators.RoomMazeGenerator().Generate(($t = new MazeGenerators.RoomMazeGenerator.Settings(41, 31), $t.ExtraConnectorChance = 5, $t.WindingPercent = 50, $t));
+                    gameState.Players = new (System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.Screens.GameStateComponent.Player))();
+                    gameState.Exit = new Microsoft.Xna.Framework.Point.$ctor2(((gameState.Map.Rooms.getItem(((gameState.Map.Rooms.Count - 1) | 0)).$clone().X + ((Bridge.Int.div(gameState.Map.Rooms.getItem(((gameState.Map.Rooms.Count - 1) | 0)).$clone().Width, 2)) | 0)) | 0), ((gameState.Map.Rooms.getItem(((gameState.Map.Rooms.Count - 1) | 0)).$clone().Y + ((Bridge.Int.div(gameState.Map.Rooms.getItem(((gameState.Map.Rooms.Count - 1) | 0)).$clone().Height, 2)) | 0)) | 0));
+                    gameState.MaxPlayersCount = config.TotalPlayers;
+                    server.AddComponent(PixelRPG.Base.Screens.ServerComponent);
+                    server.AddComponent(PixelRPG.Base.Screens.LocalServerComponent);
+                    server.AddComponent$1(PixelRPG.Base.Screens.NetworkServerComponent, new PixelRPG.Base.Screens.NetworkServerComponent("127.0.0.1", 8085));
+
+                    for (var i = 0; i < config.ClientsCount; i = (i + 1) | 0) {
+                        var player = this.CreateEntity();
+                        player.AddComponent(PixelRPG.Base.Screens.ClientComponent).Message = new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.ConnectTransferMessage();
+                        player.AddComponent(PixelRPG.Base.Screens.LocalClientComponent).ServerEntity = server.Name;
+                        player.AddComponent(PixelRPG.Base.AdditionalStuff.BrainAI.Components.AIComponent).AIBot = new PixelRPG.Base.Screens.SimpleAI();
+                        if (i === 0) {
+                            player.AddComponent$1(PixelRPG.Base.Screens.VisiblePlayerComponent, new PixelRPG.Base.Screens.VisiblePlayerComponent(map.Name));
+                        }
+                    }
+                } else {
+                    for (var i1 = 0; i1 < config.ClientsCount; i1 = (i1 + 1) | 0) {
+                        var player1 = this.CreateEntity();
+                        player1.AddComponent(PixelRPG.Base.Screens.ClientComponent).Message = new PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages.ConnectTransferMessage();
+                        player1.AddComponent$1(PixelRPG.Base.Screens.NetworkClientComponent, new PixelRPG.Base.Screens.NetworkClientComponent(new System.Uri("ws://127.0.0.1:8085")));
+                        player1.AddComponent(PixelRPG.Base.AdditionalStuff.BrainAI.Components.AIComponent).AIBot = new PixelRPG.Base.Screens.SimpleAI();
+
+                        if (i1 === 0) {
+                            player1.AddComponent$1(PixelRPG.Base.Screens.VisiblePlayerComponent, new PixelRPG.Base.Screens.VisiblePlayerComponent(map.Name));
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    Bridge.define("PixelRPG.Base.Screens.GameSceneConfig", {
+        fields: {
+            IsServer: false,
+            ClientsCount: 0,
+            TotalPlayers: 0
+        },
+        ctors: {
+            init: function () {
+                this.ClientsCount = 1;
+                this.TotalPlayers = 2;
+            }
+        }
     });
 
     Bridge.define("PixelRPG.Base.Screens.GameStateComponent", {
