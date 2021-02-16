@@ -1,23 +1,29 @@
 ﻿using MazeGenerators;
 using Microsoft.Xna.Framework;
-using PixelRPG.Base.Screens;
+using PixelRPG.Base.Components;
 using System;
 using System.Collections.Generic;
 
-namespace PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages
+namespace PixelRPG.Base.TransferMessages
 {
     public class CommonParsers
     {
         public static string Player(GameStateComponent.Player message)
         {
-            return Point(message.Position);
+            return $"{message.PlayerId},{message.Position.X},{message.Position.Y}";
         }
 
         public static GameStateComponent.Player Player(string data)
         {
+            var values = data.Split(',');
             return new GameStateComponent.Player
             {
-                Position = Point(data)
+                PlayerId = int.Parse(values[0]),
+                Position = new Point
+                {
+                    X = int.Parse(values[1]),
+                    Y = int.Parse(values[2])
+                }
             };
         }
 
@@ -72,7 +78,7 @@ namespace PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages
             for (var i = 0; i < junctionsCount; i++)
             {
                 result.Junctions.Add(new MazeGenerators.Utils.Vector2(
-                    int.Parse(values[start + i * 2]), 
+                    int.Parse(values[start + i * 2]),
                     int.Parse(values[start + i * 2 + 1])));
             }
 
@@ -82,7 +88,7 @@ namespace PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages
             for (var i = 0; i < roomsCount; i++)
             {
                 result.Rooms.Add(new MazeGenerators.Utils.Rectangle(
-                    int.Parse(values[start + i * 4]), 
+                    int.Parse(values[start + i * 4]),
                     int.Parse(values[start + i * 4 + 1]),
                     int.Parse(values[start + i * 4 + 2]),
                     int.Parse(values[start + i * 4 + 3])));
@@ -96,7 +102,7 @@ namespace PixelRPG.Base.ECS.EntitySystems.Models.TransferMessages
                 for (var y = 0; y < height; y++)
                 {
                     result.Regions[x, y] = int.Parse(values[start + x * height + y]);
-                    if(result.Regions[x, y] == -1)
+                    if (result.Regions[x, y] == -1)
                     {
                         result.Regions[x, y] = null;
                     }

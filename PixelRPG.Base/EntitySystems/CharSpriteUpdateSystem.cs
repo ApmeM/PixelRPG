@@ -1,4 +1,4 @@
-﻿namespace PixelRPG.Base.ECS.EntitySystems
+﻿namespace PixelRPG.Base.EntitySystems
 {
     using System;
 
@@ -8,7 +8,7 @@
     using SpineEngine.ECS.Components;
 
     using PixelRPG.Base.Assets;
-    using PixelRPG.Base.ECS.Components;
+    using PixelRPG.Base.Components;
 
     public class CharSpriteUpdateSystem : EntityProcessingSystem
     {
@@ -22,7 +22,7 @@
             base.DoAction(entity, gameTime);
             var animation = entity.GetOrCreateComponent<AnimationSpriteComponent>();
             var charSprites = entity.GetComponent<UnitComponent>();
-            
+
             if (animation.IsPlaying)
             {
                 return;

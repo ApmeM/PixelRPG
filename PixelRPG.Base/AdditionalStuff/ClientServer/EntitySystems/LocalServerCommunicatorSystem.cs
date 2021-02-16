@@ -1,4 +1,4 @@
-﻿namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems
 {
     #region Using Directives
 
@@ -7,6 +7,7 @@
     using LocomotorECS;
     using SpineEngine.ECS;
     using LocomotorECS.Matching;
+    using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
     #endregion
 
     public class LocalServerCommunicatorSystem : EntityProcessingSystem
@@ -46,7 +47,7 @@
                 {
                     var data = localServer.Request[client];
                     server.Request[id].AddRange(data);
-                    //System.Diagnostics.Debug.WriteLine($"Local Server <- {client} ({id}) {data.Count} items");
+                    System.Diagnostics.Debug.WriteLine($"Local Server <- {client} ({id}) {data.Count} items");
                     data.Clear();
                 }
 
@@ -54,7 +55,7 @@
                 {
                     var data = server.Response[id];
                     localServer.Response[client].AddRange(data);
-                    //System.Diagnostics.Debug.WriteLine($"Local Server -> {client} ({id}) {data.Count} items");
+                    System.Diagnostics.Debug.WriteLine($"Local Server -> {client} ({id}) {data.Count} items");
                     data.Clear();
                 }
             }

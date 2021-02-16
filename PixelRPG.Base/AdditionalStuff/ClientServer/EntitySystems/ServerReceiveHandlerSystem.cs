@@ -1,4 +1,4 @@
-﻿namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -6,6 +6,7 @@
     using LocomotorECS;
     using LocomotorECS.Matching;
     using System;
+    using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
 
     public class ServerReceiveHandlerSystem : EntityProcessingSystem
     {

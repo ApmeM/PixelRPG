@@ -1,10 +1,10 @@
-﻿namespace PixelRPG.Base.ECS.Components
+﻿namespace PixelRPG.Base.Components
 {
     using LocomotorECS;
 
     using PixelRPG.Base.Assets;
 
-    public class UnitComponent: Component
+    public class UnitComponent : Component
     {
         public UnitAnimation UnitAnimations { get; set; }
 

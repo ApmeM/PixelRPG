@@ -1,4 +1,4 @@
-﻿namespace PixelRPG.Base.Screens
+﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems
 {
     using System.Collections.Generic;
 
@@ -14,6 +14,7 @@
     using System.Text;
     using System.Text.RegularExpressions;
     using System;
+    using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
 
     public class NetworkServerCommunicatorSystem : EntityProcessingSystem
     {
@@ -24,7 +25,7 @@
             this.parsers = parsers;
         }
 
-        protected override void DoAction(Entity entity, System.TimeSpan gameTime)
+        protected override void DoAction(Entity entity, TimeSpan gameTime)
         {
             base.DoAction(entity, gameTime);
 #if Bridge
@@ -116,10 +117,10 @@
 
         public static byte[] GetDecodedData(byte[] buffer, int length)
         {
-            byte b = buffer[1];
-            int dataLength = 0;
-            int totalLength = 0;
-            int keyIndex = 0;
+            var b = buffer[1];
+            var dataLength = 0;
+            var totalLength = 0;
+            var keyIndex = 0;
 
             if (b - 128 <= 125)
             {
@@ -145,17 +146,17 @@
             if (totalLength > length)
                 throw new Exception("The buffer length is small than the data length");
 
-            byte[] key = new byte[] { buffer[keyIndex], buffer[keyIndex + 1], buffer[keyIndex + 2], buffer[keyIndex + 3] };
+            var key = new byte[] { buffer[keyIndex], buffer[keyIndex + 1], buffer[keyIndex + 2], buffer[keyIndex + 3] };
 
-            int dataIndex = keyIndex + 4;
-            int count = 0;
-            for (int i = dataIndex; i < totalLength; i++)
+            var dataIndex = keyIndex + 4;
+            var count = 0;
+            for (var i = dataIndex; i < totalLength; i++)
             {
                 buffer[i] = (byte)(buffer[i] ^ key[count % 4]);
                 count++;
             }
 
-            byte[] retBytes = new byte[dataLength];
+            var retBytes = new byte[dataLength];
 
             Array.Copy(buffer, dataIndex, retBytes, 0, dataLength);
 
@@ -165,12 +166,12 @@
         public static byte[] GetFrameFromBytes(byte[] bytesRaw)
         {
             byte[] response;
-            byte[] frame = new byte[10];
+            var frame = new byte[10];
 
-            int indexStartRawData = -1;
-            int length = bytesRaw.Length;
+            var indexStartRawData = -1;
+            var length = bytesRaw.Length;
 
-            frame[0] = (byte)(128 + (int)1);
+            frame[0] = 128 + 1;
             if (length <= 125)
             {
                 frame[1] = (byte)length;
@@ -178,21 +179,21 @@
             }
             else if (length >= 126 && length <= 65535)
             {
-                frame[1] = (byte)126;
-                frame[2] = (byte)((length >> 8) & 255);
+                frame[1] = 126;
+                frame[2] = (byte)(length >> 8 & 255);
                 frame[3] = (byte)(length & 255);
                 indexStartRawData = 4;
             }
             else
             {
-                frame[1] = (byte)127;
-                frame[2] = (byte)((length >> 56) & 255);
-                frame[3] = (byte)((length >> 48) & 255);
-                frame[4] = (byte)((length >> 40) & 255);
-                frame[5] = (byte)((length >> 32) & 255);
-                frame[6] = (byte)((length >> 24) & 255);
-                frame[7] = (byte)((length >> 16) & 255);
-                frame[8] = (byte)((length >> 8) & 255);
+                frame[1] = 127;
+                frame[2] = (byte)(length >> 56 & 255);
+                frame[3] = (byte)(length >> 48 & 255);
+                frame[4] = (byte)(length >> 40 & 255);
+                frame[5] = (byte)(length >> 32 & 255);
+                frame[6] = (byte)(length >> 24 & 255);
+                frame[7] = (byte)(length >> 16 & 255);
+                frame[8] = (byte)(length >> 8 & 255);
                 frame[9] = (byte)(length & 255);
 
                 indexStartRawData = 10;
