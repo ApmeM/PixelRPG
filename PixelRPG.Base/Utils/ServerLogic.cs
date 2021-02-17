@@ -30,7 +30,11 @@
 
             return new ServerCurrentStateTransferMessage
             {
-                Players = gameState.Players.Values.Where(a => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.Position.X, a.Position.Y)).ToList(),
+                Players = gameState.Players.Values.Select(a => new GameStateComponent.Player
+                {
+                    PlayerId = a.PlayerId,
+                    Units = a.Units.Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y)).ToList()
+                }).ToList(),
                 //Exit = IsVisible(player, gameState.Exit.X, gameState.Exit.Y) ? gameState.Exit : (Point?)null,
                 Exit = gameState.Exit,
                 Map = new RoomMazeGenerator.Result
@@ -43,17 +47,24 @@
 
         public static bool IsVisible(GameStateComponent.Player fromPlayer, int exitX, int exitY, int x, int y)
         {
-            if (fromPlayer.Position.X == exitX && fromPlayer.Position.Y == exitY)
+            for (var i = 0; i < fromPlayer.Units.Count; i++)
             {
-                return true;
-            }
+                if (fromPlayer.Units[i].Position.X == exitX && fromPlayer.Units[i].Position.Y == exitY)
+                {
+                    return true;
+                }
 
-            return Math.Abs(x - fromPlayer.Position.X) + Math.Abs(y - fromPlayer.Position.Y) < 5;
+                if (Math.Abs(x - fromPlayer.Units[i].Position.X) + Math.Abs(y - fromPlayer.Units[i].Position.Y) < 5)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public static ServerGameStartedTransferMessage StartNewGame(GameStateComponent gameState)
         {
-            gameState.Map = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings(41, 31) { ExtraConnectorChance = 5, WindingPercent = 50 });
+            gameState.Map = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings(71, 41) { ExtraConnectorChance = 5, WindingPercent = 50 });
             for (var x = 0; x < gameState.Map.Regions.GetLength(0); x++)
                 for (var y = 0; y < gameState.Map.Regions.GetLength(1); y++)
                 {
@@ -62,11 +73,25 @@
 
             gameState.Players = gameState.Players ?? new Dictionary<int, GameStateComponent.Player>();
             var roomIdx = 0;
-            foreach(var player in gameState.Players)
+            foreach (var player in gameState.Players)
             {
                 var room = gameState.Map.Rooms[roomIdx];
                 roomIdx++;
-                player.Value.Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2);
+                if (player.Value.Units == null)
+                {
+                    player.Value.Units = new List<GameStateComponent.Unit>
+                    {
+                        new GameStateComponent.Unit{UnitId = 1},
+                        new GameStateComponent.Unit{UnitId = 2},
+                        new GameStateComponent.Unit{UnitId = 3},
+                        new GameStateComponent.Unit{UnitId = 4}
+                    };
+                }
+
+                player.Value.Units[0].Position = new Point(room.X + room.Width / 2 - 1, room.Y + room.Height / 2);
+                player.Value.Units[1].Position = new Point(room.X + room.Width / 2 + 1, room.Y + room.Height / 2);
+                player.Value.Units[2].Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2 - 1);
+                player.Value.Units[3].Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2 + 1);
             }
             
             gameState.Exit = new Point(gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].X + gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Width / 2, gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Y + gameState.Map.Rooms[gameState.Map.Rooms.Count - 1].Height / 2);

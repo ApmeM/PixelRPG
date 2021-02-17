@@ -21,6 +21,12 @@
         public class Player
         {
             public int PlayerId;
+            public List<Unit> Units;
+        }
+
+        public class Unit
+        {
+            public int UnitId;
             public Point Position;
         }
     }
