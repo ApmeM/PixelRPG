@@ -21,7 +21,8 @@
         public AstarGridGraph Pathfinding;
 
         public bool NeedAction;
-        public Point? NextTurn;
+        public Dictionary<int, Point> NextTurn;
+        public List<BrainAI.Pathfinding.Point> PointsAdded = new List<BrainAI.Pathfinding.Point>();
 
         public void Tick()
         {
@@ -30,22 +31,50 @@
                 return;
             }
 
-            if (Fate.GlobalFate.Chance(95))
+            if (Fate.GlobalFate.Chance(50))
             {
                 return;
             }
 
             var me = FindMe();
 
-            var path = AStarPathfinder.Search(Pathfinding, new BrainAI.Pathfinding.Point(me.Position.X, me.Position.Y), new BrainAI.Pathfinding.Point(this.Exit?.X ?? 0, this.Exit?.Y ?? 0));
-            if (path == null || path.Count < 2)
+            NextTurn = new Dictionary<int, Point>();
+
+            for (var i = 0; i < me.Units.Count; i++)
             {
-                NextTurn = me.Position;
-                NeedAction = false;
-                return;
+                PointsAdded.Clear();
+                for (var j = 0; j < me.Units.Count; j++)
+                {
+                    if (i == j)
+                    {
+                        continue;
+                    }
+
+                    var point = new BrainAI.Pathfinding.Point(me.Units[j].Position.X, me.Units[j].Position.Y);
+                    PointsAdded.Add(point);
+                    Pathfinding.Walls.Add(point);
+                }
+
+                var path = AStarPathfinder.Search(Pathfinding, new BrainAI.Pathfinding.Point(me.Units[i].Position.X, me.Units[i].Position.Y), new BrainAI.Pathfinding.Point(this.Exit?.X ?? 0, this.Exit?.Y ?? 0));
+
+                for (var j = 0; j < PointsAdded.Count; j++)
+                {
+                    Pathfinding.Walls.Remove(PointsAdded[j]);
+                }
+
+                if (path == null)
+                {
+                    path = AStarPathfinder.Search(Pathfinding, new BrainAI.Pathfinding.Point(me.Units[i].Position.X, me.Units[i].Position.Y), new BrainAI.Pathfinding.Point(this.Exit?.X ?? 0, this.Exit?.Y ?? 0));
+                }
+
+                if (path == null || path.Count < 2)
+                {
+                    continue;
+                }
+                
+                NextTurn[me.Units[i].UnitId] = new Point(path[1].X, path[1].Y);
             }
 
-            NextTurn = new Point(path[1].X, path[1].Y);
             NeedAction = false;
         }
 

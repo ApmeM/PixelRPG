@@ -10,20 +10,34 @@ namespace PixelRPG.Base.TransferMessages
     {
         public static string Player(GameStateComponent.Player message)
         {
-            return $"{message.PlayerId},{message.Position.X},{message.Position.Y}";
+            var result = $"{message.PlayerId}";
+            for (var i = 0; i < message.Units.Count; i++)
+            {
+                result += $",{message.Units[0].UnitId},{message.Units[0].Position.X},{message.Units[0].Position.Y}";
+            }
+            return result;
         }
 
         public static GameStateComponent.Player Player(string data)
         {
             var values = data.Split(',');
+            var units = new List<GameStateComponent.Unit>();
+            for (var i = 0; i < (values.Length - 1) / 3; i++)
+            {
+                units.Add(new GameStateComponent.Unit
+                {
+                    UnitId = int.Parse(values[i * 3 + 1]),
+                    Position = new Point(
+                        int.Parse(values[i * 3 + 2]),
+                        int.Parse(values[i * 3 + 3])
+                    )
+                });
+            }
+
             return new GameStateComponent.Player
             {
                 PlayerId = int.Parse(values[0]),
-                Position = new Point
-                {
-                    X = int.Parse(values[1]),
-                    Y = int.Parse(values[2])
-                }
+                Units = units
             };
         }
 

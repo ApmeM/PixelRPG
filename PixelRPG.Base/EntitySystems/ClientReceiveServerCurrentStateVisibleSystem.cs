@@ -46,22 +46,24 @@
             }
 
             for (var i = 0; i < message.Players.Count; i++)
-            {
-                var playerUnit = this.scene.FindEntity($"PlayerUnit{message.Players[i].PlayerId}");
-                if (playerUnit == null)
+                for (var j = 0; j < message.Players[i].Units.Count; j++)
                 {
-                    playerUnit = this.scene.CreateEntity($"PlayerUnit{message.Players[i].PlayerId}");
-                    playerUnit.AddComponent<PositionComponent>().Position = new Vector2(message.Players[i].Position.X * 16 + 8, message.Players[i].Position.Y * 16 + 8);
-                    playerUnit.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, Fate.GlobalFate.Choose<string>(availableAnimations), 6);
-                    visiblePlayer.KnownPlayers.Add(playerUnit);
-                }
-                else
-                {
-                    playerUnit.GetComponent<PositionComponent>().Position = new Vector2(message.Players[i].Position.X * 16 + 8, message.Players[i].Position.Y * 16 + 8);
-                }
+                    var entityName = $"PlayerUnit{message.Players[i].PlayerId}_{message.Players[i].Units[j].UnitId}";
+                    var playerUnit = this.scene.FindEntity(entityName);
+                    if (playerUnit == null)
+                    {
+                        playerUnit = this.scene.CreateEntity(entityName);
+                        playerUnit.AddComponent<PositionComponent>().Position = new Vector2(message.Players[i].Units[j].Position.X * 16 + 8, message.Players[i].Units[j].Position.Y * 16 + 8);
+                        playerUnit.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, Fate.GlobalFate.Choose<string>(availableAnimations), 6);
+                        visiblePlayer.KnownPlayers.Add(playerUnit);
+                    }
+                    else
+                    {
+                        playerUnit.GetComponent<PositionComponent>().Position = new Vector2(message.Players[i].Units[j].Position.X * 16 + 8, message.Players[i].Units[j].Position.Y * 16 + 8);
+                    }
 
-                playerUnit.Enabled = true;
-            }
+                    playerUnit.Enabled = true;
+                }
 
 
             var map = this.scene.FindEntity(visiblePlayer.MapEntityName);
@@ -72,28 +74,37 @@
             for (var x = 0; x < message.Map.Regions.GetLength(0); x++)
                 for (var y = 0; y < message.Map.Regions.GetLength(1); y++)
                 {
+                    var currentTile = maze.GetTile(x, y);
                     if (message.Map.Regions[x, y] == GameSceneConfig.UnknownRegionValue)
                     {
+                        //if (currentTile != null)
+                        //{
+                        //    if (currentTile.Id == 2)
+                        //    {
+                        //        currentTile.Id = 1;
+                        //    }
+                        //    else if (currentTile.Id == 17)
+                        //    {
+                        //        currentTile.Id = 46;
+                        //    }
+                        //}
                         continue;
                     }
 
-                    var currentTile = maze.GetTile(x, y);
-                    if (currentTile != null)
+                    if (currentTile == null)
                     {
-                        continue;
+                        currentTile = new TiledTile();
                     }
 
-                    var tile = new TiledTile();
                     if (message.Map.Regions[x, y] == GameSceneConfig.WallRegionValue)
                     {
-                        tile.Id = 17;
+                        currentTile.Id = 17;
                     }
                     else if (message.Map.Regions[x, y] == GameSceneConfig.PathRegionValue)
                     {
-                        tile.Id = 2;
+                        currentTile.Id = 2;
                     }
-
-                    maze.SetTile(x, y, tile);
+                    maze.SetTile(x, y, currentTile);
                 }
 
             for (var i = 0; i < message.Map.Junctions.Count; i++)

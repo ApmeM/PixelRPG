@@ -17,7 +17,42 @@
         {
             var gameState = server.Entity.GetComponent<GameStateComponent>();
 
-            gameState.Players[connectionKey].Position = message.NewPosition;
+            for (var i = 0; i < gameState.Players[connectionKey].Units.Count; i++)
+            {
+                if (!message.NewPosition.ContainsKey(gameState.Players[connectionKey].Units[i].UnitId))
+                {
+                    continue;
+                }
+
+                var newPosition = message.NewPosition[gameState.Players[connectionKey].Units[i].UnitId];
+                var canMove = true;
+                if (newPosition != gameState.Exit)
+                {
+                    //foreach (var player in gameState.Players)
+                    var player = gameState.Players[connectionKey];
+                    {
+                        for (var j = 0; j < player.Units.Count; j++)
+                        {
+                            if (player.Units[j].Position == newPosition)
+                            {
+                                canMove = false;
+                                break;
+                            }
+                        }
+
+                        //if (!canMove)
+                        //{
+                        //    break;
+                        //}
+                    }
+                }
+
+                if (canMove)
+                {
+                    gameState.Players[connectionKey].Units[i].Position = newPosition;
+                }
+            }
+
             gameState.MovedPlayers++;
 
             foreach (var player in gameState.Players)
@@ -36,9 +71,12 @@
                 var allAtEnd = true;
                 foreach (var player in gameState.Players)
                 {
-                    if (player.Value.Position != gameState.Exit)
+                    for (var i = 0; i < player.Value.Units.Count; i++)
                     {
-                        allAtEnd = false;
+                        if (player.Value.Units[i].Position != gameState.Exit)
+                        {
+                            allAtEnd = false;
+                        }
                     }
                 }
                 
