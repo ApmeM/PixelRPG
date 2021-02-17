@@ -7,7 +7,7 @@ namespace PixelRPG.Base
 
     using Microsoft.Xna.Framework.Content;
     using Microsoft.Xna.Framework.Graphics;
-
+    using PixelRPG.Base.AdditionalStuff.FaceUI.Utils;
     using PixelRPG.Base.AdditionalStuff.Scenes;
     using PixelRPG.Base.AdditionalStuff.TiledMap.Models;
 
@@ -35,9 +35,15 @@ namespace PixelRPG.Base
             {
                 new LoadingData
                 {
-                    Count = 12,
+                    Count = 15,
                     Enumerator = GetEnumerator(this.Content)
                 },
+                new LoadingData
+                {
+                    Count = 47,
+                    Enumerator = GeonBitUIResources.GetEnumerator(this.Content, "hd")
+                },
+
             }, 1200, 600));
         }
 
@@ -46,6 +52,12 @@ namespace PixelRPG.Base
             content.Load<TiledMap>(ContentPaths.Assets.template);
             yield return 0;
             content.Load<Texture2D>(ContentPaths.Assets.Characters.warrior);
+            yield return 0;
+            content.Load<Texture2D>(ContentPaths.Assets.Characters.mage);
+            yield return 0;
+            content.Load<Texture2D>(ContentPaths.Assets.Characters.ranger);
+            yield return 0;
+            content.Load<Texture2D>(ContentPaths.Assets.Characters.rogue);
             yield return 0;
             content.Load<Texture2D>(ContentPaths.Assets.tiles0);
             yield return 0;

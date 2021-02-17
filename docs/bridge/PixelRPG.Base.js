@@ -5780,66 +5780,84 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                                         return true;
                                 }
                                 case 2: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles0);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.Characters.mage);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 3;
                                         return true;
                                 }
                                 case 3: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles1);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.Characters.ranger);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 4;
                                         return true;
                                 }
                                 case 4: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles2);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.Characters.rogue);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 5;
                                         return true;
                                 }
                                 case 5: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles3);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles0);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 6;
                                         return true;
                                 }
                                 case 6: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles4);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles1);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 7;
                                         return true;
                                 }
                                 case 7: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water0);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles2);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 8;
                                         return true;
                                 }
                                 case 8: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water1);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles3);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 9;
                                         return true;
                                 }
                                 case 9: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water2);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.tiles4);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 10;
                                         return true;
                                 }
                                 case 10: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water3);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water0);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 11;
                                         return true;
                                 }
                                 case 11: {
-                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water4);
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water1);
                                         $enumerator.current = Bridge.box(0, System.Int32);
                                         $step = 12;
                                         return true;
                                 }
                                 case 12: {
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water2);
+                                        $enumerator.current = Bridge.box(0, System.Int32);
+                                        $step = 13;
+                                        return true;
+                                }
+                                case 13: {
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water3);
+                                        $enumerator.current = Bridge.box(0, System.Int32);
+                                        $step = 14;
+                                        return true;
+                                }
+                                case 14: {
+                                    content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, PixelRPG.Base.ContentPaths.Assets.water4);
+                                        $enumerator.current = Bridge.box(0, System.Int32);
+                                        $step = 15;
+                                        return true;
+                                }
+                                case 15: {
 
                                 }
                                 default: {
@@ -5862,7 +5880,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
     Bridge.apply($asm.$.PixelRPG.Base.Game1, {
         f1: function (_o1) {
             var $t;
-            _o1.add(($t = new PixelRPG.Base.AdditionalStuff.Scenes.LoadingData(), $t.Count = 12, $t.Enumerator = this.GetEnumerator(this.Content), $t));
+            _o1.add(($t = new PixelRPG.Base.AdditionalStuff.Scenes.LoadingData(), $t.Count = 15, $t.Enumerator = this.GetEnumerator(this.Content), $t));
+            _o1.add(($t = new PixelRPG.Base.AdditionalStuff.Scenes.LoadingData(), $t.Count = 47, $t.Enumerator = PixelRPG.Base.AdditionalStuff.FaceUI.Utils.GeonBitUIResources.GetEnumerator(this.Content, "hd"), $t));
             return _o1;
         }
     });
