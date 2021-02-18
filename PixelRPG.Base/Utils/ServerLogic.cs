@@ -35,8 +35,7 @@
                     PlayerId = a.PlayerId,
                     Units = a.Units.Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y)).ToList()
                 }).ToList(),
-                //Exit = IsVisible(player, gameState.Exit.X, gameState.Exit.Y) ? gameState.Exit : (Point?)null,
-                Exit = gameState.Exit,
+                Exit = IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? gameState.Exit : (Point?)null,
                 Map = new RoomMazeGenerator.Result
                 {
                     Junctions = gameState.Map.Junctions.Where(a => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.X, a.Y)).ToList(),
@@ -54,7 +53,7 @@
                     return true;
                 }
 
-                if (Math.Abs(x - fromPlayer.Units[i].Position.X) + Math.Abs(y - fromPlayer.Units[i].Position.Y) < 5)
+                if (Math.Abs(x - fromPlayer.Units[i].Position.X) + Math.Abs(y - fromPlayer.Units[i].Position.Y) < 7)
                 {
                     return true;
                 }
