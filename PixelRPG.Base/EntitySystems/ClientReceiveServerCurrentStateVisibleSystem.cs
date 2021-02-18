@@ -70,27 +70,30 @@
             var tiledMap = map.GetComponent<TiledMapComponent>().TiledMap;
 
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
+            var fog = (TiledTileLayer)tiledMap.GetLayer("Fog");
 
             for (var x = 0; x < message.Map.Regions.GetLength(0); x++)
                 for (var y = 0; y < message.Map.Regions.GetLength(1); y++)
                 {
-                    var currentTile = maze.GetTile(x, y);
+                    var fogTile = fog.GetTile(x, y);
                     if (message.Map.Regions[x, y] == GameSceneConfig.UnknownRegionValue)
                     {
-                        //if (currentTile != null)
-                        //{
-                        //    if (currentTile.Id == 2)
-                        //    {
-                        //        currentTile.Id = 1;
-                        //    }
-                        //    else if (currentTile.Id == 17)
-                        //    {
-                        //        currentTile.Id = 46;
-                        //    }
-                        //}
+                        if (fogTile == null)
+                        {
+                            fogTile = new TiledTile { Id = 70 };
+                            fog.SetTile(x, y, fogTile);
+                            continue;
+                        }
+
+                        fogTile.Id = 70;
                         continue;
                     }
+                    if (fogTile != null)
+                    {
+                        fogTile.Id = 71;
+                    }
 
+                    var currentTile = maze.GetTile(x, y);
                     if (currentTile == null)
                     {
                         currentTile = new TiledTile();

@@ -8234,6 +8234,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         },
         methods: {
             DoAction$2: function (message, entity, gameTime) {
+                var $t;
                 var visiblePlayer = entity.GetComponent(PixelRPG.Base.Components.VisiblePlayerComponent);
 
                 for (var i = 0; i < visiblePlayer.KnownPlayers.Count; i = (i + 1) | 0) {
@@ -8262,25 +8263,26 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 var tiledMap = map.GetComponent(PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components.TiledMapComponent).TiledMap;
 
                 var maze = Bridge.cast(tiledMap.GetLayer("Maze"), PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTileLayer);
+                var fog = Bridge.cast(tiledMap.GetLayer("Fog"), PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTileLayer);
 
                 for (var x = 0; x < System.Array.getLength(message.Map.Regions, 0); x = (x + 1) | 0) {
                     for (var y = 0; y < System.Array.getLength(message.Map.Regions, 1); y = (y + 1) | 0) {
-                        var currentTile = maze.GetTile(x, y);
+                        var fogTile = fog.GetTile(x, y);
                         if (System.Nullable.eq(message.Map.Regions.get([x, y]), PixelRPG.Base.Screens.GameSceneConfig.UnknownRegionValue)) {
-                            //if (currentTile != null)
-                            //{
-                            //    if (currentTile.Id == 2)
-                            //    {
-                            //        currentTile.Id = 1;
-                            //    }
-                            //    else if (currentTile.Id == 17)
-                            //    {
-                            //        currentTile.Id = 46;
-                            //    }
-                            //}
+                            if (fogTile == null) {
+                                fogTile = ($t = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTile(), $t.Id = 70, $t);
+                                fog.SetTile(x, y, fogTile);
+                                continue;
+                            }
+
+                            fogTile.Id = 70;
                             continue;
                         }
+                        if (fogTile != null) {
+                            fogTile.Id = 71;
+                        }
 
+                        var currentTile = maze.GetTile(x, y);
                         if (currentTile == null) {
                             currentTile = new PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTile();
                         }
@@ -8365,13 +8367,15 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
                 var maze = Bridge.cast(tiledMap.GetLayer("Maze"), PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTileLayer);
                 var water = Bridge.cast(tiledMap.GetLayer("Water"), PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTileLayer);
+                var fog = Bridge.cast(tiledMap.GetLayer("Fog"), PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTileLayer);
 
-                tiledMap.Width = (maze.Width = (water.Width = message.Width));
-                tiledMap.Height = (maze.Height = (water.Height = message.Height));
+                tiledMap.Width = (maze.Width = (water.Width = (fog.Width = message.Width)));
+                tiledMap.Height = (maze.Height = (water.Height = (fog.Height = message.Height)));
                 tiledMap.ObjectGroups.clear();
 
                 maze.Tiles = System.Array.init(Bridge.Int.mul(maze.Width, maze.Height), null, PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTile);
                 water.Tiles = System.Array.init(Bridge.Int.mul(water.Width, water.Height), null, PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTile);
+                fog.Tiles = System.Array.init(Bridge.Int.mul(water.Width, water.Height), null, PixelRPG.Base.AdditionalStuff.TiledMap.Models.TiledTile);
 
                 tiledMap.TileSets.getItem(1).ImageTexture = SpineEngine.Core.Instance.Content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, System.String.format("{0}{1}", System.String.trim(PixelRPG.Base.ContentPaths.Assets.water0, [48]), Bridge.box(FateRandom.Fate.GlobalFate.NextInt(5), System.Int32)));
                 tiledMap.TileSets.getItem(0).ImageTexture = SpineEngine.Core.Instance.Content.Load(Microsoft.Xna.Framework.Graphics.Texture2D, System.String.format("{0}{1}", System.String.trim(PixelRPG.Base.ContentPaths.Assets.tiles0, [48]), Bridge.box(FateRandom.Fate.GlobalFate.NextInt(5), System.Int32)));

@@ -41,13 +41,15 @@
 
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
             var water = (TiledTileLayer)tiledMap.GetLayer("Water");
+            var fog = (TiledTileLayer)tiledMap.GetLayer("Fog");
 
-            tiledMap.Width = maze.Width = water.Width = message.Width;
-            tiledMap.Height = maze.Height = water.Height = message.Height;
+            tiledMap.Width = maze.Width = water.Width = fog.Width = message.Width;
+            tiledMap.Height = maze.Height = water.Height = fog.Height = message.Height;
             tiledMap.ObjectGroups.Clear();
 
             maze.Tiles = new TiledTile[maze.Width * maze.Height];
             water.Tiles = new TiledTile[water.Width * water.Height];
+            fog.Tiles = new TiledTile[water.Width * water.Height];
 
             tiledMap.TileSets[1].ImageTexture = Core.Instance.Content.Load<Texture2D>($"{ContentPaths.Assets.water0.Trim('0')}{Fate.GlobalFate.NextInt(5)}");
             tiledMap.TileSets[0].ImageTexture = Core.Instance.Content.Load<Texture2D>($"{ContentPaths.Assets.tiles0.Trim('0')}{Fate.GlobalFate.NextInt(5)}");
