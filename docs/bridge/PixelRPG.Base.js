@@ -5700,7 +5700,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             return ($t1 = new PixelRPG.Base.Components.GameStateComponent.Player(), $t1.PlayerId = a.PlayerId, $t1.Units = System.Linq.Enumerable.from(a.Units).where(function (b) {
                                     return PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y);
                                 }).toList(PixelRPG.Base.Components.GameStateComponent.Unit), $t1);
-                        }).toList(PixelRPG.Base.Components.GameStateComponent.Player), $t.Exit = gameState.Exit.$clone(), $t.Map = ($t1 = new MazeGenerators.RoomMazeGenerator.Result(), $t1.Junctions = System.Linq.Enumerable.from(gameState.Map.Junctions).where(function (a) {
+                        }).toList(PixelRPG.Base.Components.GameStateComponent.Player), $t.Exit = PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? gameState.Exit : null, $t.Map = ($t1 = new MazeGenerators.RoomMazeGenerator.Result(), $t1.Junctions = System.Linq.Enumerable.from(gameState.Map.Junctions).where(function (a) {
                             return PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.X, a.Y);
                         }).toList(MazeGenerators.Utils.Vector2), $t1.Regions = regions, $t1), $t);
                 },
@@ -5710,7 +5710,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             return true;
                         }
 
-                        if (((Math.abs(((x - fromPlayer.Units.getItem(i).Position.X) | 0)) + Math.abs(((y - fromPlayer.Units.getItem(i).Position.Y) | 0))) | 0) < 5) {
+                        if (((Math.abs(((x - fromPlayer.Units.getItem(i).Position.X) | 0)) + Math.abs(((y - fromPlayer.Units.getItem(i).Position.Y) | 0))) | 0) < 7) {
                             return true;
                         }
                     }
@@ -6064,20 +6064,20 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
             Regions: null,
             Players: null,
             Exit: null,
+            SearchPoint: null,
             Pathfinding: null,
             NeedAction: false,
-            NextTurn: null,
-            PointsAdded: null
+            NextTurn: null
         },
         alias: ["Tick", "BrainAI$AI$IAITurn$Tick"],
         ctors: {
             init: function () {
-                this.PointsAdded = new (System.Collections.Generic.List$1(BrainAI.Pathfinding.Point)).ctor();
+                this.SearchPoint = new (System.Collections.Generic.Dictionary$2(System.Int32,System.Nullable$1(Microsoft.Xna.Framework.Point)))();
             }
         },
         methods: {
             Tick: function () {
-                var $t, $t1, $t2, $t3;
+                var $t;
                 if (!this.NeedAction) {
                     return;
                 }
@@ -6091,29 +6091,23 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 this.NextTurn = new (System.Collections.Generic.Dictionary$2(System.Int32,Microsoft.Xna.Framework.Point))();
 
                 for (var i = 0; i < me.Units.Count; i = (i + 1) | 0) {
-                    this.PointsAdded.clear();
-                    for (var j = 0; j < me.Units.Count; j = (j + 1) | 0) {
-                        if (i === j) {
-                            continue;
-                        }
-
-                        var point = new BrainAI.Pathfinding.Point.$ctor1(me.Units.getItem(j).Position.X, me.Units.getItem(j).Position.Y);
-                        this.PointsAdded.add(point.$clone());
-                        this.Pathfinding.Walls.add(point.$clone());
+                    if (!this.SearchPoint.containsKey(me.Units.getItem(i).UnitId) || System.Nullable.lifteq(Microsoft.Xna.Framework.Point.op_Equality, System.Nullable.lift1("$clone", this.SearchPoint.get(me.Units.getItem(i).UnitId)), null) || Microsoft.Xna.Framework.Point.op_Equality(System.Nullable.getValue(System.Nullable.lift1("$clone", this.SearchPoint.get(me.Units.getItem(i).UnitId))).$clone(), me.Units.getItem(i).Position.$clone())) {
+                        this.SearchPoint.set(me.Units.getItem(i).UnitId, new Microsoft.Xna.Framework.Point.$ctor2(FateRandom.Fate.GlobalFate.NextInt(System.Array.getLength(this.Regions, 0)), FateRandom.Fate.GlobalFate.NextInt(System.Array.getLength(this.Regions, 1))));
                     }
 
-                    var path = BrainAI.Pathfinding.AStar.AStarPathfinder.Search$1(BrainAI.Pathfinding.Point, this.Pathfinding, new BrainAI.Pathfinding.Point.$ctor1(me.Units.getItem(i).Position.X, me.Units.getItem(i).Position.Y), new BrainAI.Pathfinding.Point.$ctor1(($t = (System.Nullable.liftne(Microsoft.Xna.Framework.Point.op_Inequality, System.Nullable.lift1("$clone", this.Exit), null) ? System.Nullable.getValue(this.Exit).X : null), $t != null ? $t : 0), ($t1 = (System.Nullable.liftne(Microsoft.Xna.Framework.Point.op_Inequality, System.Nullable.lift1("$clone", this.Exit), null) ? System.Nullable.getValue(this.Exit).Y : null), $t1 != null ? $t1 : 0)));
+                    var pathToGo = ($t = this.Exit, $t != null ? $t : System.Nullable.getValue(System.Nullable.lift1("$clone", this.SearchPoint.get(me.Units.getItem(i).UnitId))));
 
-                    for (var j1 = 0; j1 < this.PointsAdded.Count; j1 = (j1 + 1) | 0) {
-                        this.Pathfinding.Walls.remove(this.PointsAdded.getItem(j1).$clone());
-                    }
-
-                    if (path == null) {
-                        path = BrainAI.Pathfinding.AStar.AStarPathfinder.Search$1(BrainAI.Pathfinding.Point, this.Pathfinding, new BrainAI.Pathfinding.Point.$ctor1(me.Units.getItem(i).Position.X, me.Units.getItem(i).Position.Y), new BrainAI.Pathfinding.Point.$ctor1(($t2 = (System.Nullable.liftne(Microsoft.Xna.Framework.Point.op_Inequality, System.Nullable.lift1("$clone", this.Exit), null) ? System.Nullable.getValue(this.Exit).X : null), $t2 != null ? $t2 : 0), ($t3 = (System.Nullable.liftne(Microsoft.Xna.Framework.Point.op_Inequality, System.Nullable.lift1("$clone", this.Exit), null) ? System.Nullable.getValue(this.Exit).Y : null), $t3 != null ? $t3 : 0)));
-                    }
+                    var path = BrainAI.Pathfinding.AStar.AStarPathfinder.Search$1(BrainAI.Pathfinding.Point, this.Pathfinding, new BrainAI.Pathfinding.Point.$ctor1(me.Units.getItem(i).Position.X, me.Units.getItem(i).Position.Y), new BrainAI.Pathfinding.Point.$ctor1(pathToGo.X, pathToGo.Y));
 
                     if (path == null || path.Count < 2) {
+                        this.SearchPoint.set(me.Units.getItem(i).UnitId, null);
                         continue;
+                    }
+
+                    for (var j = 0; j < me.Units.Count; j = (j + 1) | 0) {
+                        if (me.Units.getItem(j).Position.X === path.getItem(1).$clone().X && me.Units.getItem(j).Position.Y === path.getItem(1).$clone().Y) {
+                            this.SearchPoint.set(me.Units.getItem(i).UnitId, null);
+                        }
                     }
 
                     this.NextTurn.set(me.Units.getItem(i).UnitId, new Microsoft.Xna.Framework.Point.$ctor2(path.getItem(1).$clone().X, path.getItem(1).$clone().Y));
