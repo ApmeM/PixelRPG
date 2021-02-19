@@ -14,14 +14,25 @@ namespace PixelRPG.Base.TransferMessages
 
         protected override void InternalWrite(ClientConnectTransferMessage transferModel, BinaryWriter writer)
         {
-            writer.Write(transferModel.PlayerName);
+            writer.Write(transferModel.PlayerName != null);
+            if (transferModel.PlayerName != null)
+            {
+                writer.Write(transferModel.PlayerName);
+            }
         }
 
         protected override ClientConnectTransferMessage InternalRead(BinaryReader reader)
         {
+            var playerNameExists = reader.ReadBoolean();
+            string playerName = null;
+            if (playerNameExists)
+            {
+                playerName = reader.ReadString();
+            }
+
             return new ClientConnectTransferMessage
             {
-                PlayerName = reader.ReadString()
+                PlayerName = playerName
             };
         }
     }

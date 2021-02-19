@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using PixelRPG.Base.AdditionalStuff.ClientServer;
+﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
 using System.Collections.Generic;
 using System.IO;
 
@@ -7,7 +6,7 @@ namespace PixelRPG.Base.TransferMessages
 {
     public class ClientTurnDoneTransferMessage
     {
-        public Dictionary<int, Point> NewPosition;
+        public Dictionary<int, PointTransferMessage> NewPosition;
     }
 
     public class ClientTurnDoneTransferMessageParser : BinaryTransferMessageParser<ClientTurnDoneTransferMessage>
@@ -27,14 +26,14 @@ namespace PixelRPG.Base.TransferMessages
 
         protected override ClientTurnDoneTransferMessage InternalRead(BinaryReader reader)
         {
-            var positions = new Dictionary<int, Point>();
+            var positions = new Dictionary<int, PointTransferMessage>();
             var count = reader.ReadInt32();
             for (var i = 0; i < count; i++)
             {
                 var key = reader.ReadInt32();
                 var x = reader.ReadInt32();
                 var y = reader.ReadInt32();
-                positions[key] = new Point(x, y);
+                positions[key] = new PointTransferMessage(x, y);
             }
 
             return new ClientTurnDoneTransferMessage

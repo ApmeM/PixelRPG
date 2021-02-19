@@ -2,7 +2,7 @@
 {
     public static class ParserUtils
     {
-        public static ITransferMessageParser FindStringifier(object transferModel, ITransferMessageParser[] parsers)
+        public static ITransferMessageParser FindWriter(object transferModel, ITransferMessageParser[] parsers)
         {
             for (var j = 0; j < parsers.Length; j++)
             {
@@ -15,7 +15,7 @@
             return null;
         }
 
-        public static ITransferMessageParser FindParser(string data, ITransferMessageParser[] parsers)
+        public static ITransferMessageParser FindReader(string data, ITransferMessageParser[] parsers)
         {
             for (var j = 0; j < parsers.Length; j++)
             {

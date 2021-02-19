@@ -30,17 +30,20 @@
 
             return new ServerCurrentStateTransferMessage
             {
-                Players = gameState.Players.Values.Select(a => new GameStateComponent.Player
+                Players = gameState.Players.Values.Select(a => new ServerCurrentStateTransferMessage.Player
                 {
                     PlayerId = a.PlayerId,
-                    Units = a.Units.Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y)).ToList()
+                    Units = a.Units
+                        .Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y))
+                        .Select(b => new ServerCurrentStateTransferMessage.Unit { 
+                            UnitId = b.UnitId,
+                            Position = new PointTransferMessage(b.Position.X, b.Position.Y)
+                        })
+                        .ToList()
                 }).ToList(),
-                Exit = IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? gameState.Exit : (Point?)null,
-                Map = new RoomMazeGenerator.Result
-                {
-                    Junctions = gameState.Map.Junctions.Where(a => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.X, a.Y)).ToList(),
-                    Regions = regions
-                },
+                Exit = IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? new PointTransferMessage(gameState.Exit.X, gameState.Exit.Y) : (PointTransferMessage?)null,
+                Map = regions,
+                Doors = gameState.Map.Junctions.Where(a => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.X, a.Y)).Select(a => new PointTransferMessage(a.X, a.Y)).ToList()
             };
         }
 

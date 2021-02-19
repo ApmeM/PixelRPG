@@ -90,7 +90,7 @@
                     data = Encoding.UTF8.GetString(GetDecodedData(bytes, bytes.Length));
                     System.Diagnostics.Debug.WriteLine($"Network Server <- {data}");
 
-                    var parser = ParserUtils.FindParser(data, parsers);
+                    var parser = ParserUtils.FindReader(data, parsers);
                     server.Request[id].Add(parser.Read(data));
                     continue;
                 }
@@ -99,7 +99,7 @@
                 if (response.Count != 0)
                 {
                     var transferModel = response[0];
-                    var parser = ParserUtils.FindStringifier(transferModel, parsers);
+                    var parser = ParserUtils.FindWriter(transferModel, parsers);
                     var data = parser.Write(transferModel);
                     System.Diagnostics.Debug.WriteLine($"Network Server -> {data}");
 

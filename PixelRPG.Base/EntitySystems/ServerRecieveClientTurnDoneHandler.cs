@@ -1,6 +1,7 @@
 ﻿namespace PixelRPG.Base.EntitySystems
 {
     using System;
+    using System.Diagnostics;
     #region Using Directives
 
     using System.Linq;
@@ -26,14 +27,14 @@
 
                 var newPosition = message.NewPosition[gameState.Players[connectionKey].Units[i].UnitId];
                 var canMove = true;
-                if (newPosition != gameState.Exit)
+                if (newPosition.X != gameState.Exit.X || newPosition.Y != gameState.Exit.Y)
                 {
                     //foreach (var player in gameState.Players)
                     var player = gameState.Players[connectionKey];
                     {
                         for (var j = 0; j < player.Units.Count; j++)
                         {
-                            if (player.Units[j].Position == newPosition)
+                            if (player.Units[j].Position.X == newPosition.X && player.Units[j].Position.Y == newPosition.Y)
                             {
                                 canMove = false;
                                 break;
@@ -49,7 +50,8 @@
 
                 if (canMove)
                 {
-                    gameState.Players[connectionKey].Units[i].Position = newPosition;
+                    gameState.Players[connectionKey].Units[i].Position.X = newPosition.X;
+                    gameState.Players[connectionKey].Units[i].Position.Y = newPosition.Y;
                 }
             }
 

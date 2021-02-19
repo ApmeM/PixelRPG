@@ -54,7 +54,7 @@
             this.AddEntitySystem(new ServerReceiveHandlerSystem(
                 new ServerReceiveClientConnectHandler(),
                 new ServerRecieveClientTurnDoneHandler()));
-            this.AddEntitySystem(new LocalServerCommunicatorSystem());
+            this.AddEntitySystem(new LocalServerCommunicatorSystem(parsers));
             this.AddEntitySystem(new NetworkServerCommunicatorSystem(parsers));
             this.AddEntitySystem(new ClientReceiveServerGameStartedVisibleSystem(this));
             this.AddEntitySystem(new LocalClientCommunicatorSystem(this, parsers));
@@ -87,9 +87,14 @@
                     if (i == 0)
                     {
                         player.AddComponent(new VisiblePlayerComponent(map.Name));
+                    }
+#if !Bridge
+                    if (i % 2 == 0)
+                    {
                         player.AddComponent(new NetworkClientComponent(new Uri("ws://127.0.0.1:8085")));
                     }
                     else
+#endif
                     {
                         player.AddComponent<LocalClientComponent>().ServerEntity = server.Name;
                     }
