@@ -39,7 +39,7 @@
             if (client.Message != null)
             {
                 localServer.Request[localClient.Identifier].Add(client.Message);
-                System.Diagnostics.Debug.WriteLine($"Local Client -> {localClient.Identifier} {ParserUtils.FindStringifier(client.Message, parsers).ToData(client.Message)}");
+                System.Diagnostics.Debug.WriteLine($"Local Client -> {localClient.Identifier} {ParserUtils.FindStringifier(client.Message, parsers).Write(client.Message)}");
                 client.Message = null;
             }
 
@@ -49,7 +49,7 @@
             {
                 client.Response = response[0];
                 localServer.Response[localClient.Identifier].RemoveAt(0);
-                System.Diagnostics.Debug.WriteLine($"Local Client <- {localClient.Identifier} {ParserUtils.FindStringifier(client.Response, parsers).ToData(client.Response)}");
+                System.Diagnostics.Debug.WriteLine($"Local Client <- {localClient.Identifier} {ParserUtils.FindStringifier(client.Response, parsers).Write(client.Response)}");
             }
         }
     }

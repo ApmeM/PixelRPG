@@ -6,7 +6,7 @@
         {
             for (var j = 0; j < parsers.Length; j++)
             {
-                if (parsers[j].IsStringable(transferModel))
+                if (parsers[j].IsWritable(transferModel))
                 {
                     return parsers[j];
                 }
@@ -14,11 +14,12 @@
 
             return null;
         }
+
         public static ITransferMessageParser FindParser(string data, ITransferMessageParser[] parsers)
         {
             for (var j = 0; j < parsers.Length; j++)
             {
-                if (parsers[j].IsParsable(data))
+                if (parsers[j].IsReadable(data))
                 {
                     return parsers[j];
                 }

@@ -1,4 +1,5 @@
 ﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using System.IO;
 
 namespace PixelRPG.Base.TransferMessages
 {
@@ -10,22 +11,31 @@ namespace PixelRPG.Base.TransferMessages
         public int WaitingCount;
     }
 
-    public class ServerClientConnectedTransferMessageParser : TransferMessageParser<ServerClientConnectedTransferMessage>
+    public class ServerClientConnectedTransferMessageParser : BinaryTransferMessageParser<ServerClientConnectedTransferMessage>
     {
-        protected override string InternalToData(ServerClientConnectedTransferMessage transferModel)
+        protected override int Identifier => 3;
+
+        protected override void InternalWrite(ServerClientConnectedTransferMessage transferModel, BinaryWriter writer)
         {
-            return $"{transferModel.PlayerId}:{transferModel.PlayerName}:{transferModel.CurrentCount}:{transferModel.WaitingCount}";
+            writer.Write(transferModel.PlayerId);
+            writer.Write(transferModel.PlayerName);
+            writer.Write(transferModel.CurrentCount);
+            writer.Write(transferModel.WaitingCount);
         }
 
-        protected override ServerClientConnectedTransferMessage InternalToTransferModel(string data)
+        protected override ServerClientConnectedTransferMessage InternalRead(BinaryReader reader)
         {
-            var splittedData = data.Split(':');
+            var playerId = reader.ReadInt32();
+            var playerName = reader.ReadString();
+            var currentCount = reader.ReadInt32();
+            var waitingCount = reader.ReadInt32();
+
             return new ServerClientConnectedTransferMessage
             {
-                PlayerId = int.Parse(splittedData[0]),
-                PlayerName = splittedData[1],
-                CurrentCount = int.Parse(splittedData[2]),
-                WaitingCount = int.Parse(splittedData[3])
+                PlayerId = playerId,
+                PlayerName = playerName,
+                CurrentCount = currentCount,
+                WaitingCount = waitingCount
             };
         }
     }

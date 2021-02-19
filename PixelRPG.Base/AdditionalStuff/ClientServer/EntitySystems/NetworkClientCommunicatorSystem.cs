@@ -47,7 +47,7 @@
             {
                 var transferModel = client.Message;
                 var parser = ParserUtils.FindStringifier(transferModel, parsers);
-                var data = parser.ToData(transferModel);
+                var data = parser.Write(transferModel);
                 System.Diagnostics.Debug.WriteLine($"Network Client -> {data}");
                 networkClient.Client.SendAsync(
                     new ArraySegment<byte>(Encoding.UTF8.GetBytes(data)),
@@ -83,7 +83,7 @@
 
                 System.Diagnostics.Debug.WriteLine($"Network Client <- {data}");
                 var parser = ParserUtils.FindParser(data, parsers);
-                client.Response = parser.ToTransferModel(data);
+                client.Response = parser.Read(data);
             }
         }
     }

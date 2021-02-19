@@ -1,4 +1,5 @@
 ﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using System.IO;
 
 namespace PixelRPG.Base.TransferMessages
 {
@@ -8,21 +9,25 @@ namespace PixelRPG.Base.TransferMessages
         public int Height;
     }
 
-    public class ServerGameStartedTransferMessageParser : TransferMessageParser<ServerGameStartedTransferMessage>
+    public class ServerGameStartedTransferMessageParser : BinaryTransferMessageParser<ServerGameStartedTransferMessage>
     {
-        protected override string InternalToData(ServerGameStartedTransferMessage transferModel)
+        protected override int Identifier => 5;
+
+        protected override void InternalWrite(ServerGameStartedTransferMessage transferModel, BinaryWriter writer)
         {
-            return $"{transferModel.Width}:{transferModel.Height}";
+            writer.Write(transferModel.Width);
+            writer.Write(transferModel.Height);
         }
 
-        protected override ServerGameStartedTransferMessage InternalToTransferModel(string data)
+        protected override ServerGameStartedTransferMessage InternalRead(BinaryReader reader)
         {
-            var splittedData = data.Split(':');
+            var width = reader.ReadInt32();
+            var height = reader.ReadInt32();
             return 
                 new ServerGameStartedTransferMessage
                 {
-                    Width = int.Parse(splittedData[0]),
-                    Height = int.Parse(splittedData[1])
+                    Width = width,
+                    Height = height
                 };
         }
     }

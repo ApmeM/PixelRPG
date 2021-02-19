@@ -91,7 +91,7 @@
                     System.Diagnostics.Debug.WriteLine($"Network Server <- {data}");
 
                     var parser = ParserUtils.FindParser(data, parsers);
-                    server.Request[id].Add(parser.ToTransferModel(data));
+                    server.Request[id].Add(parser.Read(data));
                     continue;
                 }
 
@@ -100,7 +100,7 @@
                 {
                     var transferModel = response[0];
                     var parser = ParserUtils.FindStringifier(transferModel, parsers);
-                    var data = parser.ToData(transferModel);
+                    var data = parser.Write(transferModel);
                     System.Diagnostics.Debug.WriteLine($"Network Server -> {data}");
 
                     byte[] frame = GetFrameFromBytes(Encoding.UTF8.GetBytes(data));

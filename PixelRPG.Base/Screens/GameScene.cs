@@ -82,12 +82,16 @@
                 for (var i = 0; i < config.ClientsCount; i++)
                 {
                     var player = this.CreateEntity();
-                    player.AddComponent<ClientComponent>().Message = new ClientConnectTransferMessage();
-                    player.AddComponent<LocalClientComponent>().ServerEntity = server.Name;
+                    player.AddComponent<ClientComponent>().Message = new ClientConnectTransferMessage { PlayerName = $"Player {i}" };
                     player.AddComponent<AIComponent>().AIBot = new SimpleAI();
                     if (i == 0)
                     {
                         player.AddComponent(new VisiblePlayerComponent(map.Name));
+                        player.AddComponent(new NetworkClientComponent(new Uri("ws://127.0.0.1:8085")));
+                    }
+                    else
+                    {
+                        player.AddComponent<LocalClientComponent>().ServerEntity = server.Name;
                     }
                 }
             }
@@ -96,7 +100,7 @@
                 for (var i = 0; i < config.ClientsCount; i++)
                 {
                     var player = this.CreateEntity();
-                    player.AddComponent<ClientComponent>().Message = new ClientConnectTransferMessage();
+                    player.AddComponent<ClientComponent>().Message = new ClientConnectTransferMessage { PlayerName = $"Player {i}" };
                     player.AddComponent(new NetworkClientComponent(new Uri("ws://127.0.0.1:8085")));
                     player.AddComponent<AIComponent>().AIBot = new SimpleAI();
 

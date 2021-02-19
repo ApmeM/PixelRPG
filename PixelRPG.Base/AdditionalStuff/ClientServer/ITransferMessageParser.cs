@@ -2,9 +2,9 @@
 {
     public interface ITransferMessageParser
     {
-        bool IsParsable(string data);
-        bool IsStringable(object transferModel);
-        string ToData(object transferModel);
-        object ToTransferModel(string data);
+        bool IsReadable(string data);
+        bool IsWritable(object transferModel);
+        string Write(object transferModel);
+        object Read(string data);
     }
 }
