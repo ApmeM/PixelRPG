@@ -1,4 +1,5 @@
 ﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using System.IO;
 
 namespace PixelRPG.Base.TransferMessages
 {
@@ -6,15 +7,15 @@ namespace PixelRPG.Base.TransferMessages
     {
     }
 
-
-    public class ServerYourTurnTransferMessageParser : TransferMessageParser<ServerYourTurnTransferMessage>
+    public class ServerYourTurnTransferMessageParser : BinaryTransferMessageParser<ServerYourTurnTransferMessage>
     {
-        protected override string InternalToData(ServerYourTurnTransferMessage transferModel)
+        protected override int Identifier => 8;
+
+        protected override void InternalWrite(ServerYourTurnTransferMessage transferModel, BinaryWriter writer)
         {
-            return string.Empty;
         }
 
-        protected override ServerYourTurnTransferMessage InternalToTransferModel(string data)
+        protected override ServerYourTurnTransferMessage InternalRead(BinaryReader reader)
         {
             return new ServerYourTurnTransferMessage { };
         }

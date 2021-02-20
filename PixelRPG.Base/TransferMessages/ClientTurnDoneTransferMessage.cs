@@ -1,34 +1,39 @@
-﻿using Microsoft.Xna.Framework;
-using PixelRPG.Base.AdditionalStuff.ClientServer;
+﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
 using System.Collections.Generic;
+using System.IO;
 
 namespace PixelRPG.Base.TransferMessages
 {
     public class ClientTurnDoneTransferMessage
     {
-        public Dictionary<int, Point> NewPosition;
+        public Dictionary<int, PointTransferMessage> NewPosition;
     }
 
-    public class ClientTurnDoneTransferMessageParser : TransferMessageParser<ClientTurnDoneTransferMessage>
+    public class ClientTurnDoneTransferMessageParser : BinaryTransferMessageParser<ClientTurnDoneTransferMessage>
     {
-        protected override string InternalToData(ClientTurnDoneTransferMessage transferModel)
-        {
-            var result = string.Empty;
-            foreach(var pos in transferModel.NewPosition)
-            {
-                result += $":{pos.Key}:{CommonParsers.Point(pos.Value)}";
-            }
+        protected override int Identifier => 2;
 
-            return result;
+        protected override void InternalWrite(ClientTurnDoneTransferMessage transferModel, BinaryWriter writer)
+        {
+            writer.Write(transferModel.NewPosition.Count);
+            foreach (var pos in transferModel.NewPosition)
+            {
+                writer.Write(pos.Key);
+                writer.Write(pos.Value.X);
+                writer.Write(pos.Value.Y);
+            }
         }
 
-        protected override ClientTurnDoneTransferMessage InternalToTransferModel(string data)
+        protected override ClientTurnDoneTransferMessage InternalRead(BinaryReader reader)
         {
-            var splittedData = data.Split(':');
-            var positions = new Dictionary<int, Point>();
-            for (var i = 0; i < (splittedData.Length - 1) / 2; i++)
+            var positions = new Dictionary<int, PointTransferMessage>();
+            var count = reader.ReadInt32();
+            for (var i = 0; i < count; i++)
             {
-                positions[int.Parse(splittedData[i * 2 + 1])] = CommonParsers.Point(splittedData[i * 2 + 2]);
+                var key = reader.ReadInt32();
+                var x = reader.ReadInt32();
+                var y = reader.ReadInt32();
+                positions[key] = new PointTransferMessage(x, y);
             }
 
             return new ClientTurnDoneTransferMessage

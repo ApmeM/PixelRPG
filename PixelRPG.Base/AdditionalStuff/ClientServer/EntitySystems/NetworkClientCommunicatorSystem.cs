@@ -46,8 +46,8 @@
             if (client.Message != null)
             {
                 var transferModel = client.Message;
-                var parser = ParserUtils.FindStringifier(transferModel, parsers);
-                var data = parser.ToData(transferModel);
+                var parser = ParserUtils.FindWriter(transferModel, parsers);
+                var data = parser.Write(transferModel);
                 System.Diagnostics.Debug.WriteLine($"Network Client -> {data}");
                 networkClient.Client.SendAsync(
                     new ArraySegment<byte>(Encoding.UTF8.GetBytes(data)),
@@ -57,6 +57,8 @@
                 client.Message = null;
                 return;
             }
+            
+            client.Response = null;
 
             if (networkClient.RecievingTask == null)
             {
@@ -82,8 +84,8 @@
                 var data = reader.ReadToEnd();
 
                 System.Diagnostics.Debug.WriteLine($"Network Client <- {data}");
-                var parser = ParserUtils.FindParser(data, parsers);
-                client.Response = parser.ToTransferModel(data);
+                var parser = ParserUtils.FindReader(data, parsers);
+                client.Response = parser.Read(data);
             }
         }
     }

@@ -10,8 +10,8 @@
 
     public class LocalServerComponent : Component
     {
-        public Dictionary<Guid, List<object>> Request = new Dictionary<Guid, List<object>>();
-        public Dictionary<Guid, List<object>> Response = new Dictionary<Guid, List<object>>();
+        public Dictionary<Guid, List<string>> Request = new Dictionary<Guid, List<string>>();
+        public Dictionary<Guid, List<string>> Response = new Dictionary<Guid, List<string>>();
         public List<Guid> PendingConnections = new List<Guid>();
 
         public Dictionary<Guid, int> ClientToPlayerId = new Dictionary<Guid, int>();

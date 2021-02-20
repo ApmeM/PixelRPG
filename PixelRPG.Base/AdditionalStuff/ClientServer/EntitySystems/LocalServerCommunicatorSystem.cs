@@ -12,8 +12,11 @@
 
     public class LocalServerCommunicatorSystem : EntityProcessingSystem
     {
-        public LocalServerCommunicatorSystem() : base(new Matcher().All(typeof(LocalServerComponent), typeof(ServerComponent)))
+        private readonly ITransferMessageParser[] parsers;
+
+        public LocalServerCommunicatorSystem(params ITransferMessageParser[] parsers) : base(new Matcher().All(typeof(LocalServerComponent), typeof(ServerComponent)))
         {
+            this.parsers = parsers;
         }
 
         protected override void DoAction(Entity entity, System.TimeSpan gameTime)
@@ -33,8 +36,8 @@
                     localServer.ClientToPlayerId[tcpClient] = server.ConnectedPlayers;
                     server.Request[localServer.ClientToPlayerId[tcpClient]] = new List<object>();
                     server.Response[localServer.ClientToPlayerId[tcpClient]] = new List<object>();
-                    localServer.Request[tcpClient] = new List<object>();
-                    localServer.Response[tcpClient] = new List<object>();
+                    localServer.Request[tcpClient] = new List<string>();
+                    localServer.Response[tcpClient] = new List<string>();
                 }
                 localServer.PendingConnections.Clear();
             }
@@ -46,17 +49,27 @@
                 if (localServer.Request.ContainsKey(client) && localServer.Request[client].Count > 0)
                 {
                     var data = localServer.Request[client];
-                    server.Request[id].AddRange(data);
-                    System.Diagnostics.Debug.WriteLine($"Local Server <- {client} ({id}) {data.Count} items");
+                    for(var j = 0; j < data.Count; j++)
+                    {
+                        var parser = ParserUtils.FindReader(data[j], parsers);
+                        var transferMessage = parser.Read(data[j]);
+                        System.Diagnostics.Debug.WriteLine($"Local Server <- {data[j]}");
+                        server.Request[id].Add(transferMessage);
+                    }
                     data.Clear();
                 }
 
                 if (server.Response.ContainsKey(id) && server.Response[id].Count > 0)
                 {
-                    var data = server.Response[id];
-                    localServer.Response[client].AddRange(data);
-                    System.Diagnostics.Debug.WriteLine($"Local Server -> {client} ({id}) {data.Count} items");
-                    data.Clear();
+                    var transferMessages = server.Response[id];
+                    for (var j = 0; j < transferMessages.Count; j++)
+                    {
+                        var parser = ParserUtils.FindWriter(transferMessages[j], parsers);
+                        var data = parser.Write(transferMessages[j]);
+                        System.Diagnostics.Debug.WriteLine($"Local Server -> {data}");
+                        localServer.Response[client].Add(data);
+                    }
+                    transferMessages.Clear();
                 }
             }
         }

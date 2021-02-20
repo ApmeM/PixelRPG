@@ -24,16 +24,16 @@ namespace PixelRPG.Base.EntitySystems
 
             simpleAI.Players = message.Players;
             simpleAI.Exit = simpleAI.Exit ?? message.Exit;
-            for (var x = 0; x < message.Map.Regions.GetLength(0); x++)
-                for (var y = 0; y < message.Map.Regions.GetLength(1); y++)
+            for (var x = 0; x < message.Map.GetLength(0); x++)
+                for (var y = 0; y < message.Map.GetLength(1); y++)
                 {
-                    if (message.Map.Regions[x, y] == GameSceneConfig.UnknownRegionValue)
+                    if (message.Map[x, y] == GameSceneConfig.UnknownRegionValue)
                     {
                         continue;
                     }
                     
-                    simpleAI.Regions[x, y] = message.Map.Regions[x, y];
-                    if (message.Map.Regions[x, y] == GameSceneConfig.WallRegionValue)
+                    simpleAI.Regions[x, y] = message.Map[x, y];
+                    if (message.Map[x, y] == GameSceneConfig.WallRegionValue)
                     {
                         simpleAI.Pathfinding.Walls.Add(new BrainAI.Pathfinding.Point(x, y));
                     }

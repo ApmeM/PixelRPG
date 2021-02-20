@@ -7,22 +7,22 @@
     using BrainAI.Pathfinding.AStar;
 
     using FateRandom;
-    using Microsoft.Xna.Framework;
     using BrainAI.AI;
-    using PixelRPG.Base.Components;
+    using PixelRPG.Base.TransferMessages;
+    using System;
     #endregion
 
     public class SimpleAI : IAITurn
     {
         public int MePlayerId;
         public int?[,] Regions;
-        public List<GameStateComponent.Player> Players;
-        public Point? Exit;
-        public Dictionary<int, Point?> SearchPoint = new Dictionary<int, Point?>();
+        public List<ServerCurrentStateTransferMessage.Player> Players;
+        public PointTransferMessage? Exit;
+        public Dictionary<int, PointTransferMessage?> SearchPoint = new Dictionary<int, PointTransferMessage?>();
         public AstarGridGraph Pathfinding;
 
         public bool NeedAction;
-        public Dictionary<int, Point> NextTurn;
+        public Dictionary<int, PointTransferMessage> NextTurn;
 
         public void Tick()
         {
@@ -31,20 +31,16 @@
                 return;
             }
 
-            if (Fate.GlobalFate.Chance(50))
-            {
-                return;
-            }
-
             var me = FindMe();
 
-            NextTurn = new Dictionary<int, Point>();
+            NextTurn = new Dictionary<int, PointTransferMessage>();
 
             for (var i = 0; i < me.Units.Count; i++)
             {
-                if (!SearchPoint.ContainsKey(me.Units[i].UnitId) || SearchPoint[me.Units[i].UnitId] == null || SearchPoint[me.Units[i].UnitId].Value == me.Units[i].Position)
+                if (!SearchPoint.ContainsKey(me.Units[i].UnitId) || SearchPoint[me.Units[i].UnitId] == null || 
+                    (SearchPoint[me.Units[i].UnitId].Value.X == me.Units[i].Position.X && SearchPoint[me.Units[i].UnitId].Value.Y == me.Units[i].Position.Y))
                 {
-                    SearchPoint[me.Units[i].UnitId] = new Point(Fate.GlobalFate.NextInt(Regions.GetLength(0)), Fate.GlobalFate.NextInt(Regions.GetLength(1)));
+                    SearchPoint[me.Units[i].UnitId] = new PointTransferMessage(Fate.GlobalFate.NextInt(Regions.GetLength(0)), Fate.GlobalFate.NextInt(Regions.GetLength(1)));
                 }
 
                 var pathToGo = this.Exit ?? SearchPoint[me.Units[i].UnitId].Value;
@@ -65,13 +61,13 @@
                     }
                 }
 
-                NextTurn[me.Units[i].UnitId] = new Point(path[1].X, path[1].Y);
+                NextTurn[me.Units[i].UnitId] = new PointTransferMessage(path[1].X, path[1].Y);
             }
 
             NeedAction = false;
         }
 
-        private GameStateComponent.Player FindMe()
+        private ServerCurrentStateTransferMessage.Player FindMe()
         {
             for (var i = 0; i < this.Players.Count; i++)
             {

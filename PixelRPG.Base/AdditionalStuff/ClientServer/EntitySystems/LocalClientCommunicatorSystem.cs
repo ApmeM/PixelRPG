@@ -38,8 +38,10 @@
 
             if (client.Message != null)
             {
-                localServer.Request[localClient.Identifier].Add(client.Message);
-                System.Diagnostics.Debug.WriteLine($"Local Client -> {localClient.Identifier} {ParserUtils.FindStringifier(client.Message, parsers).ToData(client.Message)}");
+                var parser = ParserUtils.FindWriter(client.Message, parsers);
+                var data = parser.Write(client.Message);
+                localServer.Request[localClient.Identifier].Add(data);
+                System.Diagnostics.Debug.WriteLine($"Local Client -> {localClient.Identifier} {data}");
                 client.Message = null;
             }
 
@@ -47,9 +49,11 @@
             client.Response = null;
             if (response.Count != 0)
             {
-                client.Response = response[0];
+                var parser = ParserUtils.FindReader(response[0], parsers);
+                var transferMessage = parser.Read(response[0]);
+                client.Response = transferMessage;
                 localServer.Response[localClient.Identifier].RemoveAt(0);
-                System.Diagnostics.Debug.WriteLine($"Local Client <- {localClient.Identifier} {ParserUtils.FindStringifier(client.Response, parsers).ToData(client.Response)}");
+                System.Diagnostics.Debug.WriteLine($"Local Client <- {localClient.Identifier} {client.Response}");
             }
         }
     }
