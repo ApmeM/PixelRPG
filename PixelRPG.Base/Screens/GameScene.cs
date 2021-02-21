@@ -2,10 +2,6 @@
 {
     #region Using Directives
 
-    using System.Collections.Generic;
-
-    using MazeGenerators;
-
     using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
     using PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems;
     using PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components;
@@ -16,7 +12,6 @@
     using SpineEngine.Graphics.Renderers;
     using SpineEngine.Graphics.ResolutionPolicy;
     using SpineEngine;
-    using Microsoft.Xna.Framework;
     using PixelRPG.Base.AdditionalStuff.BrainAI.Components;
     using PixelRPG.Base.AdditionalStuff.BrainAI.EntitySystems;
     using System;

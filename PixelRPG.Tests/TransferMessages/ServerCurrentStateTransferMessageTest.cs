@@ -20,14 +20,14 @@ namespace PixelRPG.Tests.AdditionalContent
                     new PointTransferMessage(3,4)
                 },
                 Exit = new PointTransferMessage(1,2),
-                Players = new List<ServerCurrentStateTransferMessage.Player>
+                Players = new List<ServerCurrentStateTransferMessage.PlayerTransferMessage>
                 {
-                    new ServerCurrentStateTransferMessage.Player
+                    new ServerCurrentStateTransferMessage.PlayerTransferMessage
                     {
                         PlayerId=43,
-                        Units = new List<ServerCurrentStateTransferMessage.Unit>
+                        Units = new List<ServerCurrentStateTransferMessage.UnitTransferMessage>
                         {
-                            new ServerCurrentStateTransferMessage.Unit
+                            new ServerCurrentStateTransferMessage.UnitTransferMessage
                             {
                                 UnitId = 3,
                                 Position = new PointTransferMessage(7,8)

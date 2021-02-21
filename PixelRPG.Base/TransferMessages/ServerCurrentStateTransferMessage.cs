@@ -6,18 +6,18 @@ namespace PixelRPG.Base.TransferMessages
 {
     public class ServerCurrentStateTransferMessage
     {
-        public List<Player> Players;
+        public List<PlayerTransferMessage> Players;
         public PointTransferMessage? Exit;
         public int?[,] Map;
         public List<PointTransferMessage> Doors;
 
-        public class Player
+        public class PlayerTransferMessage
         {
             public int PlayerId;
-            public List<Unit> Units;
+            public List<UnitTransferMessage> Units;
         }
 
-        public class Unit
+        public class UnitTransferMessage
         {
             public int UnitId;
             public PointTransferMessage Position;
@@ -73,26 +73,26 @@ namespace PixelRPG.Base.TransferMessages
         protected override ServerCurrentStateTransferMessage InternalRead(BinaryReader reader)
         {
             var playersCount = reader.ReadInt32();
-            var players = new List<ServerCurrentStateTransferMessage.Player>(playersCount);
+            var players = new List<ServerCurrentStateTransferMessage.PlayerTransferMessage>(playersCount);
 
             for (var i = 0; i < playersCount; i++)
             {
                 var playerId = reader.ReadInt32();
                 var unitsCount = reader.ReadInt32();
-                var units = new List<ServerCurrentStateTransferMessage.Unit>(unitsCount);
+                var units = new List<ServerCurrentStateTransferMessage.UnitTransferMessage>(unitsCount);
                 for (var j = 0; j < unitsCount; j++)
                 {
                     var unitId = reader.ReadInt32();
                     var x = reader.ReadInt32();
                     var y = reader.ReadInt32();
-                    units.Add(new ServerCurrentStateTransferMessage.Unit
+                    units.Add(new ServerCurrentStateTransferMessage.UnitTransferMessage
                     {
                         UnitId = unitId,
                         Position = new PointTransferMessage(x, y)
                     });
                 }
 
-                players.Add(new ServerCurrentStateTransferMessage.Player
+                players.Add(new ServerCurrentStateTransferMessage.PlayerTransferMessage
                 {
                     PlayerId = playerId,
                     Units = units

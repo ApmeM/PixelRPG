@@ -6,13 +6,14 @@
 
     using LocomotorECS;
 
-    using MazeGenerators;
     using Microsoft.Xna.Framework;
+    
     #endregion
 
     public class GameStateComponent : Component
     {
-        public RoomMazeGenerator.Result Map;
+        public int?[,] Map;
+        public List<Point> Doors;
         public Dictionary<int, Player> Players = new Dictionary<int, Player>();
         public Point Exit;
         public int MaxPlayersCount;

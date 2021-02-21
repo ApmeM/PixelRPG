@@ -16,7 +16,7 @@
     {
         public int MePlayerId;
         public int?[,] Regions;
-        public List<ServerCurrentStateTransferMessage.Player> Players;
+        public List<ServerCurrentStateTransferMessage.PlayerTransferMessage> Players;
         public PointTransferMessage? Exit;
         public Dictionary<int, PointTransferMessage?> SearchPoint = new Dictionary<int, PointTransferMessage?>();
         public AstarGridGraph Pathfinding;
@@ -67,7 +67,7 @@
             NeedAction = false;
         }
 
-        private ServerCurrentStateTransferMessage.Player FindMe()
+        private ServerCurrentStateTransferMessage.PlayerTransferMessage FindMe()
         {
             for (var i = 0; i < this.Players.Count; i++)
             {
