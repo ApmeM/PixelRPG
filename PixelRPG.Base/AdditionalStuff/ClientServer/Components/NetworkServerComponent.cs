@@ -3,7 +3,6 @@
 #if !Bridge
     using System;
     using System.Collections.Generic;
-    using System.IO;
     using System.Net.Sockets;
 #endif
     using LocomotorECS;
@@ -20,8 +19,8 @@
         public int Port { get; private set; }
 
 #if !Bridge
-        public Dictionary<TcpClient, int> ClientToPlayerId = new Dictionary<TcpClient, int>();
-        public Dictionary<int, TcpClient> PlayerIdToClient = new Dictionary<int, TcpClient>();
+        public Dictionary<TcpClient, int> ClientToConnectionKey = new Dictionary<TcpClient, int>();
+        public Dictionary<int, TcpClient> ConnectionKeyToClient = new Dictionary<int, TcpClient>();
         public List<TcpClient> Clients = new List<TcpClient>();
 
         public TcpListener Listener;

@@ -1,6 +1,6 @@
 ﻿namespace PixelRPG.Base.AdditionalStuff.ClientServer
 {
-    public static class ParserUtils
+    public static class TransferMessageParserUtils
     {
         public static ITransferMessageParser FindWriter(object transferModel, ITransferMessageParser[] parsers)
         {

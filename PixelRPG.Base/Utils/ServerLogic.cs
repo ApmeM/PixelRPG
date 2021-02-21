@@ -9,13 +9,13 @@
     using System;
     using MazeGenerators;
     using PixelRPG.Base.Screens;
-    using System.Collections.Generic;
+    using PixelRPG.Base.Components.GameState;
 
     #endregion
 
     public class ServerLogic
     {
-        public static ServerCurrentStateTransferMessage BuildCurrentStateForPlayer(GameStateComponent gameState, GameStateComponent.Player player)
+        public static ServerCurrentStateTransferMessage BuildCurrentStateForPlayer(GameStateComponent gameState, Player player)
         {
             var width = gameState.Map.GetLength(0);
             var height = gameState.Map.GetLength(1);
@@ -45,16 +45,17 @@
             };
         }
 
-        public static bool IsVisible(GameStateComponent.Player fromPlayer, int exitX, int exitY, int x, int y)
+        public static bool IsVisible(Player fromPlayer, int exitX, int exitY, int x, int y)
         {
             for (var i = 0; i < fromPlayer.Units.Count; i++)
             {
-                if (fromPlayer.Units[i].Position.X == exitX && fromPlayer.Units[i].Position.Y == exitY)
+                var unit = fromPlayer.Units[i];
+                if (unit.Position.X == exitX && unit.Position.Y == exitY)
                 {
                     return true;
                 }
 
-                if (Math.Abs(x - fromPlayer.Units[i].Position.X) + Math.Abs(y - fromPlayer.Units[i].Position.Y) < 7)
+                if (Math.Abs(x - unit.Position.X) + Math.Abs(y - unit.Position.Y) < unit.VisionRange)
                 {
                     return true;
                 }
@@ -73,23 +74,11 @@
                     gameState.Map[x, y] = gameState.Map[x, y] == null ? GameSceneConfig.WallRegionValue : GameSceneConfig.PathRegionValue;
                 }
 
-            gameState.Players = gameState.Players ?? new Dictionary<int, GameStateComponent.Player>();
             var roomIdx = 0;
             foreach (var player in gameState.Players)
             {
                 var room = maze.Rooms[roomIdx];
                 roomIdx++;
-                if (player.Value.Units == null)
-                {
-                    player.Value.Units = new List<GameStateComponent.Unit>
-                    {
-                        new GameStateComponent.Unit{UnitId = 1},
-                        new GameStateComponent.Unit{UnitId = 2},
-                        new GameStateComponent.Unit{UnitId = 3},
-                        new GameStateComponent.Unit{UnitId = 4}
-                    };
-                }
-
                 player.Value.Units[0].Position = new Point(room.X + room.Width / 2 - 1, room.Y + room.Height / 2);
                 player.Value.Units[1].Position = new Point(room.X + room.Width / 2 + 1, room.Y + room.Height / 2);
                 player.Value.Units[2].Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2 - 1);

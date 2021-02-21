@@ -28,14 +28,6 @@
             this.scene = scene;
         }
 
-        private static readonly List<string> availableAnimations = new List<string>
-        {
-            ContentPaths.Assets.Characters.mage,
-            ContentPaths.Assets.Characters.ranger,
-            ContentPaths.Assets.Characters.rogue,
-            ContentPaths.Assets.Characters.warrior
-        };
-
         protected override void DoAction(ServerCurrentStateTransferMessage message, Entity entity, System.TimeSpan gameTime)
         {
             var visiblePlayer = entity.GetComponent<VisiblePlayerComponent>();
@@ -50,21 +42,9 @@
                 {
                     var entityName = $"PlayerUnit{message.Players[i].PlayerId}_{message.Players[i].Units[j].UnitId}";
                     var playerUnit = this.scene.FindEntity(entityName);
-                    if (playerUnit == null)
-                    {
-                        playerUnit = this.scene.CreateEntity(entityName);
-                        playerUnit.AddComponent<PositionComponent>().Position = new Vector2(message.Players[i].Units[j].Position.X * 16 + 8, message.Players[i].Units[j].Position.Y * 16 + 8);
-                        playerUnit.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, Fate.GlobalFate.Choose<string>(availableAnimations), 6);
-                        visiblePlayer.KnownPlayers.Add(playerUnit);
-                    }
-                    else
-                    {
-                        playerUnit.GetComponent<PositionComponent>().Position = new Vector2(message.Players[i].Units[j].Position.X * 16 + 8, message.Players[i].Units[j].Position.Y * 16 + 8);
-                    }
-
+                    playerUnit.GetComponent<PositionComponent>().Position = new Vector2(message.Players[i].Units[j].Position.X * 16 + 8, message.Players[i].Units[j].Position.Y * 16 + 8);
                     playerUnit.Enabled = true;
                 }
-
 
             var map = this.scene.FindEntity(visiblePlayer.MapEntityName);
             var tiledMap = map.GetComponent<TiledMapComponent>().TiledMap;

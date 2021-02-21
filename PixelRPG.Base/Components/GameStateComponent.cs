@@ -7,7 +7,8 @@
     using LocomotorECS;
 
     using Microsoft.Xna.Framework;
-    
+    using PixelRPG.Base.Components.GameState;
+
     #endregion
 
     public class GameStateComponent : Component
@@ -17,18 +18,8 @@
         public Dictionary<int, Player> Players = new Dictionary<int, Player>();
         public Point Exit;
         public int MaxPlayersCount;
+        public int MaxUnitsCount = 4;
+        public int MaxSkillsCount = 1;
         public int MovedPlayers;
-
-        public class Player
-        {
-            public int PlayerId;
-            public List<Unit> Units;
-        }
-
-        public class Unit
-        {
-            public int UnitId;
-            public Point Position;
-        }
     }
 }

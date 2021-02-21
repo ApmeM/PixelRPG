@@ -1,4 +1,5 @@
 ﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using System.Collections.Generic;
 using System.IO;
 
 namespace PixelRPG.Base.TransferMessages
@@ -9,6 +10,13 @@ namespace PixelRPG.Base.TransferMessages
         public int PlayerId;
         public int CurrentCount;
         public int WaitingCount;
+        public List<UnitTransferMessage> Units;
+
+        public class UnitTransferMessage
+        {
+            public string UnitType;
+            public int UnitId;
+        }
     }
 
     public class ServerClientConnectedTransferMessageParser : BinaryTransferMessageParser<ServerClientConnectedTransferMessage>
@@ -25,6 +33,12 @@ namespace PixelRPG.Base.TransferMessages
             {
                 writer.Write(transferModel.PlayerName);
             }
+            writer.Write(transferModel.Units?.Count ?? 0);
+            for (var i = 0; i < (transferModel.Units?.Count ?? 0); i++)
+            {
+                writer.Write(transferModel.Units[i].UnitId);
+                writer.Write(transferModel.Units[i].UnitType);
+            }
         }
 
         protected override ServerClientConnectedTransferMessage InternalRead(BinaryReader reader)
@@ -39,12 +53,26 @@ namespace PixelRPG.Base.TransferMessages
                 playerName = reader.ReadString();
             }
 
+            var unitsCount = reader.ReadInt32();
+            var units = new List<ServerClientConnectedTransferMessage.UnitTransferMessage>(unitsCount);
+            for (var i = 0; i < unitsCount; i++)
+            {
+                var unitId = reader.ReadInt32();
+                var unitType = reader.ReadString();
+                units.Add(new ServerClientConnectedTransferMessage.UnitTransferMessage
+                {
+                    UnitId = unitId,
+                    UnitType = unitType
+                });
+            }
+
             return new ServerClientConnectedTransferMessage
             {
                 PlayerId = playerId,
                 PlayerName = playerName,
                 CurrentCount = currentCount,
-                WaitingCount = waitingCount
+                WaitingCount = waitingCount,
+                Units = units
             };
         }
     }

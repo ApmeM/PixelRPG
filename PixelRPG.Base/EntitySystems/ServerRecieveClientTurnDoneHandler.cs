@@ -60,9 +60,9 @@
             foreach (var player in gameState.Players)
             {
                 var responses = server.Response[player.Key];
-                responses.Add(new ServerPlayerTurnMadeTransferMessage
+                responses.Enqueue(new ServerPlayerTurnMadeTransferMessage
                 {
-                    PlayerId = connectionKey
+                    PlayerId = gameState.Players[connectionKey].PlayerId
                 });
             }
 
@@ -93,11 +93,11 @@
                     var responses = server.Response[player.Key];
                     if (allAtEnd)
                     {
-                        responses.Add(startGameResponse);
+                        responses.Enqueue(startGameResponse);
                     }
 
-                    responses.Add(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
-                    responses.Add(new ServerYourTurnTransferMessage());
+                    responses.Enqueue(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
+                    responses.Enqueue(new ServerYourTurnTransferMessage());
                 }
             }
         }

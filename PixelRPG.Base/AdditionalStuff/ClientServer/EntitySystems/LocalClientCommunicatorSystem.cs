@@ -38,22 +38,23 @@
 
             if (client.Message != null)
             {
-                var parser = ParserUtils.FindWriter(client.Message, parsers);
-                var data = parser.Write(client.Message);
-                localServer.Request[localClient.Identifier].Add(data);
-                System.Diagnostics.Debug.WriteLine($"Local Client -> {localClient.Identifier} {data}");
+                var transferMessage = client.Message;
+                var parser = TransferMessageParserUtils.FindWriter(transferMessage, this.parsers);
+                var data = parser.Write(transferMessage);
+                localServer.Request[localClient.Identifier].Enqueue(data);
+                System.Diagnostics.Debug.WriteLine($"Local Client -> ({transferMessage}): {data}");
                 client.Message = null;
             }
 
             var response = localServer.Response[localClient.Identifier];
             client.Response = null;
-            if (response.Count != 0)
+            if (response.Count > 0)
             {
-                var parser = ParserUtils.FindReader(response[0], parsers);
-                var transferMessage = parser.Read(response[0]);
+                var data = response.Dequeue();
+                var parser = TransferMessageParserUtils.FindReader(data, parsers);
+                var transferMessage = parser.Read(data);
                 client.Response = transferMessage;
-                localServer.Response[localClient.Identifier].RemoveAt(0);
-                System.Diagnostics.Debug.WriteLine($"Local Client <- {localClient.Identifier} {client.Response}");
+                System.Diagnostics.Debug.WriteLine($"Local Client <- ({transferMessage}): {data}");
             }
         }
     }

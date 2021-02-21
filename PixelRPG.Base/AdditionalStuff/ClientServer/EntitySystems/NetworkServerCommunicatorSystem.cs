@@ -50,17 +50,17 @@
                 server.ConnectedPlayers++;
                 var tcpClient = networkServer.Listener.EndAcceptTcpClient(networkServer.ConnectResult);
                 networkServer.Clients.Add(tcpClient);
-                networkServer.PlayerIdToClient[server.ConnectedPlayers] = tcpClient;
-                networkServer.ClientToPlayerId[tcpClient] = server.ConnectedPlayers;
-                server.Request[networkServer.ClientToPlayerId[tcpClient]] = new List<object>();
-                server.Response[networkServer.ClientToPlayerId[tcpClient]] = new List<object>();
+                networkServer.ConnectionKeyToClient[server.ConnectedPlayers] = tcpClient;
+                networkServer.ClientToConnectionKey[tcpClient] = server.ConnectedPlayers;
+                server.Request[networkServer.ClientToConnectionKey[tcpClient]] = new Queue<object>();
+                server.Response[networkServer.ClientToConnectionKey[tcpClient]] = new Queue<object>();
                 networkServer.ConnectResult = null;
             }
 
             for (var i = 0; i < networkServer.Clients.Count; i++)
             {
                 var tcpClient = networkServer.Clients[i];
-                var id = networkServer.ClientToPlayerId[tcpClient];
+                var connectionKey = networkServer.ClientToConnectionKey[tcpClient];
                 if (tcpClient.Available > 0)
                 {
                     byte[] bytes = new byte[tcpClient.Available];
@@ -88,26 +88,25 @@
                     }
 
                     data = Encoding.UTF8.GetString(GetDecodedData(bytes, bytes.Length));
-                    System.Diagnostics.Debug.WriteLine($"Network Server <- {data}");
-
-                    var parser = ParserUtils.FindReader(data, parsers);
-                    server.Request[id].Add(parser.Read(data));
+                    var parser = TransferMessageParserUtils.FindReader(data, parsers);
+                    var transferMessage = parser.Read(data);
+                    server.Request[connectionKey].Enqueue(transferMessage);
+                    System.Diagnostics.Debug.WriteLine($"Network Server <- ({connectionKey}.{transferMessage}): {data}");
                     continue;
                 }
 
-                var response = server.Response[id];
-                if (response.Count != 0)
+                var response = server.Response[connectionKey];
+                if (response.Count > 0)
                 {
-                    var transferModel = response[0];
-                    var parser = ParserUtils.FindWriter(transferModel, parsers);
-                    var data = parser.Write(transferModel);
-                    System.Diagnostics.Debug.WriteLine($"Network Server -> {data}");
+                    var transferMessage = response.Dequeue();
+                    var parser = TransferMessageParserUtils.FindWriter(transferMessage, parsers);
+                    var data = parser.Write(transferMessage);
+                    System.Diagnostics.Debug.WriteLine($"Network Server -> ({connectionKey}.{transferMessage}): {data}");
 
                     byte[] frame = GetFrameFromBytes(Encoding.UTF8.GetBytes(data));
 
                     tcpClient.GetStream().Write(frame, 0, frame.Length);
                     tcpClient.GetStream().Flush();
-                    server.Response[id].RemoveAt(0);
                     return;
                 }
             }

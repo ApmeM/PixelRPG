@@ -19,6 +19,8 @@
     using PixelRPG.Base.Components;
     using PixelRPG.Base.EntitySystems;
     using PixelRPG.Base.TransferMessages;
+    using System.Collections.Generic;
+    using PixelRPG.Base.Components.GameState.Skills;
 
     #endregion
 
@@ -59,6 +61,7 @@
             this.AddEntitySystem(new ClientSendClientTurnDoneAISystem());
             this.AddEntitySystem(new ClientReceiveServerCurrentStateAISystem());
             this.AddEntitySystem(new ClientReceiveServerCurrentStateVisibleSystem(this));
+            this.AddEntitySystem(new ClientReceiveServerClientConnectedVisibleSystem(this));
             this.AddEntitySystem(new AIUpdateSystem());
             this.AddEntitySystem(new TiledMapUpdateSystem());
             this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
@@ -77,7 +80,22 @@
                 for (var i = 0; i < config.ClientsCount; i++)
                 {
                     var player = this.CreateEntity();
-                    player.AddComponent<ClientComponent>().Message = new ClientConnectTransferMessage { PlayerName = $"Player {i}" };
+                    player.AddComponent<ClientComponent>().Message = new ClientConnectTransferMessage
+                    {
+                        PlayerName = $"Player {i}",
+                        UnitsData = new List<ClientConnectTransferMessage.UnitDescription>
+                        {
+                            new ClientConnectTransferMessage.UnitDescription
+                            {
+                                UnitType = nameof(RangerUnitType),
+                                Skills = new List<string>
+                                {
+                                    nameof(VisionRangeSkill)
+                                }
+                            }
+                        }
+                    };
+
                     player.AddComponent<AIComponent>().AIBot = new SimpleAI();
                     if (i == 0)
                     {

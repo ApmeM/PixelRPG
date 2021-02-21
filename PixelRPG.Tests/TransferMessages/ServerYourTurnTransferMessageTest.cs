@@ -9,7 +9,7 @@ namespace PixelRPG.Tests.AdditionalContent
     public class ServerYourTurnTransferMessageTest
     {
         [Test]
-        public void EmptyObject_SerializedDserialized_Success()
+        public void EmptyObject_SerializedDeserialized_Success()
         {
             var target = new ServerYourTurnTransferMessage
             {

@@ -9,7 +9,7 @@ namespace PixelRPG.Tests.AdditionalContent
     public class ServerPlayerTurnMadeTransferMessageTest
     {
         [Test]
-        public void WithData_SerializedDserialized_Success()
+        public void WithData_SerializedDeserialized_Success()
         {
             var target = new ServerPlayerTurnMadeTransferMessage
             {

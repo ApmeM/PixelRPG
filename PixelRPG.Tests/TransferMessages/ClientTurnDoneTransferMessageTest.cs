@@ -10,7 +10,7 @@ namespace PixelRPG.Tests.AdditionalContent
     public class ClientTurnDoneTransferMessageTest
     {
         [Test]
-        public void NewPositionExists_SerializedDserialized_Success()
+        public void NewPositionExists_SerializedDeserialized_Success()
         {
             var target = new ClientTurnDoneTransferMessage
             {
@@ -37,7 +37,7 @@ namespace PixelRPG.Tests.AdditionalContent
         }
 
         [Test]
-        public void NewPositionNotExists_SerializedDserialized_Success()
+        public void NewPositionNotExists_SerializedDeserialized_Success()
         {
             var target = new ClientTurnDoneTransferMessage
             {

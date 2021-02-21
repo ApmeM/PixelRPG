@@ -25,15 +25,15 @@
             {
                 if (!server.Response.ContainsKey(req.Key))
                 {
-                    server.Response[req.Key] = new List<object>();
+                    server.Response[req.Key] = new Queue<object>();
                 }
 
-                for (var i = 0; i < req.Value.Count; i++)
+                var request = req.Value;
+                while (request.Count > 0)
                 {
-                    handlers[req.Value[i].GetType()].Handle(server, req.Key, req.Value[i]);
+                    var transferMessage = request.Dequeue();
+                    handlers[transferMessage.GetType()].Handle(server, req.Key, transferMessage);
                 }
-
-                req.Value.Clear();
             }
         }
 
