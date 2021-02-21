@@ -6,10 +6,7 @@ namespace PixelRPG.Base.EntitySystems
     {
         public Unit Generate()
         {
-            return new Unit
-            {
-                VisionRange = 5
-            };
+            return new Unit();
         }
     }
 }

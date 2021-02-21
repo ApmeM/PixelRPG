@@ -10,6 +10,7 @@
     using BrainAI.AI;
     using PixelRPG.Base.TransferMessages;
     using System;
+    using PixelRPG.Base.EntitySystems;
     #endregion
 
     public class SimpleAI : IAITurn
@@ -23,6 +24,7 @@
 
         public bool NeedAction;
         public Dictionary<int, PointTransferMessage> NextTurn;
+        internal Dictionary<int, string> UnitDesription;
 
         public void Tick()
         {
@@ -60,8 +62,16 @@
                         SearchPoint[me.Units[i].UnitId] = null;
                     }
                 }
+                var unitDescription = UnitDesription[me.Units[i].UnitId];
 
-                NextTurn[me.Units[i].UnitId] = new PointTransferMessage(path[1].X, path[1].Y);
+                if (unitDescription == nameof(RogueUnitType) && path.Count > 2)
+                {
+                    NextTurn[me.Units[i].UnitId] = new PointTransferMessage(path[2].X, path[2].Y);
+                }
+                else
+                {
+                    NextTurn[me.Units[i].UnitId] = new PointTransferMessage(path[1].X, path[1].Y);
+                }
             }
 
             NeedAction = false;

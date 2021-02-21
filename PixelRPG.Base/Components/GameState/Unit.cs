@@ -7,6 +7,7 @@
         public string UnitTypeName;
         public int UnitId;
         public Point Position;
-        public int VisionRange;
+        public int VisionRange = 5;
+        public int MoveRange = 1;
     }
 }

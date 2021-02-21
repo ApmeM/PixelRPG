@@ -57,6 +57,7 @@
             this.AddEntitySystem(new LocalClientCommunicatorSystem(this, parsers));
             this.AddEntitySystem(new ClientReceiveServerGameStartedAISystem());
             this.AddEntitySystem(new ClientRecieveServerYourTurnAISystem());
+            this.AddEntitySystem(new ClientReceiveServerClientConnectedAISystem());
             this.AddEntitySystem(new ClientRecieveServerYouConnectedAISystem());
             this.AddEntitySystem(new ClientSendClientTurnDoneAISystem());
             this.AddEntitySystem(new ClientReceiveServerCurrentStateAISystem());

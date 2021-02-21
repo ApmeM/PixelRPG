@@ -50,8 +50,14 @@
 
                 if (canMove)
                 {
-                    gameState.Players[connectionKey].Units[i].Position.X = newPosition.X;
-                    gameState.Players[connectionKey].Units[i].Position.Y = newPosition.Y;
+                    var unit = gameState.Players[connectionKey].Units[i];
+                    var distance = Math.Abs(unit.Position.X - newPosition.X) + Math.Abs(unit.Position.Y - newPosition.Y);
+
+                    if (distance <= unit.MoveRange)
+                    {
+                        unit.Position.X = newPosition.X;
+                        unit.Position.Y = newPosition.Y;
+                    }
                 }
             }
 
