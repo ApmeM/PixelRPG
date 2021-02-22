@@ -15,7 +15,7 @@
         private readonly Scene scene;
         private readonly ITransferMessageParser[] parsers;
 
-        public LocalClientCommunicatorSystem(Scene scene, params ITransferMessageParser[] parsers) : base(new Matcher().All(typeof(LocalClientComponent), typeof(ClientComponent)))
+        public LocalClientCommunicatorSystem(Scene scene, ITransferMessageParser[] parsers = null) : base(new Matcher().All(typeof(LocalClientComponent), typeof(ClientComponent)))
         {
             this.scene = scene;
             this.parsers = parsers;

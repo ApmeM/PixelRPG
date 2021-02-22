@@ -2,6 +2,7 @@
 using System;
 using PixelRPG.Base.TransferMessages;
 using System.Collections.Generic;
+using PixelRPG.Base.AdditionalStuff.ClientServer;
 
 namespace PixelRPG.Tests.AdditionalContent
 {
@@ -17,9 +18,9 @@ namespace PixelRPG.Tests.AdditionalContent
                 PlayerId = 34,
                 PlayerName = "Player1",
                 WaitingCount = 43,
-                Units = new List<ServerClientConnectedTransferMessage.UnitTransferMessage>
+                Units = new List<ServerClientConnectedTransferMessage.UnitSubMessage>
                 {
-                    new ServerClientConnectedTransferMessage.UnitTransferMessage
+                    new ServerClientConnectedTransferMessage.UnitSubMessage
                     {
                         UnitId = 16,
                         UnitType = "UnitType"

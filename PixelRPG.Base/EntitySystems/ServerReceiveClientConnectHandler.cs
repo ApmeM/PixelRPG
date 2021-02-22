@@ -100,13 +100,13 @@
             }
         }
 
-        private List<ServerClientConnectedTransferMessage.UnitTransferMessage> BuildUnits(List<Unit> units)
+        private List<ServerClientConnectedTransferMessage.UnitSubMessage> BuildUnits(List<Unit> units)
         {
-            var result = new List<ServerClientConnectedTransferMessage.UnitTransferMessage>();
+            var result = new List<ServerClientConnectedTransferMessage.UnitSubMessage>();
             for (var i = 0; i < units.Count; i++)
             {
                 var unit = units[i];
-                result.Add(new ServerClientConnectedTransferMessage.UnitTransferMessage
+                result.Add(new ServerClientConnectedTransferMessage.UnitSubMessage
                 {
                     UnitId = unit.UnitId,
                     UnitType = unit.UnitTypeName

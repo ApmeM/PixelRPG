@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using PixelRPG.Base.TransferMessages;
+using PixelRPG.Base.AdditionalStuff.ClientServer;
 
 namespace PixelRPG.Tests.AdditionalContent
 {

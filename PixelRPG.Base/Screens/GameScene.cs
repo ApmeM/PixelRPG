@@ -15,7 +15,6 @@
     using PixelRPG.Base.AdditionalStuff.BrainAI.Components;
     using PixelRPG.Base.AdditionalStuff.BrainAI.EntitySystems;
     using System;
-    using PixelRPG.Base.AdditionalStuff.ClientServer;
     using PixelRPG.Base.Components;
     using PixelRPG.Base.EntitySystems;
     using PixelRPG.Base.TransferMessages;
@@ -33,28 +32,16 @@
 
             this.AddRenderer(new DefaultRenderer());
 
-            var parsers = new ITransferMessageParser[]
-            {
-                new ServerClientConnectedTransferMessageParser(),
-                new ClientConnectTransferMessageParser(),
-                new ServerGameStartedTransferMessageParser(),
-                new ClientTurnDoneTransferMessageParser(),
-                new ServerPlayerTurnMadeTransferMessageParser(),
-                new ServerCurrentStateTransferMessageParser(),
-                new ServerYourTurnTransferMessageParser(),
-                new ServerYouConnectedTransferMessageParser()
-            };
-
             var map = this.CreateEntity("Map");
             map.AddComponent(new TiledMapComponent(Core.Instance.Content.Load<TiledMap>(ContentPaths.Assets.template)));
 
             this.AddEntitySystem(new ServerReceiveHandlerSystem(
                 new ServerReceiveClientConnectHandler(),
                 new ServerRecieveClientTurnDoneHandler()));
-            this.AddEntitySystem(new LocalServerCommunicatorSystem(parsers));
-            this.AddEntitySystem(new NetworkServerCommunicatorSystem(parsers));
+            this.AddEntitySystem(new LocalServerCommunicatorSystem());
+            this.AddEntitySystem(new NetworkServerCommunicatorSystem());
             this.AddEntitySystem(new ClientReceiveServerGameStartedVisibleSystem(this));
-            this.AddEntitySystem(new LocalClientCommunicatorSystem(this, parsers));
+            this.AddEntitySystem(new LocalClientCommunicatorSystem(this));
             this.AddEntitySystem(new ClientReceiveServerGameStartedAISystem());
             this.AddEntitySystem(new ClientRecieveServerYourTurnAISystem());
             this.AddEntitySystem(new ClientReceiveServerClientConnectedAISystem());
@@ -68,7 +55,7 @@
             this.AddEntitySystem(new TiledMapMeshGeneratorSystem(this));
             this.AddEntitySystem(new AnimationSpriteUpdateSystem());
             this.AddEntitySystem(new CharSpriteUpdateSystem());
-            this.AddEntitySystem(new NetworkClientCommunicatorSystem(parsers));
+            this.AddEntitySystem(new NetworkClientCommunicatorSystem());
 
             if (config.IsServer)
             {

@@ -1,11 +1,15 @@
 ﻿namespace PixelRPG.Base.TransferMessages
 {
-    public struct PointTransferMessage
+    public class PointSubMessage
     {
         public int X;
         public int Y;
 
-        public PointTransferMessage(int x, int y)
+        public PointSubMessage()
+        {
+        }
+
+        public PointSubMessage(int x, int y)
         {
             this.X = x;
             this.Y = y;

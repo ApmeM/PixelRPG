@@ -2,6 +2,7 @@
 using System;
 using PixelRPG.Base.TransferMessages;
 using System.Collections.Generic;
+using PixelRPG.Base.AdditionalStuff.ClientServer;
 
 namespace PixelRPG.Tests.AdditionalContent
 {
@@ -67,7 +68,7 @@ namespace PixelRPG.Tests.AdditionalContent
             Assert.AreEqual(target.UnitsData.Count, obj.UnitsData.Count);
             Assert.AreEqual(target.UnitsData[0].UnitName, obj.UnitsData[0].UnitName);
             Assert.AreEqual(target.UnitsData[0].UnitType, obj.UnitsData[0].UnitType);
-            Assert.AreEqual(target.UnitsData[0].Skills?.Count ?? 0, obj.UnitsData[0].Skills.Count);
+            Assert.AreEqual(target.UnitsData[0].Skills, obj.UnitsData[0].Skills);
         }
 
         [Test]

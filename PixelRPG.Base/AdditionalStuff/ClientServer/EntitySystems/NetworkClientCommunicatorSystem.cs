@@ -19,7 +19,7 @@
         private readonly StreamReader reader;
         private readonly ITransferMessageParser[] parsers;
 
-        public NetworkClientCommunicatorSystem(params ITransferMessageParser[] parsers) : base(new Matcher().All(typeof(NetworkClientComponent), typeof(ClientComponent)))
+        public NetworkClientCommunicatorSystem(ITransferMessageParser[] parsers = null) : base(new Matcher().All(typeof(NetworkClientComponent), typeof(ClientComponent)))
         {
             this.ms = new MemoryStream();
             this.reader = new StreamReader(ms, Encoding.UTF8);

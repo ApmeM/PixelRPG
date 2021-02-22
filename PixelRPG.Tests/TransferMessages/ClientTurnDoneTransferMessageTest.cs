@@ -2,6 +2,7 @@
 using System;
 using PixelRPG.Base.TransferMessages;
 using System.Collections.Generic;
+using PixelRPG.Base.AdditionalStuff.ClientServer;
 
 namespace PixelRPG.Tests.AdditionalContent
 {
@@ -14,11 +15,11 @@ namespace PixelRPG.Tests.AdditionalContent
         {
             var target = new ClientTurnDoneTransferMessage
             {
-                NewPosition = new Dictionary<int, PointTransferMessage>
+                NewPosition = new Dictionary<int, PointSubMessage>
                 {
-                    {1,  new PointTransferMessage(11, 12) },
-                    {3,  new PointTransferMessage(12, 11) },
-                    {11, new PointTransferMessage(110, 0) },
+                    {1,  new PointSubMessage(11, 12) },
+                    {3,  new PointSubMessage(12, 11) },
+                    {11, new PointSubMessage(110, 0) },
                 }
             };
 
@@ -41,7 +42,7 @@ namespace PixelRPG.Tests.AdditionalContent
         {
             var target = new ClientTurnDoneTransferMessage
             {
-                NewPosition = new Dictionary<int, PointTransferMessage>()
+                NewPosition = new Dictionary<int, PointSubMessage>()
             };
 
             var parser = new ClientTurnDoneTransferMessageParser();

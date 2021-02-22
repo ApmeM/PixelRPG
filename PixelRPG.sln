@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelRPG.Browser", "PixelRP
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelRPG.PipelineImporter", "PixelRPG.PipelineImporter\PixelRPG.PipelineImporter.csproj", "{957EEE75-1249-4FC6-B5D2-1D932883001D}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PixelRPG.CLI", "PixelRPG.CLI\PixelRPG.CLI.csproj", "{5CC04005-D9AB-4395-A14C-2D40C493070F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -186,6 +188,30 @@ Global
 		{957EEE75-1249-4FC6-B5D2-1D932883001D}.Web|iPhoneSimulator.Build.0 = Debug|Any CPU
 		{957EEE75-1249-4FC6-B5D2-1D932883001D}.Web|x86.ActiveCfg = Debug|Any CPU
 		{957EEE75-1249-4FC6-B5D2-1D932883001D}.Web|x86.Build.0 = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Debug|iPhone.ActiveCfg = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Debug|iPhone.Build.0 = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Debug|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Debug|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Debug|x86.Build.0 = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Release|iPhone.ActiveCfg = Release|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Release|iPhone.Build.0 = Release|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Release|iPhoneSimulator.ActiveCfg = Release|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Release|iPhoneSimulator.Build.0 = Release|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Release|x86.ActiveCfg = Release|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Release|x86.Build.0 = Release|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Web|Any CPU.ActiveCfg = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Web|Any CPU.Build.0 = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Web|iPhone.ActiveCfg = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Web|iPhone.Build.0 = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Web|iPhoneSimulator.ActiveCfg = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Web|iPhoneSimulator.Build.0 = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Web|x86.ActiveCfg = Debug|Any CPU
+		{5CC04005-D9AB-4395-A14C-2D40C493070F}.Web|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

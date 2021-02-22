@@ -99,11 +99,11 @@
 
             if (message.Exit != null)
             {
-                var currentTile = maze.GetTile(message.Exit.Value.X, message.Exit.Value.Y);
+                var currentTile = maze.GetTile(message.Exit.X, message.Exit.Y);
                 if (currentTile == null)
                 {
                     currentTile = new TiledTile();
-                    maze.SetTile(message.Exit.Value.X, message.Exit.Value.Y, currentTile);
+                    maze.SetTile(message.Exit.X, message.Exit.Y, currentTile);
                 }
 
                 currentTile.Id = 9;

@@ -20,7 +20,7 @@
     {
         private readonly ITransferMessageParser[] parsers;
 
-        public NetworkServerCommunicatorSystem(params ITransferMessageParser[] parsers) : base(new Matcher().All(typeof(NetworkServerComponent), typeof(ServerComponent)))
+        public NetworkServerCommunicatorSystem(ITransferMessageParser[] parsers = null) : base(new Matcher().All(typeof(NetworkServerComponent), typeof(ServerComponent)))
         {
             this.parsers = parsers;
         }

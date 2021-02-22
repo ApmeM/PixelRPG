@@ -14,7 +14,7 @@
     {
         private readonly ITransferMessageParser[] parsers;
 
-        public LocalServerCommunicatorSystem(params ITransferMessageParser[] parsers) : base(new Matcher().All(typeof(LocalServerComponent), typeof(ServerComponent)))
+        public LocalServerCommunicatorSystem(ITransferMessageParser[] parsers = null) : base(new Matcher().All(typeof(LocalServerComponent), typeof(ServerComponent)))
         {
             this.parsers = parsers;
         }
