@@ -137,15 +137,15 @@ transferModel = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage
 if (reader.ReadBoolean())
 {
 var transferModelNewPositionCount = reader.ReadInt32();
-transferModel.NewPosition = new Dictionary<System.Int32, PixelRPG.Base.TransferMessages.PointSubMessage>();
+transferModel.NewPosition = new Dictionary<System.Int32, PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage>();
 for (var transferModelNewPositionIndex = 0; transferModelNewPositionIndex < transferModelNewPositionCount; transferModelNewPositionIndex++)
 {
 System.Int32 transferModelNewPositionKey = default(System.Int32);
-PixelRPG.Base.TransferMessages.PointSubMessage transferModelNewPositionValue = default(PixelRPG.Base.TransferMessages.PointSubMessage);
+PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage transferModelNewPositionValue = default(PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage);
 transferModelNewPositionKey = reader.ReadInt32();
 if (reader.ReadBoolean())
 {
-transferModelNewPositionValue = new PixelRPG.Base.TransferMessages.PointSubMessage();
+transferModelNewPositionValue = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
 transferModelNewPositionValue.X = reader.ReadInt32();
 transferModelNewPositionValue.Y = reader.ReadInt32();
 }
@@ -316,13 +316,13 @@ transferModel = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMes
 if (reader.ReadBoolean())
 {
 var transferModelDoorsCount = reader.ReadInt32();
-transferModel.Doors = new List<PixelRPG.Base.TransferMessages.PointSubMessage>();
+transferModel.Doors = new List<PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage>();
 for (var transferModelDoorsIndex = 0; transferModelDoorsIndex < transferModelDoorsCount; transferModelDoorsIndex++)
 {
-PixelRPG.Base.TransferMessages.PointSubMessage transferModelDoorsValue = default(PixelRPG.Base.TransferMessages.PointSubMessage);
+PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage transferModelDoorsValue = default(PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage);
 if (reader.ReadBoolean())
 {
-transferModelDoorsValue = new PixelRPG.Base.TransferMessages.PointSubMessage();
+transferModelDoorsValue = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage();
 transferModelDoorsValue.X = reader.ReadInt32();
 transferModelDoorsValue.Y = reader.ReadInt32();
 }
@@ -331,7 +331,7 @@ transferModel.Doors.Add(transferModelDoorsValue);
 }
 if (reader.ReadBoolean())
 {
-transferModel.Exit = new PixelRPG.Base.TransferMessages.PointSubMessage();
+transferModel.Exit = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage();
 transferModel.Exit.X = reader.ReadInt32();
 transferModel.Exit.Y = reader.ReadInt32();
 }
@@ -372,7 +372,7 @@ if (reader.ReadBoolean())
 transferModelPlayersValueUnitsValue = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage();
 if (reader.ReadBoolean())
 {
-transferModelPlayersValueUnitsValue.Position = new PixelRPG.Base.TransferMessages.PointSubMessage();
+transferModelPlayersValueUnitsValue.Position = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage();
 transferModelPlayersValueUnitsValue.Position.X = reader.ReadInt32();
 transferModelPlayersValueUnitsValue.Position.Y = reader.ReadInt32();
 }

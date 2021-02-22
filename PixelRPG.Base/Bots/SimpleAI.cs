@@ -18,12 +18,12 @@
         public int MePlayerId;
         public int?[,] Regions;
         public List<ServerCurrentStateTransferMessage.PlayerSubMessage> Players;
-        public PointSubMessage Exit;
-        public Dictionary<int, PointSubMessage> SearchPoint = new Dictionary<int, PointSubMessage>();
+        public ServerCurrentStateTransferMessage.PointSubMessage Exit;
+        public Dictionary<int, ServerCurrentStateTransferMessage.PointSubMessage> SearchPoint = new Dictionary<int, ServerCurrentStateTransferMessage.PointSubMessage>();
         public AstarGridGraph Pathfinding;
 
         public bool NeedAction;
-        public Dictionary<int, PointSubMessage> NextTurn;
+        public Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage> NextTurn;
         internal Dictionary<int, string> UnitDesription;
 
         public void Tick()
@@ -35,14 +35,18 @@
 
             var me = FindMe();
 
-            NextTurn = new Dictionary<int, PointSubMessage>();
+            NextTurn = new Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage>();
 
             for (var i = 0; i < me.Units.Count; i++)
             {
                 if (!SearchPoint.ContainsKey(me.Units[i].UnitId) || SearchPoint[me.Units[i].UnitId] == null || 
                     (SearchPoint[me.Units[i].UnitId].X == me.Units[i].Position.X && SearchPoint[me.Units[i].UnitId].Y == me.Units[i].Position.Y))
                 {
-                    SearchPoint[me.Units[i].UnitId] = new PointSubMessage(Fate.GlobalFate.NextInt(Regions.GetLength(0)), Fate.GlobalFate.NextInt(Regions.GetLength(1)));
+                    SearchPoint[me.Units[i].UnitId] = new ServerCurrentStateTransferMessage.PointSubMessage
+                    {
+                        X = Fate.GlobalFate.NextInt(Regions.GetLength(0)),
+                        Y = Fate.GlobalFate.NextInt(Regions.GetLength(1))
+                    };
                 }
 
                 var pathToGo = this.Exit ?? SearchPoint[me.Units[i].UnitId];
@@ -66,11 +70,11 @@
 
                 if (unitDescription == nameof(RogueUnitType) && path.Count > 2)
                 {
-                    NextTurn[me.Units[i].UnitId] = new PointSubMessage(path[2].X, path[2].Y);
+                    NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.PointSubMessage { X = path[2].X, Y = path[2].Y };
                 }
                 else
                 {
-                    NextTurn[me.Units[i].UnitId] = new PointSubMessage(path[1].X, path[1].Y);
+                    NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.PointSubMessage { X = path[1].X, Y = path[1].Y };
                 }
             }
 

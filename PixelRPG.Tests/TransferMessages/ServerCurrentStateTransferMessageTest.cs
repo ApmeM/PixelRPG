@@ -17,11 +17,11 @@ namespace PixelRPG.Tests.AdditionalContent
         {
             var target = new ServerCurrentStateTransferMessage
             {
-                Doors = new List<PointSubMessage>
+                Doors = new List<ServerCurrentStateTransferMessage.PointSubMessage>
                 {
-                    new PointSubMessage(3,4)
+                    new ServerCurrentStateTransferMessage.PointSubMessage { X = 3,Y = 4 }
                 },
-                Exit = new PointSubMessage(1, 2),
+                Exit = new ServerCurrentStateTransferMessage.PointSubMessage { X = 1, Y = 2 },
                 Players = new List<ServerCurrentStateTransferMessage.PlayerSubMessage>
                 {
                     new ServerCurrentStateTransferMessage.PlayerSubMessage
@@ -32,7 +32,7 @@ namespace PixelRPG.Tests.AdditionalContent
                             new ServerCurrentStateTransferMessage.UnitSubMessage
                             {
                                 UnitId = 3,
-                                Position = new PointSubMessage(7,8)
+                                Position = new ServerCurrentStateTransferMessage.PointSubMessage { X = 7,Y = 8 }
                             }
                         }
                     }

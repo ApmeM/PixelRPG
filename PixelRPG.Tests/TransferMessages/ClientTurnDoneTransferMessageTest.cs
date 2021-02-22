@@ -15,11 +15,11 @@ namespace PixelRPG.Tests.AdditionalContent
         {
             var target = new ClientTurnDoneTransferMessage
             {
-                NewPosition = new Dictionary<int, PointSubMessage>
+                NewPosition = new Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage>
                 {
-                    {1,  new PointSubMessage(11, 12) },
-                    {3,  new PointSubMessage(12, 11) },
-                    {11, new PointSubMessage(110, 0) },
+                    {1,  new ClientTurnDoneTransferMessage.PointSubMessage { X=11, Y=12 } },
+                    {3,  new ClientTurnDoneTransferMessage.PointSubMessage { X=12, Y=11} },
+                    {11, new ClientTurnDoneTransferMessage.PointSubMessage { X=110, Y= 0} },
                 }
             };
 
@@ -42,7 +42,7 @@ namespace PixelRPG.Tests.AdditionalContent
         {
             var target = new ClientTurnDoneTransferMessage
             {
-                NewPosition = new Dictionary<int, PointSubMessage>()
+                NewPosition = new Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage>()
             };
 
             var parser = new ClientTurnDoneTransferMessageParser();

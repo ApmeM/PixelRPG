@@ -33,15 +33,28 @@
                     PlayerId = a.PlayerId,
                     Units = a.Units
                         .Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y))
-                        .Select(b => new ServerCurrentStateTransferMessage.UnitSubMessage { 
+                        .Select(b => new ServerCurrentStateTransferMessage.UnitSubMessage
+                        {
                             UnitId = b.UnitId,
-                            Position = new PointSubMessage(b.Position.X, b.Position.Y)
+                            Position = new ServerCurrentStateTransferMessage.PointSubMessage
+                            {
+                                X = b.Position.X,
+                                Y = b.Position.Y
+                            }
                         })
                         .ToList()
                 }).ToList(),
-                Exit = IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? new PointSubMessage(gameState.Exit.X, gameState.Exit.Y) : null,
+                Exit = IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? new ServerCurrentStateTransferMessage.PointSubMessage
+                {
+                    X = gameState.Exit.X,
+                    Y = gameState.Exit.Y
+                } : null,
                 Map = regions,
-                Doors = gameState.Doors.Where(a => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.X, a.Y)).Select(a => new PointSubMessage(a.X, a.Y)).ToList()
+                Doors = gameState.Doors.Where(a => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.X, a.Y)).Select(a => new ServerCurrentStateTransferMessage.PointSubMessage
+                {
+                    X = a.X,
+                    Y = a.Y
+                }).ToList()
             };
         }
 
