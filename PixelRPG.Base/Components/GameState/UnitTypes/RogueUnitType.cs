@@ -8,7 +8,8 @@ namespace PixelRPG.Base.EntitySystems
         {
             return new Unit
             {
-                MoveRange = 2
+                MoveRange = 2,
+                AttackRadius = 2
             };
         }
     }

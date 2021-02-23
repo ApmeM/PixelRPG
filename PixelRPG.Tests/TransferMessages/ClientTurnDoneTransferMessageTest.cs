@@ -15,11 +15,11 @@ namespace PixelRPG.Tests.AdditionalContent
         {
             var target = new ClientTurnDoneTransferMessage
             {
-                NewPosition = new Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage>
+                UnitActions = new Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction>
                 {
-                    {1,  new ClientTurnDoneTransferMessage.PointSubMessage { X=11, Y=12 } },
-                    {3,  new ClientTurnDoneTransferMessage.PointSubMessage { X=12, Y=11} },
-                    {11, new ClientTurnDoneTransferMessage.PointSubMessage { X=110, Y= 0} },
+                    {1,  new ClientTurnDoneTransferMessage.UnitActionSubAction { NewPosition = new ClientTurnDoneTransferMessage.PointSubMessage { X=11, Y=12 } } },
+                    {3,  new ClientTurnDoneTransferMessage.UnitActionSubAction { NewPosition = new ClientTurnDoneTransferMessage.PointSubMessage { X=12, Y=11 } } },
+                    {11, new ClientTurnDoneTransferMessage.UnitActionSubAction { NewPosition = new ClientTurnDoneTransferMessage.PointSubMessage {X=110, Y=0 } } },
                 }
             };
 
@@ -28,13 +28,13 @@ namespace PixelRPG.Tests.AdditionalContent
             var data = parser.Write(target);
             Console.WriteLine(data);
             var obj = (ClientTurnDoneTransferMessage)parser.Read(data);
-            Assert.AreEqual(target.NewPosition.Count, obj.NewPosition.Count);
-            Assert.AreEqual(target.NewPosition[1].X, obj.NewPosition[1].X);
-            Assert.AreEqual(target.NewPosition[1].Y, obj.NewPosition[1].Y);
-            Assert.AreEqual(target.NewPosition[3].X, obj.NewPosition[3].X);
-            Assert.AreEqual(target.NewPosition[3].Y, obj.NewPosition[3].Y);
-            Assert.AreEqual(target.NewPosition[11].X, obj.NewPosition[11].X);
-            Assert.AreEqual(target.NewPosition[11].Y, obj.NewPosition[11].Y);
+            Assert.AreEqual(target.UnitActions.Count, obj.UnitActions.Count);
+            Assert.AreEqual(target.UnitActions[1].NewPosition.X, obj.UnitActions[1].NewPosition.X);
+            Assert.AreEqual(target.UnitActions[1].NewPosition.Y, obj.UnitActions[1].NewPosition.Y);
+            Assert.AreEqual(target.UnitActions[3].NewPosition.X, obj.UnitActions[3].NewPosition.X);
+            Assert.AreEqual(target.UnitActions[3].NewPosition.Y, obj.UnitActions[3].NewPosition.Y);
+            Assert.AreEqual(target.UnitActions[11].NewPosition.X, obj.UnitActions[11].NewPosition.X);
+            Assert.AreEqual(target.UnitActions[11].NewPosition.Y, obj.UnitActions[11].NewPosition.Y);
         }
 
         [Test]
@@ -42,7 +42,7 @@ namespace PixelRPG.Tests.AdditionalContent
         {
             var target = new ClientTurnDoneTransferMessage
             {
-                NewPosition = new Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage>()
+                UnitActions = new Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction>()
             };
 
             var parser = TransferMessageParserUtils.FindWriter(target);
@@ -50,7 +50,7 @@ namespace PixelRPG.Tests.AdditionalContent
             var data = parser.Write(target);
             Console.WriteLine(data);
             var obj = (ClientTurnDoneTransferMessage)parser.Read(data);
-            Assert.AreEqual(target.NewPosition.Count, obj.NewPosition.Count);
+            Assert.AreEqual(target.UnitActions.Count, obj.UnitActions.Count);
         }
     }
 }

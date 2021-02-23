@@ -5270,7 +5270,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         statics: {
             fields: {
                 Idle: 0,
-                Run: 1
+                Run: 1,
+                Dead: 2
             }
         }
     });
@@ -5338,13 +5339,25 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
             UnitId: 0,
             Position: null,
             VisionRange: 0,
-            MoveRange: 0
+            MoveRange: 0,
+            MaxHp: 0,
+            Hp: 0,
+            AttackDistance: 0,
+            AttackRadius: 0,
+            AttackDamage: 0,
+            AttackFriendlyFire: false
         },
         ctors: {
             init: function () {
                 this.Position = new Microsoft.Xna.Framework.Point();
                 this.VisionRange = 5;
                 this.MoveRange = 1;
+                this.MaxHp = 10;
+                this.Hp = 10;
+                this.AttackDistance = 0;
+                this.AttackRadius = 1;
+                this.AttackDamage = 2;
+                this.AttackFriendlyFire = false;
             }
         }
     });
@@ -5359,7 +5372,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
             MaxPlayersCount: 0,
             MaxUnitsCount: 0,
             MaxSkillsCount: 0,
-            MovedPlayers: 0
+            CurrentTurn: null
         },
         ctors: {
             init: function () {
@@ -5367,6 +5380,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 this.Players = new (System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.Components.GameState.Player))();
                 this.MaxUnitsCount = 4;
                 this.MaxSkillsCount = 1;
+                this.CurrentTurn = new (System.Collections.Generic.Dictionary$2(System.Int32,System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction)))();
             }
         }
     });
@@ -5761,9 +5775,21 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 switch (charSprites.State) {
                     case PixelRPG.Base.Assets.UnitState.Idle: 
                         animation.Animation = charSprites.UnitAnimations.Idle;
+                        animation.Animation.Loop = false;
+                        animation.IsPlaying = true;
                         break;
                     case PixelRPG.Base.Assets.UnitState.Run: 
                         animation.Animation = charSprites.UnitAnimations.Run;
+                        animation.Animation.Loop = false;
+                        animation.IsPlaying = true;
+                        break;
+                    case PixelRPG.Base.Assets.UnitState.Dead: 
+                        if (Bridge.referenceEquals(animation.Animation, charSprites.UnitAnimations.Die)) {
+                            return;
+                        }
+                        animation.Animation = charSprites.UnitAnimations.Die;
+                        animation.Animation.Loop = false;
+                        animation.IsPlaying = true;
                         break;
                 }
 
@@ -5774,7 +5800,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 var charSprites = entity.GetComponent(PixelRPG.Base.Components.UnitComponent);
                 var animation = entity.GetOrCreateComponent(SpineEngine.ECS.Components.AnimationSpriteComponent);
                 var sprite = entity.GetOrCreateComponent(SpineEngine.ECS.Components.SpriteComponent);
-                animation.Animation = charSprites.UnitAnimations.Idle;
+                animation.Animation = animation.Animation || charSprites.UnitAnimations.Idle;
+                animation.Animation.Loop = false;
                 animation.IsPlaying = true;
                 sprite.Drawable = animation.Animation.Frames.getItem(animation.StartFrame);
             }
@@ -5798,20 +5825,38 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                     return ($t = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage(), $t.Players = System.Linq.Enumerable.from(gameState.Players.getValues()).select(function (a) {
                             var $t1;
                             return ($t1 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PlayerSubMessage(), $t1.PlayerId = a.PlayerId, $t1.Units = System.Linq.Enumerable.from(a.Units).where(function (b) {
-                                    return PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y);
+                                    return PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y) || player.PlayerId === a.PlayerId;
                                 }).select($asm.$.PixelRPG.Base.EntitySystems.ServerLogic.f1).toList(PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage), $t1);
                         }).toList(PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PlayerSubMessage), $t.Exit = PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? ($t1 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage(), $t1.X = gameState.Exit.X, $t1.Y = gameState.Exit.Y, $t1) : null, $t.Map = regions, $t.Doors = System.Linq.Enumerable.from(gameState.Doors).where(function (a) {
                             return PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.X, a.Y);
                         }).select($asm.$.PixelRPG.Base.EntitySystems.ServerLogic.f2).toList(PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage), $t);
                 },
                 IsVisible: function (fromPlayer, exitX, exitY, x, y) {
+                    //ToDo: this can be calculated once when last unit died.
+                    var allDead = false;
                     for (var i = 0; i < fromPlayer.Units.Count; i = (i + 1) | 0) {
                         var unit = fromPlayer.Units.getItem(i);
-                        if (unit.Position.X === exitX && unit.Position.Y === exitY) {
+                        if (unit.Hp <= 0) {
+                            continue;
+                        }
+                        allDead = false;
+                    }
+
+                    if (allDead) {
+                        return true;
+                    }
+
+                    for (var i1 = 0; i1 < fromPlayer.Units.Count; i1 = (i1 + 1) | 0) {
+                        var unit1 = fromPlayer.Units.getItem(i1);
+                        if (unit1.Hp <= 0) {
+                            continue;
+                        }
+
+                        if (unit1.Position.X === exitX && unit1.Position.Y === exitY) {
                             return true;
                         }
 
-                        if (((Math.abs(((x - unit.Position.X) | 0)) + Math.abs(((y - unit.Position.Y) | 0))) | 0) < unit.VisionRange) {
+                        if (((Math.abs(((x - unit1.Position.X) | 0)) + Math.abs(((y - unit1.Position.Y) | 0))) | 0) < unit1.VisionRange) {
                             return true;
                         }
                     }
@@ -5839,6 +5884,10 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             player.value.Units.getItem(1).Position = new Microsoft.Xna.Framework.Point.$ctor2(((((room.X + ((Bridge.Int.div(room.Width, 2)) | 0)) | 0) + 1) | 0), ((room.Y + ((Bridge.Int.div(room.Height, 2)) | 0)) | 0));
                             player.value.Units.getItem(2).Position = new Microsoft.Xna.Framework.Point.$ctor2(((room.X + ((Bridge.Int.div(room.Width, 2)) | 0)) | 0), ((((room.Y + ((Bridge.Int.div(room.Height, 2)) | 0)) | 0) - 1) | 0));
                             player.value.Units.getItem(3).Position = new Microsoft.Xna.Framework.Point.$ctor2(((room.X + ((Bridge.Int.div(room.Width, 2)) | 0)) | 0), ((((room.Y + ((Bridge.Int.div(room.Height, 2)) | 0)) | 0) + 1) | 0));
+
+                            for (var i = 0; i < player.value.Units.Count; i = (i + 1) | 0) {
+                                player.value.Units.getItem(i).Hp = player.value.Units.getItem(i).MaxHp;
+                            }
                         }
                     } finally {
                         if (Bridge.is($t, System.IDisposable)) {
@@ -5859,7 +5908,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
     Bridge.apply($asm.$.PixelRPG.Base.EntitySystems.ServerLogic, {
         f1: function (b) {
             var $t2, $t3;
-            return ($t2 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage(), $t2.UnitId = b.UnitId, $t2.Position = ($t3 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage(), $t3.X = b.Position.X, $t3.Y = b.Position.Y, $t3), $t2);
+            return ($t2 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage(), $t2.UnitId = b.UnitId, $t2.Position = ($t3 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage(), $t3.X = b.Position.X, $t3.Y = b.Position.Y, $t3), $t2.Hp = b.Hp, $t2);
         },
         f2: function (a) {
             var $t2;
@@ -6184,14 +6233,14 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         },
         methods: {
             Tick: function () {
-                var $t;
+                var $t, $t1;
                 if (!this.NeedAction) {
                     return;
                 }
 
                 var me = this.FindMe();
 
-                this.NextTurn = new (System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage))();
+                this.NextTurn = new (System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction))();
 
                 for (var i = 0; i < me.Units.Count; i = (i + 1) | 0) {
                     if (!this.SearchPoint.containsKey(me.Units.getItem(i).UnitId) || this.SearchPoint.get(me.Units.getItem(i).UnitId) == null || (this.SearchPoint.get(me.Units.getItem(i).UnitId).X === me.Units.getItem(i).Position.X && this.SearchPoint.get(me.Units.getItem(i).UnitId).Y === me.Units.getItem(i).Position.Y)) {
@@ -6215,7 +6264,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                     var unitDescription = this.UnitDesription.get(me.Units.getItem(i).UnitId);
 
                     var distance = Math.min(unitDescription.MoveRange, ((path.Count - 1) | 0));
-                    this.NextTurn.set(me.Units.getItem(i).UnitId, ($t = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage(), $t.X = path.getItem(distance).$clone().X, $t.Y = path.getItem(distance).$clone().Y, $t));
+                    this.NextTurn.set(me.Units.getItem(i).UnitId, ($t = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction(), $t.NewPosition = ($t1 = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage(), $t1.X = path.getItem(distance).$clone().X, $t1.Y = path.getItem(distance).$clone().Y, $t1), $t.AttackDirection = unitDescription.AttackFriendlyFire ? null : ($t1 = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage(), $t1.X = 0, $t1.Y = 0, $t1), $t));
                 }
 
                 this.NeedAction = false;
@@ -6270,6 +6319,14 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         }
     });
 
+    Bridge.define("PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction", {
+        $kind: "nested class",
+        fields: {
+            NewPosition: null,
+            AttackDirection: null
+        }
+    });
+
     Bridge.define("PixelRPG.Base.TransferMessages.ServerClientConnectedTransferMessage.UnitSubMessage", {
         $kind: "nested class",
         fields: {
@@ -6298,7 +6355,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         $kind: "nested class",
         fields: {
             UnitId: 0,
-            Position: null
+            Position: null,
+            Hp: 0
         }
     });
 
@@ -6308,7 +6366,13 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
             UnitType: null,
             UnitId: 0,
             VisionRange: 0,
-            MoveRange: 0
+            MoveRange: 0,
+            MaxHp: 0,
+            Hp: 0,
+            AttackDistance: 0,
+            AttackRadius: 0,
+            AttackDamage: 0,
+            AttackFriendlyFire: false
         }
     });
 
@@ -8243,7 +8307,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         alias: ["Generate", "PixelRPG$Base$Components$GameState$IUnitType$Generate"],
         methods: {
             Generate: function () {
-                return new PixelRPG.Base.Components.GameState.Unit();
+                var $t;
+                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.AttackDistance = 3, $t.AttackRadius = 2, $t.AttackFriendlyFire = true, $t);
             }
         }
     });
@@ -8254,7 +8319,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         methods: {
             Generate: function () {
                 var $t;
-                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.VisionRange = 7, $t);
+                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.VisionRange = 7, $t.AttackDistance = 3, $t);
             }
         }
     });
@@ -8265,7 +8330,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         methods: {
             Generate: function () {
                 var $t;
-                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.MoveRange = 2, $t);
+                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.MoveRange = 2, $t.AttackRadius = 2, $t);
             }
         }
     });
@@ -8275,7 +8340,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         alias: ["Generate", "PixelRPG$Base$Components$GameState$IUnitType$Generate"],
         methods: {
             Generate: function () {
-                return new PixelRPG.Base.Components.GameState.Unit();
+                var $t;
+                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.MaxHp = 20, $t.Hp = 20, $t.AttackDamage = 3, $t);
             }
         }
     });
@@ -8294,7 +8360,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
     Bridge.define("PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage", {
         fields: {
-            NewPosition: null
+            UnitActions: null
         }
     });
 
@@ -8469,18 +8535,26 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 var $t;
                 writer.Write(transferModel != null);
                 if (transferModel != null) {
-                    writer.Write(transferModel.NewPosition != null);
-                    if (transferModel.NewPosition != null) {
-                        writer.Write$10(transferModel.NewPosition.count);
-                        $t = Bridge.getEnumerator(transferModel.NewPosition);
+                    writer.Write(transferModel.UnitActions != null);
+                    if (transferModel.UnitActions != null) {
+                        writer.Write$10(transferModel.UnitActions.count);
+                        $t = Bridge.getEnumerator(transferModel.UnitActions);
                         try {
                             while ($t.moveNext()) {
-                                var transferModelNewPositionKVP = $t.Current;
-                                writer.Write$10(transferModelNewPositionKVP.key);
-                                writer.Write(transferModelNewPositionKVP.value != null);
-                                if (transferModelNewPositionKVP.value != null) {
-                                    writer.Write$10(transferModelNewPositionKVP.value.X);
-                                    writer.Write$10(transferModelNewPositionKVP.value.Y);
+                                var transferModelUnitActionsKVP = $t.Current;
+                                writer.Write$10(transferModelUnitActionsKVP.key);
+                                writer.Write(transferModelUnitActionsKVP.value != null);
+                                if (transferModelUnitActionsKVP.value != null) {
+                                    writer.Write(transferModelUnitActionsKVP.value.NewPosition != null);
+                                    if (transferModelUnitActionsKVP.value.NewPosition != null) {
+                                        writer.Write$10(transferModelUnitActionsKVP.value.NewPosition.X);
+                                        writer.Write$10(transferModelUnitActionsKVP.value.NewPosition.Y);
+                                    }
+                                    writer.Write(transferModelUnitActionsKVP.value.AttackDirection != null);
+                                    if (transferModelUnitActionsKVP.value.AttackDirection != null) {
+                                        writer.Write$10(transferModelUnitActionsKVP.value.AttackDirection.X);
+                                        writer.Write$10(transferModelUnitActionsKVP.value.AttackDirection.Y);
+                                    }
                                 }
                             }
                         } finally {
@@ -8496,18 +8570,26 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 if (reader.ReadBoolean()) {
                     transferModel = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage();
                     if (reader.ReadBoolean()) {
-                        var transferModelNewPositionCount = reader.ReadInt32();
-                        transferModel.NewPosition = new (System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage))();
-                        for (var transferModelNewPositionIndex = 0; transferModelNewPositionIndex < transferModelNewPositionCount; transferModelNewPositionIndex = (transferModelNewPositionIndex + 1) | 0) {
-                            var transferModelNewPositionKey = Bridge.getDefaultValue(System.Int32);
-                            var transferModelNewPositionValue = null;
-                            transferModelNewPositionKey = reader.ReadInt32();
+                        var transferModelUnitActionsCount = reader.ReadInt32();
+                        transferModel.UnitActions = new (System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction))();
+                        for (var transferModelUnitActionsIndex = 0; transferModelUnitActionsIndex < transferModelUnitActionsCount; transferModelUnitActionsIndex = (transferModelUnitActionsIndex + 1) | 0) {
+                            var transferModelUnitActionsKey = Bridge.getDefaultValue(System.Int32);
+                            var transferModelUnitActionsValue = null;
+                            transferModelUnitActionsKey = reader.ReadInt32();
                             if (reader.ReadBoolean()) {
-                                transferModelNewPositionValue = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
-                                transferModelNewPositionValue.X = reader.ReadInt32();
-                                transferModelNewPositionValue.Y = reader.ReadInt32();
+                                transferModelUnitActionsValue = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction();
+                                if (reader.ReadBoolean()) {
+                                    transferModelUnitActionsValue.NewPosition = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
+                                    transferModelUnitActionsValue.NewPosition.X = reader.ReadInt32();
+                                    transferModelUnitActionsValue.NewPosition.Y = reader.ReadInt32();
+                                }
+                                if (reader.ReadBoolean()) {
+                                    transferModelUnitActionsValue.AttackDirection = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
+                                    transferModelUnitActionsValue.AttackDirection.X = reader.ReadInt32();
+                                    transferModelUnitActionsValue.AttackDirection.Y = reader.ReadInt32();
+                                }
                             }
-                            transferModel.NewPosition.set(transferModelNewPositionKey, transferModelNewPositionValue);
+                            transferModel.UnitActions.set(transferModelUnitActionsKey, transferModelUnitActionsValue);
                         }
                     }
                 }
@@ -8640,6 +8722,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                                     for (var transferModelPlayerstransferModelPlayersIndexUnitsIndex = 0; transferModelPlayerstransferModelPlayersIndexUnitsIndex < transferModel.Players.getItem(transferModelPlayersIndex).Units.Count; transferModelPlayerstransferModelPlayersIndexUnitsIndex = (transferModelPlayerstransferModelPlayersIndexUnitsIndex + 1) | 0) {
                                         writer.Write(transferModel.Players.getItem(transferModelPlayersIndex).Units.getItem(transferModelPlayerstransferModelPlayersIndexUnitsIndex) != null);
                                         if (transferModel.Players.getItem(transferModelPlayersIndex).Units.getItem(transferModelPlayerstransferModelPlayersIndexUnitsIndex) != null) {
+                                            writer.Write$10(transferModel.Players.getItem(transferModelPlayersIndex).Units.getItem(transferModelPlayerstransferModelPlayersIndexUnitsIndex).Hp);
                                             writer.Write(transferModel.Players.getItem(transferModelPlayersIndex).Units.getItem(transferModelPlayerstransferModelPlayersIndexUnitsIndex).Position != null);
                                             if (transferModel.Players.getItem(transferModelPlayersIndex).Units.getItem(transferModelPlayerstransferModelPlayersIndexUnitsIndex).Position != null) {
                                                 writer.Write$10(transferModel.Players.getItem(transferModelPlayersIndex).Units.getItem(transferModelPlayerstransferModelPlayersIndexUnitsIndex).Position.X);
@@ -8703,6 +8786,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                                         var transferModelPlayersValueUnitsValue = null;
                                         if (reader.ReadBoolean()) {
                                             transferModelPlayersValueUnitsValue = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage();
+                                            transferModelPlayersValueUnitsValue.Hp = reader.ReadInt32();
                                             if (reader.ReadBoolean()) {
                                                 transferModelPlayersValueUnitsValue.Position = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage();
                                                 transferModelPlayersValueUnitsValue.Position.X = reader.ReadInt32();
@@ -8799,6 +8883,12 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                         for (var transferModelUnitsDataIndex = 0; transferModelUnitsDataIndex < transferModel.UnitsData.Count; transferModelUnitsDataIndex = (transferModelUnitsDataIndex + 1) | 0) {
                             writer.Write(transferModel.UnitsData.getItem(transferModelUnitsDataIndex) != null);
                             if (transferModel.UnitsData.getItem(transferModelUnitsDataIndex) != null) {
+                                writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).AttackDamage);
+                                writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).AttackDistance);
+                                writer.Write(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).AttackFriendlyFire);
+                                writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).AttackRadius);
+                                writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).Hp);
+                                writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).MaxHp);
                                 writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).MoveRange);
                                 writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitId);
                                 writer.Write(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType != null);
@@ -8823,6 +8913,12 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             var transferModelUnitsDataValue = null;
                             if (reader.ReadBoolean()) {
                                 transferModelUnitsDataValue = new PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage();
+                                transferModelUnitsDataValue.AttackDamage = reader.ReadInt32();
+                                transferModelUnitsDataValue.AttackDistance = reader.ReadInt32();
+                                transferModelUnitsDataValue.AttackFriendlyFire = reader.ReadBoolean();
+                                transferModelUnitsDataValue.AttackRadius = reader.ReadInt32();
+                                transferModelUnitsDataValue.Hp = reader.ReadInt32();
+                                transferModelUnitsDataValue.MaxHp = reader.ReadInt32();
                                 transferModelUnitsDataValue.MoveRange = reader.ReadInt32();
                                 transferModelUnitsDataValue.UnitId = reader.ReadInt32();
                                 if (reader.ReadBoolean()) {
@@ -8977,7 +9073,17 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                     for (var j = 0; j < message.Players.getItem(i1).Units.Count; j = (j + 1) | 0) {
                         var entityName = System.String.format("PlayerUnit{0}_{1}", Bridge.box(message.Players.getItem(i1).PlayerId, System.Int32), Bridge.box(message.Players.getItem(i1).Units.getItem(j).UnitId, System.Int32));
                         var playerUnit = this.scene.FindEntity(entityName);
-                        playerUnit.GetComponent(SpineEngine.ECS.Components.PositionComponent).Position = new Microsoft.Xna.Framework.Vector2.$ctor2(((Bridge.Int.mul(message.Players.getItem(i1).Units.getItem(j).Position.X, 16) + 8) | 0), ((Bridge.Int.mul(message.Players.getItem(i1).Units.getItem(j).Position.Y, 16) + 8) | 0));
+                        var newPosition = new Microsoft.Xna.Framework.Vector2.$ctor2(((Bridge.Int.mul(message.Players.getItem(i1).Units.getItem(j).Position.X, 16) + 8) | 0), ((Bridge.Int.mul(message.Players.getItem(i1).Units.getItem(j).Position.Y, 16) + 8) | 0));
+                        var positionComponent = playerUnit.GetComponent(SpineEngine.ECS.Components.PositionComponent);
+                        if (message.Players.getItem(i1).Units.getItem(j).Hp <= 0) {
+                            playerUnit.GetComponent(PixelRPG.Base.Components.UnitComponent).State = PixelRPG.Base.Assets.UnitState.Dead;
+                        } else if (newPosition.X === positionComponent.Position.X && newPosition.Y === positionComponent.Position.Y) {
+                            playerUnit.GetComponent(PixelRPG.Base.Components.UnitComponent).State = PixelRPG.Base.Assets.UnitState.Idle;
+                        } else {
+                            playerUnit.GetComponent(PixelRPG.Base.Components.UnitComponent).State = PixelRPG.Base.Assets.UnitState.Run;
+                        }
+
+                        positionComponent.Position = newPosition.$clone();
                         playerUnit.Enabled = true;
                     }
                 }
@@ -9178,7 +9284,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                     return null;
                 }
 
-                var result = ($t = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage(), $t.NewPosition = simpleAI.NextTurn, $t);
+                var result = ($t = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage(), $t.UnitActions = simpleAI.NextTurn, $t);
                 simpleAI.NextTurn = null;
                 return result;
             }
@@ -9286,7 +9392,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
     Bridge.apply($asm.$.PixelRPG.Base.EntitySystems.ServerReceiveClientConnectHandler, {
         f1: function (a) {
             var $t1;
-            return ($t1 = new PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage(), $t1.UnitId = a.UnitId, $t1.UnitType = a.UnitTypeName, $t1.VisionRange = a.VisionRange, $t1.MoveRange = a.MoveRange, $t1);
+            return ($t1 = new PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage(), $t1.UnitId = a.UnitId, $t1.UnitType = a.UnitTypeName, $t1.VisionRange = a.VisionRange, $t1.MoveRange = a.MoveRange, $t1.AttackDamage = a.AttackDamage, $t1.AttackDistance = a.AttackDistance, $t1.AttackFriendlyFire = a.AttackFriendlyFire, $t1.AttackRadius = a.AttackRadius, $t1.Hp = a.Hp, $t1.MaxHp = a.MaxHp, $t1);
         }
     });
 
@@ -9294,52 +9400,15 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         inherits: [PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems.ServerReceiveHandlerSystem.Handler$1(PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage)],
         methods: {
             Handle$1: function (server, connectionKey, message) {
-                var $t, $t1, $t2;
+                var $t, $t1, $t2, $t3, $t4;
                 var gameState = server.Entity.GetComponent(PixelRPG.Base.Components.GameStateComponent);
-
-                for (var i = 0; i < gameState.Players.get(connectionKey).Units.Count; i = (i + 1) | 0) {
-                    if (!message.NewPosition.containsKey(gameState.Players.get(connectionKey).Units.getItem(i).UnitId)) {
-                        continue;
-                    }
-
-                    var newPosition = message.NewPosition.get(gameState.Players.get(connectionKey).Units.getItem(i).UnitId);
-                    var canMove = true;
-                    if (newPosition.X !== gameState.Exit.X || newPosition.Y !== gameState.Exit.Y) {
-                        //foreach (var player in gameState.Players)
-                        var player = gameState.Players.get(connectionKey);
-                        {
-                            for (var j = 0; j < player.Units.Count; j = (j + 1) | 0) {
-                                if (player.Units.getItem(j).Position.X === newPosition.X && player.Units.getItem(j).Position.Y === newPosition.Y) {
-                                    canMove = false;
-                                    break;
-                                }
-                            }
-
-                            //if (!canMove)
-                            //{
-                            //    break;
-                            //}
-                        }
-                    }
-
-                    if (canMove) {
-                        var unit = gameState.Players.get(connectionKey).Units.getItem(i);
-                        var distance = (Math.abs(((unit.Position.X - newPosition.X) | 0)) + Math.abs(((unit.Position.Y - newPosition.Y) | 0))) | 0;
-
-                        if (distance <= unit.MoveRange) {
-                            unit.Position.X = newPosition.X;
-                            unit.Position.Y = newPosition.Y;
-                        }
-                    }
-                }
-
-                gameState.MovedPlayers = (gameState.MovedPlayers + 1) | 0;
+                gameState.CurrentTurn.set(gameState.Players.get(connectionKey).PlayerId, message.UnitActions);
 
                 $t = Bridge.getEnumerator(gameState.Players);
                 try {
                     while ($t.moveNext()) {
-                        var player1 = $t.Current;
-                        var responses = server.Response.get(player1.key);
+                        var player = $t.Current;
+                        var responses = server.Response.get(player.key);
                         responses.Enqueue(($t1 = new PixelRPG.Base.TransferMessages.ServerPlayerTurnMadeTransferMessage(), $t1.PlayerId = gameState.Players.get(connectionKey).PlayerId, $t1));
                     }
                 } finally {
@@ -9348,47 +9417,168 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                     }
                 }
 
-                if (gameState.MovedPlayers === gameState.MaxPlayersCount) {
-                    gameState.MovedPlayers = 0;
+                if (System.Linq.Enumerable.from(gameState.CurrentTurn).count() !== gameState.MaxPlayersCount) {
+                    return;
+                }
 
-                    var allAtEnd = true;
-                    $t1 = Bridge.getEnumerator(gameState.Players);
-                    try {
-                        while ($t1.moveNext()) {
-                            var player2 = $t1.Current;
-                            for (var i1 = 0; i1 < player2.value.Units.Count; i1 = (i1 + 1) | 0) {
-                                if (Microsoft.Xna.Framework.Point.op_Inequality(player2.value.Units.getItem(i1).Position.$clone(), gameState.Exit.$clone())) {
-                                    allAtEnd = false;
+                var playersList = System.Linq.Enumerable.from(gameState.Players.getValues()).toList(PixelRPG.Base.Components.GameState.Player);
+                FateRandom.Fate.GlobalFate.Shuffle(PixelRPG.Base.Components.GameState.Player, playersList);
+
+                for (var i = 0; i < playersList.Count; i = (i + 1) | 0) {
+                    var player1 = playersList.getItem(i);
+                    var unitActions = gameState.CurrentTurn.get(player1.PlayerId);
+                    for (var j = 0; j < player1.Units.Count; j = (j + 1) | 0) {
+                        var unit = player1.Units.getItem(j);
+                        if (!unitActions.containsKey(unit.UnitId) && unit.Hp > 0 && unit.Hp < unit.MaxHp) {
+                            unit.Hp = (unit.Hp + 1) | 0;
+                        }
+                    }
+                }
+
+
+                for (var i1 = 0; i1 < playersList.Count; i1 = (i1 + 1) | 0) {
+                    var player2 = playersList.getItem(i1);
+                    var unitActions1 = gameState.CurrentTurn.get(player2.PlayerId);
+                    for (var j1 = 0; j1 < player2.Units.Count; j1 = (j1 + 1) | 0) {
+                        var unit1 = player2.Units.getItem(j1);
+                        if (!unitActions1.containsKey(unit1.UnitId) || unit1.Hp <= 0) {
+                            continue;
+                        }
+
+                        var newPosition = unitActions1.get(unit1.UnitId).NewPosition;
+                        var canMove = true;
+                        if (newPosition.X !== gameState.Exit.X || newPosition.Y !== gameState.Exit.Y) {
+                            $t1 = Bridge.getEnumerator(gameState.Players);
+                            try {
+                                while ($t1.moveNext()) {
+                                    var playerKVP = $t1.Current;
+                                    var otherPlayer = playerKVP.value;
+                                    for (var k = 0; k < otherPlayer.Units.Count; k = (k + 1) | 0) {
+                                        var otherUnit = otherPlayer.Units.getItem(k);
+                                        if (otherUnit.Hp > 0 && otherUnit.Position.X === newPosition.X && otherUnit.Position.Y === newPosition.Y) {
+                                            canMove = false;
+                                            break;
+                                        }
+                                    }
+
+                                    if (!canMove) {
+                                        break;
+                                    }
+                                }
+                            } finally {
+                                if (Bridge.is($t1, System.IDisposable)) {
+                                    $t1.System$IDisposable$Dispose();
                                 }
                             }
                         }
-                    } finally {
-                        if (Bridge.is($t1, System.IDisposable)) {
-                            $t1.System$IDisposable$Dispose();
-                        }
-                    }
 
-                    var startGameResponse = null;
-                    if (allAtEnd) {
-                        startGameResponse = PixelRPG.Base.EntitySystems.ServerLogic.StartNewGame(gameState);
-                    }
+                        if (canMove) {
+                            var distance = (Math.abs(((unit1.Position.X - newPosition.X) | 0)) + Math.abs(((unit1.Position.Y - newPosition.Y) | 0))) | 0;
 
-                    $t2 = Bridge.getEnumerator(gameState.Players);
-                    try {
-                        while ($t2.moveNext()) {
-                            var player3 = $t2.Current;
-                            var responses1 = server.Response.get(player3.key);
-                            if (allAtEnd) {
-                                responses1.Enqueue(startGameResponse);
+                            if (distance <= unit1.MoveRange) {
+                                unit1.Position.X = newPosition.X;
+                                unit1.Position.Y = newPosition.Y;
                             }
+                        }
+                    }
+                }
 
-                            responses1.Enqueue(PixelRPG.Base.EntitySystems.ServerLogic.BuildCurrentStateForPlayer(gameState, player3.value));
-                            responses1.Enqueue(new PixelRPG.Base.TransferMessages.ServerYourTurnTransferMessage());
+                for (var i2 = 0; i2 < playersList.Count; i2 = (i2 + 1) | 0) {
+                    var player3 = playersList.getItem(i2);
+                    var unitActions2 = gameState.CurrentTurn.get(player3.PlayerId);
+                    for (var j2 = 0; j2 < player3.Units.Count; j2 = (j2 + 1) | 0) {
+                        var unit2 = player3.Units.getItem(j2);
+                        if (!unitActions2.containsKey(unit2.UnitId) || unit2.Hp <= 0) {
+                            continue;
                         }
-                    } finally {
-                        if (Bridge.is($t2, System.IDisposable)) {
-                            $t2.System$IDisposable$Dispose();
+
+                        if (unitActions2.get(unit2.UnitId).AttackDirection == null) {
+                            continue;
                         }
+
+                        if (Microsoft.Xna.Framework.Point.op_Equality(unit2.Position.$clone(), gameState.Exit.$clone())) {
+                            continue;
+                        }
+
+                        var attackToX = (unitActions2.get(unit2.UnitId).NewPosition.X + unitActions2.get(unit2.UnitId).AttackDirection.X) | 0;
+                        var attackToY = (unitActions2.get(unit2.UnitId).NewPosition.Y + unitActions2.get(unit2.UnitId).AttackDirection.Y) | 0;
+                        var distance1 = (unitActions2.get(unit2.UnitId).AttackDirection.X + unitActions2.get(unit2.UnitId).AttackDirection.Y) | 0;
+                        if (distance1 > unit2.AttackDistance) {
+                            continue;
+                        }
+
+                        $t2 = Bridge.getEnumerator(gameState.Players);
+                        try {
+                            while ($t2.moveNext()) {
+                                var playerKVP1 = $t2.Current;
+                                var otherPlayer1 = playerKVP1.value;
+                                if (!unit2.AttackFriendlyFire && otherPlayer1.PlayerId === player3.PlayerId) {
+                                    continue;
+                                }
+
+                                for (var k1 = 0; k1 < otherPlayer1.Units.Count; k1 = (k1 + 1) | 0) {
+                                    var otherUnit1 = otherPlayer1.Units.getItem(k1);
+                                    if (otherUnit1.Hp <= 0) {
+                                        continue;
+                                    }
+
+                                    var distanceToAttackPoint = (Math.abs(((attackToX - otherUnit1.Position.X) | 0)) + Math.abs(((attackToY - otherUnit1.Position.Y) | 0))) | 0;
+                                    if (distanceToAttackPoint > unit2.AttackRadius) {
+                                        continue;
+                                    }
+
+                                    otherUnit1.Hp = (otherUnit1.Hp - unit2.AttackDamage) | 0;
+                                }
+                            }
+                        } finally {
+                            if (Bridge.is($t2, System.IDisposable)) {
+                                $t2.System$IDisposable$Dispose();
+                            }
+                        }
+                    }
+                }
+
+
+                gameState.CurrentTurn.clear();
+
+                var allAtEnd = true;
+                $t3 = Bridge.getEnumerator(gameState.Players);
+                try {
+                    while ($t3.moveNext()) {
+                        var player4 = $t3.Current;
+                        for (var i3 = 0; i3 < player4.value.Units.Count; i3 = (i3 + 1) | 0) {
+                            var unit3 = player4.value.Units.getItem(i3);
+                            if (unit3.Hp > 0 && Microsoft.Xna.Framework.Point.op_Inequality(unit3.Position.$clone(), gameState.Exit.$clone())) {
+                                allAtEnd = false;
+                            }
+                        }
+                    }
+                } finally {
+                    if (Bridge.is($t3, System.IDisposable)) {
+                        $t3.System$IDisposable$Dispose();
+                    }
+                }
+
+                var startGameResponse = null;
+                if (allAtEnd) {
+                    startGameResponse = PixelRPG.Base.EntitySystems.ServerLogic.StartNewGame(gameState);
+                }
+
+                $t4 = Bridge.getEnumerator(gameState.Players);
+                try {
+                    while ($t4.moveNext()) {
+                        var player5 = $t4.Current;
+                        var responses1 = server.Response.get(player5.key);
+                        if (allAtEnd) {
+                            responses1.Enqueue(startGameResponse);
+                        }
+
+                        responses1.Enqueue(PixelRPG.Base.EntitySystems.ServerLogic.BuildCurrentStateForPlayer(gameState, player5.value));
+                        responses1.Enqueue(new PixelRPG.Base.TransferMessages.ServerYourTurnTransferMessage());
+                    }
+                } finally {
+                    if (Bridge.is($t4, System.IDisposable)) {
+                        $t4.System$IDisposable$Dispose();
                     }
                 }
             }

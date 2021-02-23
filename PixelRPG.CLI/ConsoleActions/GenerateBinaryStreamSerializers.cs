@@ -110,6 +110,10 @@
             {
                 sb.AppendLine($"writer.Write({baseName});");
             }
+            else if (typeof(bool).IsAssignableFrom(t))
+            {
+                sb.AppendLine($"writer.Write({baseName});");
+            }
             else if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
             {
                 sb.AppendLine($"writer.Write({baseName} != null);");
@@ -195,6 +199,10 @@
             else if (typeof(int).IsAssignableFrom(t))
             {
                 sb.AppendLine($"{baseName} = reader.ReadInt32();");
+            }
+            else if (typeof(bool).IsAssignableFrom(t))
+            {
+                sb.AppendLine($"{baseName} = reader.ReadBoolean();");
             }
             else if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
             {

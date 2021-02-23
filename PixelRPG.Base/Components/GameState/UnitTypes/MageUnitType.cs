@@ -6,7 +6,12 @@ namespace PixelRPG.Base.EntitySystems
     {
         public Unit Generate()
         {
-            return new Unit();
+            return new Unit
+            {
+                AttackDistance = 3,
+                AttackRadius = 2,
+                AttackFriendlyFire = true
+            };
         }
     }
 }

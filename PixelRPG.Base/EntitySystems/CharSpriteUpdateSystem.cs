@@ -32,9 +32,23 @@
             {
                 case UnitState.Idle:
                     animation.Animation = charSprites.UnitAnimations.Idle;
+                    animation.Animation.Loop = false;
+                    animation.IsPlaying = true;
                     break;
                 case UnitState.Run:
                     animation.Animation = charSprites.UnitAnimations.Run;
+                    animation.Animation.Loop = false;
+                    animation.IsPlaying = true;
+                    break;
+                case UnitState.Dead:
+                    if (animation.Animation == charSprites.UnitAnimations.Die)
+                    {
+                        return;
+                    }
+
+                    animation.Animation = charSprites.UnitAnimations.Die;
+                    animation.Animation.Loop = false;
+                    animation.IsPlaying = true;
                     break;
             }
 
@@ -47,7 +61,8 @@
             var charSprites = entity.GetComponent<UnitComponent>();
             var animation = entity.GetOrCreateComponent<AnimationSpriteComponent>();
             var sprite = entity.GetOrCreateComponent<SpriteComponent>();
-            animation.Animation = charSprites.UnitAnimations.Idle;
+            animation.Animation = animation.Animation ?? charSprites.UnitAnimations.Idle;
+            animation.Animation.Loop = false;
             animation.IsPlaying = true;
             sprite.Drawable = animation.Animation.Frames[animation.StartFrame];
         }

@@ -13,6 +13,12 @@ namespace PixelRPG.Base.TransferMessages
             public int UnitId;
             public int VisionRange;
             public int MoveRange;
+            public int MaxHp;
+            public int Hp;
+            public int AttackDistance;
+            public int AttackRadius;
+            public int AttackDamage;
+            public bool AttackFriendlyFire;
         }
     }
 }

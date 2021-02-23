@@ -4,7 +4,13 @@ namespace PixelRPG.Base.TransferMessages
 {
     public class ClientTurnDoneTransferMessage
     {
-        public Dictionary<int, PointSubMessage> NewPosition;
+        public Dictionary<int, UnitActionSubAction> UnitActions;
+
+        public class UnitActionSubAction
+        {
+            public PointSubMessage NewPosition;
+            public PointSubMessage AttackDirection;
+        }
 
         public class PointSubMessage
         {

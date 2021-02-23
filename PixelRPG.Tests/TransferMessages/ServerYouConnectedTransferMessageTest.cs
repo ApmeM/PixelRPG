@@ -39,7 +39,8 @@ namespace PixelRPG.Tests.AdditionalContent
                         MoveRange = 1,
                         VisionRange = 2,
                         UnitId = 3,
-                        UnitType = "type"
+                        UnitType = "type",
+                        AttackFriendlyFire = true
                     }
                 }
             };
@@ -55,6 +56,7 @@ namespace PixelRPG.Tests.AdditionalContent
             Assert.AreEqual(target.UnitsData[0].VisionRange, obj.UnitsData[0].VisionRange);
             Assert.AreEqual(target.UnitsData[0].MoveRange, obj.UnitsData[0].MoveRange);
             Assert.AreEqual(target.UnitsData[0].UnitId, obj.UnitsData[0].UnitId);
+            Assert.AreEqual(target.UnitsData[0].AttackFriendlyFire, obj.UnitsData[0].AttackFriendlyFire);
         }
     }
 }

@@ -35,7 +35,7 @@
         protected override void DoAction(ServerGameStartedTransferMessage message, Entity entity, System.TimeSpan gameTime)
         {
             var visiblePlayer = entity.GetComponent<VisiblePlayerComponent>();
-
+            
             var map = this.scene.FindEntity(visiblePlayer.MapEntityName);
             var tiledMap = map.GetComponent<TiledMapComponent>().TiledMap;
 

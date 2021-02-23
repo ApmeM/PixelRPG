@@ -26,7 +26,7 @@ namespace PixelRPG.Base.EntitySystems
                 return null;
             }
 
-            var result = new ClientTurnDoneTransferMessage { NewPosition = simpleAI.NextTurn };
+            var result = new ClientTurnDoneTransferMessage { UnitActions = simpleAI.NextTurn };
             simpleAI.NextTurn = null;
             return result;
         }
