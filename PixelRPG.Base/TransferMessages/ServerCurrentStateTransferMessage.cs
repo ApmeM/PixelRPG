@@ -19,6 +19,7 @@ namespace PixelRPG.Base.TransferMessages
         {
             public int UnitId;
             public PointSubMessage Position;
+            public int Hp;
         }
 
         public class PointSubMessage

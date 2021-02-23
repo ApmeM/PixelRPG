@@ -8,6 +8,7 @@
 
     using Microsoft.Xna.Framework;
     using PixelRPG.Base.Components.GameState;
+    using PixelRPG.Base.TransferMessages;
 
     #endregion
 
@@ -20,6 +21,6 @@
         public int MaxPlayersCount;
         public int MaxUnitsCount = 4;
         public int MaxSkillsCount = 1;
-        public int MovedPlayers;
+        public Dictionary<int, Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction>> CurrentTurn = new Dictionary<int, Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction>>();
     }
 }

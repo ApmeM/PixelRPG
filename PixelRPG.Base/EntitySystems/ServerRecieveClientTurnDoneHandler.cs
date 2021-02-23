@@ -1,67 +1,19 @@
 ﻿namespace PixelRPG.Base.EntitySystems
 {
     using System;
-    using System.Diagnostics;
-    #region Using Directives
-
     using System.Linq;
-    using Microsoft.Xna.Framework;
+    using FateRandom;
     using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
     using PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems;
     using PixelRPG.Base.Components;
     using PixelRPG.Base.TransferMessages;
-    #endregion
 
     public class ServerRecieveClientTurnDoneHandler : ServerReceiveHandlerSystem.Handler<ClientTurnDoneTransferMessage>
     {
         protected override void Handle(ServerComponent server, int connectionKey, ClientTurnDoneTransferMessage message)
         {
             var gameState = server.Entity.GetComponent<GameStateComponent>();
-
-            for (var i = 0; i < gameState.Players[connectionKey].Units.Count; i++)
-            {
-                if (!message.NewPosition.ContainsKey(gameState.Players[connectionKey].Units[i].UnitId))
-                {
-                    continue;
-                }
-
-                var newPosition = message.NewPosition[gameState.Players[connectionKey].Units[i].UnitId];
-                var canMove = true;
-                if (newPosition.X != gameState.Exit.X || newPosition.Y != gameState.Exit.Y)
-                {
-                    //foreach (var player in gameState.Players)
-                    var player = gameState.Players[connectionKey];
-                    {
-                        for (var j = 0; j < player.Units.Count; j++)
-                        {
-                            if (player.Units[j].Position.X == newPosition.X && player.Units[j].Position.Y == newPosition.Y)
-                            {
-                                canMove = false;
-                                break;
-                            }
-                        }
-
-                        //if (!canMove)
-                        //{
-                        //    break;
-                        //}
-                    }
-                }
-
-                if (canMove)
-                {
-                    var unit = gameState.Players[connectionKey].Units[i];
-                    var distance = Math.Abs(unit.Position.X - newPosition.X) + Math.Abs(unit.Position.Y - newPosition.Y);
-
-                    if (distance <= unit.MoveRange)
-                    {
-                        unit.Position.X = newPosition.X;
-                        unit.Position.Y = newPosition.Y;
-                    }
-                }
-            }
-
-            gameState.MovedPlayers++;
+            gameState.CurrentTurn[gameState.Players[connectionKey].PlayerId] = message.UnitActions;
 
             foreach (var player in gameState.Players)
             {
@@ -72,39 +24,168 @@
                 });
             }
 
-            if (gameState.MovedPlayers == gameState.MaxPlayersCount)
+            if (gameState.CurrentTurn.Count() != gameState.MaxPlayersCount)
             {
-                gameState.MovedPlayers = 0;
+                return;
+            }
+            
+            var playersList = gameState.Players.Values.ToList();
+            Fate.GlobalFate.Shuffle(playersList);
 
-                var allAtEnd = true;
-                foreach (var player in gameState.Players)
+            for (var i = 0; i < playersList.Count; i++)
+            {
+                var player = playersList[i];
+                var unitActions = gameState.CurrentTurn[player.PlayerId];
+                for (var j = 0; j < player.Units.Count; j++)
                 {
-                    for (var i = 0; i < player.Value.Units.Count; i++)
+                    var unit = player.Units[j];
+                    if (!unitActions.ContainsKey(unit.UnitId) && unit.Hp > 0 && unit.Hp < unit.MaxHp)
                     {
-                        if (player.Value.Units[i].Position != gameState.Exit)
+                        unit.Hp++;
+                    }
+                }
+            }
+
+
+            for (var i = 0; i < playersList.Count; i++)
+            {
+                var player = playersList[i];
+                var unitActions = gameState.CurrentTurn[player.PlayerId];
+                for (var j = 0; j < player.Units.Count; j++)
+                {
+                    var unit = player.Units[j];
+                    if (!unitActions.ContainsKey(unit.UnitId) || unit.Hp <= 0)
+                    {
+                        continue;
+                    }
+
+                    var newPosition = unitActions[unit.UnitId].NewPosition;
+                    var canMove = true;
+                    if (newPosition.X != gameState.Exit.X || newPosition.Y != gameState.Exit.Y)
+                    {
+                        foreach (var playerKVP in gameState.Players)
                         {
-                            allAtEnd = false;
+                            var otherPlayer = playerKVP.Value;
+                            for (var k = 0; k < otherPlayer.Units.Count; k++)
+                            {
+                                var otherUnit = otherPlayer.Units[k];
+                                if (otherUnit.Hp > 0 && otherUnit.Position.X == newPosition.X && otherUnit.Position.Y == newPosition.Y)
+                                {
+                                    canMove = false;
+                                    break;
+                                }
+                            }
+
+                            if (!canMove)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (canMove)
+                    {
+                        var distance = Math.Abs(unit.Position.X - newPosition.X) + Math.Abs(unit.Position.Y - newPosition.Y);
+
+                        if (distance <= unit.MoveRange)
+                        {
+                            unit.Position.X = newPosition.X;
+                            unit.Position.Y = newPosition.Y;
                         }
                     }
                 }
-                
-                ServerGameStartedTransferMessage startGameResponse = null;
-                if (allAtEnd)
-                {
-                    startGameResponse = ServerLogic.StartNewGame(gameState);
-                }
+            }
 
-                foreach (var player in gameState.Players)
+            for (var i = 0; i < playersList.Count; i++)
+            {
+                var player = playersList[i];
+                var unitActions = gameState.CurrentTurn[player.PlayerId];
+                for (var j = 0; j < player.Units.Count; j++)
                 {
-                    var responses = server.Response[player.Key];
-                    if (allAtEnd)
+                    var unit = player.Units[j];
+                    if (!unitActions.ContainsKey(unit.UnitId) || unit.Hp <= 0)
                     {
-                        responses.Enqueue(startGameResponse);
+                        continue;
                     }
 
-                    responses.Enqueue(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
-                    responses.Enqueue(new ServerYourTurnTransferMessage());
+                    if (unitActions[unit.UnitId].AttackDirection == null)
+                    {
+                        continue;
+                    }
+
+                    if (unit.Position == gameState.Exit)
+                    {
+                        continue;
+                    }
+
+                    var attackToX = unitActions[unit.UnitId].NewPosition.X + unitActions[unit.UnitId].AttackDirection.X;
+                    var attackToY = unitActions[unit.UnitId].NewPosition.Y + unitActions[unit.UnitId].AttackDirection.Y;
+                    var distance = unitActions[unit.UnitId].AttackDirection.X + unitActions[unit.UnitId].AttackDirection.Y;
+                    if (distance > unit.AttackDistance)
+                    {
+                        continue;
+                    }
+
+                    foreach (var playerKVP in gameState.Players)
+                    {
+                        var otherPlayer = playerKVP.Value;
+                        if (!unit.AttackFriendlyFire && otherPlayer.PlayerId == player.PlayerId)
+                        {
+                            continue;
+                        }
+
+                        for (var k = 0; k < otherPlayer.Units.Count; k++)
+                        {
+                            var otherUnit = otherPlayer.Units[k];
+                            if (otherUnit.Hp <= 0)
+                            {
+                                continue;
+                            }
+
+                            var distanceToAttackPoint = Math.Abs(attackToX - otherUnit.Position.X) + Math.Abs(attackToY - otherUnit.Position.Y);
+                            if (distanceToAttackPoint > unit.AttackRadius)
+                            {
+                                continue;
+                            }
+
+                            otherUnit.Hp -= unit.AttackDamage;
+                        }
+                    }
                 }
+            }
+
+
+            gameState.CurrentTurn.Clear();
+
+            var allAtEnd = true;
+            foreach (var player in gameState.Players)
+            {
+                for (var i = 0; i < player.Value.Units.Count; i++)
+                {
+                    var unit = player.Value.Units[i];
+                    if (unit.Hp > 0 && unit.Position != gameState.Exit)
+                    {
+                        allAtEnd = false;
+                    }
+                }
+            }
+                
+            ServerGameStartedTransferMessage startGameResponse = null;
+            if (allAtEnd)
+            {
+                startGameResponse = ServerLogic.StartNewGame(gameState);
+            }
+
+            foreach (var player in gameState.Players)
+            {
+                var responses = server.Response[player.Key];
+                if (allAtEnd)
+                {
+                    responses.Enqueue(startGameResponse);
+                }
+
+                responses.Enqueue(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
+                responses.Enqueue(new ServerYourTurnTransferMessage());
             }
         }
     }

@@ -8,7 +8,8 @@ namespace PixelRPG.Base.EntitySystems
         {
             return new Unit
             {
-                VisionRange = 7
+                VisionRange = 7,
+                AttackDistance = 3
             };
         }
     }

@@ -42,7 +42,22 @@
                 {
                     var entityName = $"PlayerUnit{message.Players[i].PlayerId}_{message.Players[i].Units[j].UnitId}";
                     var playerUnit = this.scene.FindEntity(entityName);
-                    playerUnit.GetComponent<PositionComponent>().Position = new Vector2(message.Players[i].Units[j].Position.X * 16 + 8, message.Players[i].Units[j].Position.Y * 16 + 8);
+                    var newPosition = new Vector2(message.Players[i].Units[j].Position.X * 16 + 8, message.Players[i].Units[j].Position.Y * 16 + 8);
+                    var positionComponent = playerUnit.GetComponent<PositionComponent>();
+                    if (message.Players[i].Units[j].Hp <= 0)
+                    {
+                        playerUnit.GetComponent<UnitComponent>().State = Assets.UnitState.Dead;
+                    }
+                    else if (newPosition.X == positionComponent.Position.X && newPosition.Y == positionComponent.Position.Y)
+                    {
+                        playerUnit.GetComponent<UnitComponent>().State = Assets.UnitState.Idle;
+                    }
+                    else
+                    {
+                        playerUnit.GetComponent<UnitComponent>().State = Assets.UnitState.Run;
+                    }
+
+                    positionComponent.Position = newPosition;
                     playerUnit.Enabled = true;
                 }
 

@@ -102,18 +102,28 @@ protected override void InternalWrite(PixelRPG.Base.TransferMessages.ClientTurnD
 writer.Write(transferModel != null);
 if (transferModel != null)
 {
-writer.Write(transferModel.NewPosition != null);
-if (transferModel.NewPosition != null)
+writer.Write(transferModel.UnitActions != null);
+if (transferModel.UnitActions != null)
 {
-writer.Write(transferModel.NewPosition.Count);
-foreach (var transferModelNewPositionKVP in transferModel.NewPosition)
+writer.Write(transferModel.UnitActions.Count);
+foreach (var transferModelUnitActionsKVP in transferModel.UnitActions)
 {
-writer.Write(transferModelNewPositionKVP.Key);
-writer.Write(transferModelNewPositionKVP.Value != null);
-if (transferModelNewPositionKVP.Value != null)
+writer.Write(transferModelUnitActionsKVP.Key);
+writer.Write(transferModelUnitActionsKVP.Value != null);
+if (transferModelUnitActionsKVP.Value != null)
 {
-writer.Write(transferModelNewPositionKVP.Value.X);
-writer.Write(transferModelNewPositionKVP.Value.Y);
+writer.Write(transferModelUnitActionsKVP.Value.NewPosition != null);
+if (transferModelUnitActionsKVP.Value.NewPosition != null)
+{
+writer.Write(transferModelUnitActionsKVP.Value.NewPosition.X);
+writer.Write(transferModelUnitActionsKVP.Value.NewPosition.Y);
+}
+writer.Write(transferModelUnitActionsKVP.Value.AttackDirection != null);
+if (transferModelUnitActionsKVP.Value.AttackDirection != null)
+{
+writer.Write(transferModelUnitActionsKVP.Value.AttackDirection.X);
+writer.Write(transferModelUnitActionsKVP.Value.AttackDirection.Y);
+}
 }
 }
 }
@@ -127,20 +137,30 @@ if (reader.ReadBoolean())
 transferModel = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage();
 if (reader.ReadBoolean())
 {
-var transferModelNewPositionCount = reader.ReadInt32();
-transferModel.NewPosition = new Dictionary<System.Int32, PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage>();
-for (var transferModelNewPositionIndex = 0; transferModelNewPositionIndex < transferModelNewPositionCount; transferModelNewPositionIndex++)
+var transferModelUnitActionsCount = reader.ReadInt32();
+transferModel.UnitActions = new Dictionary<System.Int32, PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction>();
+for (var transferModelUnitActionsIndex = 0; transferModelUnitActionsIndex < transferModelUnitActionsCount; transferModelUnitActionsIndex++)
 {
-System.Int32 transferModelNewPositionKey = default(System.Int32);
-PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage transferModelNewPositionValue = default(PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage);
-transferModelNewPositionKey = reader.ReadInt32();
+System.Int32 transferModelUnitActionsKey = default(System.Int32);
+PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction transferModelUnitActionsValue = default(PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction);
+transferModelUnitActionsKey = reader.ReadInt32();
 if (reader.ReadBoolean())
 {
-transferModelNewPositionValue = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
-transferModelNewPositionValue.X = reader.ReadInt32();
-transferModelNewPositionValue.Y = reader.ReadInt32();
+transferModelUnitActionsValue = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction();
+if (reader.ReadBoolean())
+{
+transferModelUnitActionsValue.NewPosition = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
+transferModelUnitActionsValue.NewPosition.X = reader.ReadInt32();
+transferModelUnitActionsValue.NewPosition.Y = reader.ReadInt32();
 }
-transferModel.NewPosition[transferModelNewPositionKey] = transferModelNewPositionValue;
+if (reader.ReadBoolean())
+{
+transferModelUnitActionsValue.AttackDirection = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
+transferModelUnitActionsValue.AttackDirection.X = reader.ReadInt32();
+transferModelUnitActionsValue.AttackDirection.Y = reader.ReadInt32();
+}
+}
+transferModel.UnitActions[transferModelUnitActionsKey] = transferModelUnitActionsValue;
 }
 }
 }
@@ -283,6 +303,7 @@ for (var transferModelPlayerstransferModelPlayersIndexUnitsIndex = 0; transferMo
 writer.Write(transferModel.Players[transferModelPlayersIndex].Units[transferModelPlayerstransferModelPlayersIndexUnitsIndex] != null);
 if (transferModel.Players[transferModelPlayersIndex].Units[transferModelPlayerstransferModelPlayersIndexUnitsIndex] != null)
 {
+writer.Write(transferModel.Players[transferModelPlayersIndex].Units[transferModelPlayerstransferModelPlayersIndexUnitsIndex].Hp);
 writer.Write(transferModel.Players[transferModelPlayersIndex].Units[transferModelPlayerstransferModelPlayersIndexUnitsIndex].Position != null);
 if (transferModel.Players[transferModelPlayersIndex].Units[transferModelPlayerstransferModelPlayersIndexUnitsIndex].Position != null)
 {
@@ -361,6 +382,7 @@ PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage 
 if (reader.ReadBoolean())
 {
 transferModelPlayersValueUnitsValue = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage();
+transferModelPlayersValueUnitsValue.Hp = reader.ReadInt32();
 if (reader.ReadBoolean())
 {
 transferModelPlayersValueUnitsValue.Position = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage();
@@ -444,6 +466,12 @@ for (var transferModelUnitsDataIndex = 0; transferModelUnitsDataIndex < transfer
 writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex] != null);
 if (transferModel.UnitsData[transferModelUnitsDataIndex] != null)
 {
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].AttackDamage);
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].AttackDistance);
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].AttackFriendlyFire);
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].AttackRadius);
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].Hp);
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].MaxHp);
 writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].MoveRange);
 writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].UnitId);
 writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].UnitType != null);
@@ -474,6 +502,12 @@ PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage 
 if (reader.ReadBoolean())
 {
 transferModelUnitsDataValue = new PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage();
+transferModelUnitsDataValue.AttackDamage = reader.ReadInt32();
+transferModelUnitsDataValue.AttackDistance = reader.ReadInt32();
+transferModelUnitsDataValue.AttackFriendlyFire = reader.ReadBoolean();
+transferModelUnitsDataValue.AttackRadius = reader.ReadInt32();
+transferModelUnitsDataValue.Hp = reader.ReadInt32();
+transferModelUnitsDataValue.MaxHp = reader.ReadInt32();
 transferModelUnitsDataValue.MoveRange = reader.ReadInt32();
 transferModelUnitsDataValue.UnitId = reader.ReadInt32();
 if (reader.ReadBoolean())

@@ -24,7 +24,7 @@
         public AstarGridGraph Pathfinding;
 
         public bool NeedAction;
-        public Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage> NextTurn;
+        public Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction> NextTurn;
         public Dictionary<int, ServerYouConnectedTransferMessage.UnitSubMessage> UnitDesription;
 
         public bool Connected;
@@ -39,7 +39,7 @@
 
             var me = FindMe();
 
-            NextTurn = new Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage>();
+            NextTurn = new Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction>();
 
             for (var i = 0; i < me.Units.Count; i++)
             {
@@ -73,7 +73,15 @@
                 var unitDescription = UnitDesription[me.Units[i].UnitId];
 
                 var distance = Math.Min(unitDescription.MoveRange, path.Count - 1);
-                NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.PointSubMessage { X = path[distance].X, Y = path[distance].Y };
+                NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.UnitActionSubAction
+                {
+                    NewPosition = new ClientTurnDoneTransferMessage.PointSubMessage
+                    {
+                        X = path[distance].X,
+                        Y = path[distance].Y
+                    },
+                    AttackDirection = unitDescription.AttackFriendlyFire ? null : new ClientTurnDoneTransferMessage.PointSubMessage { X = 0, Y = 0 }
+                };
             }
 
             NeedAction = false;

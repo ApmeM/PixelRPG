@@ -3,6 +3,7 @@
     public enum UnitState
     {
         Idle,
-        Run
+        Run,
+        Dead
     }
 }

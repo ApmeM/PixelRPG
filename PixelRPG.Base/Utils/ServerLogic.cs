@@ -32,7 +32,7 @@
                 {
                     PlayerId = a.PlayerId,
                     Units = a.Units
-                        .Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y))
+                        .Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y) || player.PlayerId == a.PlayerId)
                         .Select(b => new ServerCurrentStateTransferMessage.UnitSubMessage
                         {
                             UnitId = b.UnitId,
@@ -40,7 +40,8 @@
                             {
                                 X = b.Position.X,
                                 Y = b.Position.Y
-                            }
+                            },
+                            Hp = b.Hp
                         })
                         .ToList()
                 }).ToList(),
@@ -60,9 +61,31 @@
 
         public static bool IsVisible(Player fromPlayer, int exitX, int exitY, int x, int y)
         {
+            //ToDo: this can be calculated once when last unit died.
+            var allDead = false;
             for (var i = 0; i < fromPlayer.Units.Count; i++)
             {
                 var unit = fromPlayer.Units[i];
+                if (unit.Hp <= 0)
+                {
+                    continue;
+                }
+                allDead = false;
+            }
+            
+            if (allDead)
+            {
+                return true;
+            }
+
+            for (var i = 0; i < fromPlayer.Units.Count; i++)
+            {
+                var unit = fromPlayer.Units[i];
+                if (unit.Hp <= 0)
+                {
+                    continue;
+                }
+
                 if (unit.Position.X == exitX && unit.Position.Y == exitY)
                 {
                     return true;
@@ -96,6 +119,11 @@
                 player.Value.Units[1].Position = new Point(room.X + room.Width / 2 + 1, room.Y + room.Height / 2);
                 player.Value.Units[2].Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2 - 1);
                 player.Value.Units[3].Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2 + 1);
+                
+                for (var i = 0; i < player.Value.Units.Count; i++)
+                {
+                    player.Value.Units[i].Hp = player.Value.Units[i].MaxHp;
+                }
             }
             
             gameState.Exit = new Point(maze.Rooms[maze.Rooms.Count - 1].X + maze.Rooms[maze.Rooms.Count - 1].Width / 2, maze.Rooms[maze.Rooms.Count - 1].Y + maze.Rooms[maze.Rooms.Count - 1].Height / 2);

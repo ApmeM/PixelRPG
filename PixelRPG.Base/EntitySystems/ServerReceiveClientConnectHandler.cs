@@ -61,7 +61,13 @@
                     UnitId = a.UnitId,
                     UnitType = a.UnitTypeName,
                     VisionRange = a.VisionRange,
-                    MoveRange = a.MoveRange
+                    MoveRange = a.MoveRange,
+                    AttackDamage = a.AttackDamage,
+                    AttackDistance = a.AttackDistance,
+                    AttackFriendlyFire = a.AttackFriendlyFire,
+                    AttackRadius = a.AttackRadius,
+                    Hp = a.Hp,
+                    MaxHp = a.MaxHp,
                 }).ToList()
             });
 
