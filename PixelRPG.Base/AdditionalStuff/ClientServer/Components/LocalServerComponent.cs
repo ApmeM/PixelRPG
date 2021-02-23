@@ -10,12 +10,12 @@
 
     public class LocalServerComponent : Component
     {
-        public Dictionary<Guid, List<string>> Request = new Dictionary<Guid, List<string>>();
-        public Dictionary<Guid, List<string>> Response = new Dictionary<Guid, List<string>>();
+        public Dictionary<Guid, Queue<string>> Request = new Dictionary<Guid, Queue<string>>();
+        public Dictionary<Guid, Queue<string>> Response = new Dictionary<Guid, Queue<string>>();
         public List<Guid> PendingConnections = new List<Guid>();
 
-        public Dictionary<Guid, int> ClientToPlayerId = new Dictionary<Guid, int>();
-        public Dictionary<int, Guid> PlayerIdToClient = new Dictionary<int, Guid>();
+        public Dictionary<Guid, int> ClientToConnectionKey = new Dictionary<Guid, int>();
+        public Dictionary<int, Guid> ConnectionKeyToClient = new Dictionary<int, Guid>();
         public List<Guid> Clients = new List<Guid>();
     }
 }

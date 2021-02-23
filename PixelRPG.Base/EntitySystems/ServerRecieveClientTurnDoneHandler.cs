@@ -50,8 +50,14 @@
 
                 if (canMove)
                 {
-                    gameState.Players[connectionKey].Units[i].Position.X = newPosition.X;
-                    gameState.Players[connectionKey].Units[i].Position.Y = newPosition.Y;
+                    var unit = gameState.Players[connectionKey].Units[i];
+                    var distance = Math.Abs(unit.Position.X - newPosition.X) + Math.Abs(unit.Position.Y - newPosition.Y);
+
+                    if (distance <= unit.MoveRange)
+                    {
+                        unit.Position.X = newPosition.X;
+                        unit.Position.Y = newPosition.Y;
+                    }
                 }
             }
 
@@ -60,9 +66,9 @@
             foreach (var player in gameState.Players)
             {
                 var responses = server.Response[player.Key];
-                responses.Add(new ServerPlayerTurnMadeTransferMessage
+                responses.Enqueue(new ServerPlayerTurnMadeTransferMessage
                 {
-                    PlayerId = connectionKey
+                    PlayerId = gameState.Players[connectionKey].PlayerId
                 });
             }
 
@@ -93,11 +99,11 @@
                     var responses = server.Response[player.Key];
                     if (allAtEnd)
                     {
-                        responses.Add(startGameResponse);
+                        responses.Enqueue(startGameResponse);
                     }
 
-                    responses.Add(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
-                    responses.Add(new ServerYourTurnTransferMessage());
+                    responses.Enqueue(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
+                    responses.Enqueue(new ServerYourTurnTransferMessage());
                 }
             }
         }

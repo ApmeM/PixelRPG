@@ -1,29 +1,18 @@
-﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
-using System.IO;
+﻿using System.Collections.Generic;
 
 namespace PixelRPG.Base.TransferMessages
 {
     public class ServerYouConnectedTransferMessage
     {
         public int PlayerId;
-    }
+        public List<UnitSubMessage> UnitsData = new List<UnitSubMessage>();
 
-    public class ServerYouConnectedTransferMessageParser : BinaryTransferMessageParser<ServerYouConnectedTransferMessage>
-    {
-        protected override int Identifier => 7;
-
-        protected override void InternalWrite(ServerYouConnectedTransferMessage transferModel, BinaryWriter writer)
+        public class UnitSubMessage
         {
-            writer.Write(transferModel.PlayerId);
-        }
-
-        protected override ServerYouConnectedTransferMessage InternalRead(BinaryReader reader)
-        {
-            var playerId = reader.ReadInt32();
-            return new ServerYouConnectedTransferMessage
-            {
-                PlayerId = playerId,
-            };
+            public string UnitType;
+            public int UnitId;
+            public int VisionRange;
+            public int MoveRange;
         }
     }
 }

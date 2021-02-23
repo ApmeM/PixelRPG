@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using PixelRPG.Base.TransferMessages;
+using PixelRPG.Base.AdditionalStuff.ClientServer;
 
 namespace PixelRPG.Tests.AdditionalContent
 {
@@ -9,7 +10,7 @@ namespace PixelRPG.Tests.AdditionalContent
     public class ServerGameStartedTransferMessageTest
     {
         [Test]
-        public void WithData_SerializedDserialized_Success()
+        public void WithData_SerializedDeserialized_Success()
         {
             var target = new ServerGameStartedTransferMessage
             {
@@ -17,7 +18,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 Height = 76
             };
 
-            var parser = new ServerGameStartedTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);

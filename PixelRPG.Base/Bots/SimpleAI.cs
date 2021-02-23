@@ -10,19 +10,25 @@
     using BrainAI.AI;
     using PixelRPG.Base.TransferMessages;
     using System;
+    using PixelRPG.Base.EntitySystems;
+    using PixelRPG.Base.Components.GameState.Skills;
     #endregion
 
     public class SimpleAI : IAITurn
     {
         public int MePlayerId;
         public int?[,] Regions;
-        public List<ServerCurrentStateTransferMessage.Player> Players;
-        public PointTransferMessage? Exit;
-        public Dictionary<int, PointTransferMessage?> SearchPoint = new Dictionary<int, PointTransferMessage?>();
+        public List<ServerCurrentStateTransferMessage.PlayerSubMessage> Players;
+        public ServerCurrentStateTransferMessage.PointSubMessage Exit;
+        public Dictionary<int, ServerCurrentStateTransferMessage.PointSubMessage> SearchPoint = new Dictionary<int, ServerCurrentStateTransferMessage.PointSubMessage>();
         public AstarGridGraph Pathfinding;
 
         public bool NeedAction;
-        public Dictionary<int, PointTransferMessage> NextTurn;
+        public Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage> NextTurn;
+        public Dictionary<int, ServerYouConnectedTransferMessage.UnitSubMessage> UnitDesription;
+
+        public bool Connected;
+        public string PlayerName = $"Player Bot.";
 
         public void Tick()
         {
@@ -33,17 +39,21 @@
 
             var me = FindMe();
 
-            NextTurn = new Dictionary<int, PointTransferMessage>();
+            NextTurn = new Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage>();
 
             for (var i = 0; i < me.Units.Count; i++)
             {
                 if (!SearchPoint.ContainsKey(me.Units[i].UnitId) || SearchPoint[me.Units[i].UnitId] == null || 
-                    (SearchPoint[me.Units[i].UnitId].Value.X == me.Units[i].Position.X && SearchPoint[me.Units[i].UnitId].Value.Y == me.Units[i].Position.Y))
+                    (SearchPoint[me.Units[i].UnitId].X == me.Units[i].Position.X && SearchPoint[me.Units[i].UnitId].Y == me.Units[i].Position.Y))
                 {
-                    SearchPoint[me.Units[i].UnitId] = new PointTransferMessage(Fate.GlobalFate.NextInt(Regions.GetLength(0)), Fate.GlobalFate.NextInt(Regions.GetLength(1)));
+                    SearchPoint[me.Units[i].UnitId] = new ServerCurrentStateTransferMessage.PointSubMessage
+                    {
+                        X = Fate.GlobalFate.NextInt(Regions.GetLength(0)),
+                        Y = Fate.GlobalFate.NextInt(Regions.GetLength(1))
+                    };
                 }
 
-                var pathToGo = this.Exit ?? SearchPoint[me.Units[i].UnitId].Value;
+                var pathToGo = this.Exit ?? SearchPoint[me.Units[i].UnitId];
 
                 var path = AStarPathfinder.Search(Pathfinding, new BrainAI.Pathfinding.Point(me.Units[i].Position.X, me.Units[i].Position.Y), new BrainAI.Pathfinding.Point(pathToGo.X, pathToGo.Y));
 
@@ -60,14 +70,39 @@
                         SearchPoint[me.Units[i].UnitId] = null;
                     }
                 }
+                var unitDescription = UnitDesription[me.Units[i].UnitId];
 
-                NextTurn[me.Units[i].UnitId] = new PointTransferMessage(path[1].X, path[1].Y);
+                var distance = Math.Min(unitDescription.MoveRange, path.Count - 1);
+                NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.PointSubMessage { X = path[distance].X, Y = path[distance].Y };
             }
 
             NeedAction = false;
         }
 
-        private ServerCurrentStateTransferMessage.Player FindMe()
+        public List<ClientConnectTransferMessage.UnitSubMessage> GenerateUnitData()
+        {
+            return new List<ClientConnectTransferMessage.UnitSubMessage>
+            {
+                new ClientConnectTransferMessage.UnitSubMessage
+                {
+                    UnitType = nameof(RangerUnitType),
+                    Skills = new List<string>
+                    {
+                        nameof(VisionRangeSkill)
+                    }
+                },
+                new ClientConnectTransferMessage.UnitSubMessage
+                {
+                    UnitType = nameof(RogueUnitType),
+                    Skills = new List<string>
+                    {
+                        nameof(MoveRangeSkill)
+                    }
+                }
+            };
+        }
+
+        private ServerCurrentStateTransferMessage.PlayerSubMessage FindMe()
         {
             for (var i = 0; i < this.Players.Count; i++)
             {

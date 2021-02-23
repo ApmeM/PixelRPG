@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <Win32Resource />
+    <OutputType>Exe</OutputType>
+    <StartupObject>PixelRPG.CLI.Program</StartupObject>
+    <ApplicationIcon />
+    <Configurations>Debug;Release</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="obj\**" />
+    <EmbeddedResource Remove="obj\**" />
+    <None Remove="obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JustCli" Version="2.2.2" />
+    <PackageReference Include="MonoGame.Framework.Content.Pipeline" version="3.7.1.189" />
+  </ItemGroup>
+
+</Project>
