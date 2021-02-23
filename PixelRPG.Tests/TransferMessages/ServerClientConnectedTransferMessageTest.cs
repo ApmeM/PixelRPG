@@ -28,7 +28,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 }
             };
 
-            var parser = new ServerClientConnectedTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);
@@ -53,7 +53,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 WaitingCount = 43,
             };
 
-            var parser = new ServerClientConnectedTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);

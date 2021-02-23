@@ -11,6 +11,7 @@
     using PixelRPG.Base.TransferMessages;
     using System;
     using PixelRPG.Base.EntitySystems;
+    using PixelRPG.Base.Components.GameState.Skills;
     #endregion
 
     public class SimpleAI : IAITurn
@@ -24,7 +25,10 @@
 
         public bool NeedAction;
         public Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage> NextTurn;
-        internal Dictionary<int, string> UnitDesription;
+        public Dictionary<int, ServerYouConnectedTransferMessage.UnitSubMessage> UnitDesription;
+
+        public bool Connected;
+        public string PlayerName = $"Player Bot.";
 
         public void Tick()
         {
@@ -68,17 +72,34 @@
                 }
                 var unitDescription = UnitDesription[me.Units[i].UnitId];
 
-                if (unitDescription == nameof(RogueUnitType) && path.Count > 2)
-                {
-                    NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.PointSubMessage { X = path[2].X, Y = path[2].Y };
-                }
-                else
-                {
-                    NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.PointSubMessage { X = path[1].X, Y = path[1].Y };
-                }
+                var distance = Math.Min(unitDescription.MoveRange, path.Count - 1);
+                NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.PointSubMessage { X = path[distance].X, Y = path[distance].Y };
             }
 
             NeedAction = false;
+        }
+
+        public List<ClientConnectTransferMessage.UnitSubMessage> GenerateUnitData()
+        {
+            return new List<ClientConnectTransferMessage.UnitSubMessage>
+            {
+                new ClientConnectTransferMessage.UnitSubMessage
+                {
+                    UnitType = nameof(RangerUnitType),
+                    Skills = new List<string>
+                    {
+                        nameof(VisionRangeSkill)
+                    }
+                },
+                new ClientConnectTransferMessage.UnitSubMessage
+                {
+                    UnitType = nameof(RogueUnitType),
+                    Skills = new List<string>
+                    {
+                        nameof(MoveRangeSkill)
+                    }
+                }
+            };
         }
 
         private ServerCurrentStateTransferMessage.PlayerSubMessage FindMe()

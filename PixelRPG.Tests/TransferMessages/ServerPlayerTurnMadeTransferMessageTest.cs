@@ -17,7 +17,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 PlayerId = 43
             };
 
-            var parser = new ServerPlayerTurnMadeTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);

@@ -9,6 +9,7 @@
     using PixelRPG.Base.Components.GameState;
     using System.Collections.Generic;
     using System;
+    using System.Linq;
 
     #endregion
 
@@ -54,7 +55,14 @@
 
             server.Response[connectionKey].Enqueue(new ServerYouConnectedTransferMessage
             {
-                PlayerId = newPlayer.PlayerId
+                PlayerId = newPlayer.PlayerId,
+                UnitsData = newPlayer.Units.Select(a => new ServerYouConnectedTransferMessage.UnitSubMessage
+                {
+                    UnitId = a.UnitId,
+                    UnitType = a.UnitTypeName,
+                    VisionRange = a.VisionRange,
+                    MoveRange = a.MoveRange
+                }).ToList()
             });
 
             foreach (var player in gameState.Players)

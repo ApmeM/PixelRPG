@@ -16,12 +16,11 @@ namespace PixelRPG.Tests.AdditionalContent
             var target = new ClientConnectTransferMessage
             {
                 PlayerName = "Player1",
-                UnitsData = new List<ClientConnectTransferMessage.UnitDescription>
+                UnitsData = new List<ClientConnectTransferMessage.UnitSubMessage>
                 {
-                    new ClientConnectTransferMessage.UnitDescription
+                    new ClientConnectTransferMessage.UnitSubMessage
                     {
                         UnitType = "UnitType",
-                        UnitName = "UnitName",
                         Skills = new List<string>
                         {
                             "Skill1"
@@ -30,14 +29,13 @@ namespace PixelRPG.Tests.AdditionalContent
                 }
             };
 
-            var parser = new ClientConnectTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);
             var obj = (ClientConnectTransferMessage)parser.Read(data);
             Assert.AreEqual(target.PlayerName, obj.PlayerName);
             Assert.AreEqual(target.UnitsData.Count, obj.UnitsData.Count);
-            Assert.AreEqual(target.UnitsData[0].UnitName, obj.UnitsData[0].UnitName);
             Assert.AreEqual(target.UnitsData[0].UnitType, obj.UnitsData[0].UnitType);
             Assert.AreEqual(target.UnitsData[0].Skills.Count, obj.UnitsData[0].Skills.Count);
             Assert.AreEqual(target.UnitsData[0].Skills[0], obj.UnitsData[0].Skills[0]);
@@ -49,24 +47,22 @@ namespace PixelRPG.Tests.AdditionalContent
             var target = new ClientConnectTransferMessage
             {
                 PlayerName = "Player1",
-                UnitsData = new List<ClientConnectTransferMessage.UnitDescription>
+                UnitsData = new List<ClientConnectTransferMessage.UnitSubMessage>
                 {
-                    new ClientConnectTransferMessage.UnitDescription
+                    new ClientConnectTransferMessage.UnitSubMessage
                     {
                         UnitType = "UnitType",
-                        UnitName = "UnitName",
                     }
                 }
             };
 
-            var parser = new ClientConnectTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);
             var obj = (ClientConnectTransferMessage)parser.Read(data);
             Assert.AreEqual(target.PlayerName, obj.PlayerName);
             Assert.AreEqual(target.UnitsData.Count, obj.UnitsData.Count);
-            Assert.AreEqual(target.UnitsData[0].UnitName, obj.UnitsData[0].UnitName);
             Assert.AreEqual(target.UnitsData[0].UnitType, obj.UnitsData[0].UnitType);
             Assert.AreEqual(target.UnitsData[0].Skills, obj.UnitsData[0].Skills);
         }
@@ -76,7 +72,7 @@ namespace PixelRPG.Tests.AdditionalContent
         {
             var target = new ClientConnectTransferMessage();
 
-            var parser = new ClientConnectTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);

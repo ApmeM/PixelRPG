@@ -38,11 +38,6 @@ writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].Skills[transfe
 }
 }
 }
-writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].UnitName != null);
-if (transferModel.UnitsData[transferModelUnitsDataIndex].UnitName != null)
-{
-writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].UnitName);
-}
 writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].UnitType != null);
 if (transferModel.UnitsData[transferModelUnitsDataIndex].UnitType != null)
 {
@@ -66,13 +61,13 @@ transferModel.PlayerName = reader.ReadString();
 if (reader.ReadBoolean())
 {
 var transferModelUnitsDataCount = reader.ReadInt32();
-transferModel.UnitsData = new List<PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitDescription>();
+transferModel.UnitsData = new List<PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage>();
 for (var transferModelUnitsDataIndex = 0; transferModelUnitsDataIndex < transferModelUnitsDataCount; transferModelUnitsDataIndex++)
 {
-PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitDescription transferModelUnitsDataValue = default(PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitDescription);
+PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage transferModelUnitsDataValue = default(PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage);
 if (reader.ReadBoolean())
 {
-transferModelUnitsDataValue = new PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitDescription();
+transferModelUnitsDataValue = new PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage();
 if (reader.ReadBoolean())
 {
 var transferModelUnitsDataValueSkillsCount = reader.ReadInt32();
@@ -86,10 +81,6 @@ transferModelUnitsDataValueSkillsValue = reader.ReadString();
 }
 transferModelUnitsDataValue.Skills.Add(transferModelUnitsDataValueSkillsValue);
 }
-}
-if (reader.ReadBoolean())
-{
-transferModelUnitsDataValue.UnitName = reader.ReadString();
 }
 if (reader.ReadBoolean())
 {
@@ -444,6 +435,26 @@ writer.Write(transferModel != null);
 if (transferModel != null)
 {
 writer.Write(transferModel.PlayerId);
+writer.Write(transferModel.UnitsData != null);
+if (transferModel.UnitsData != null)
+{
+writer.Write(transferModel.UnitsData.Count);
+for (var transferModelUnitsDataIndex = 0; transferModelUnitsDataIndex < transferModel.UnitsData.Count; transferModelUnitsDataIndex++)
+{
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex] != null);
+if (transferModel.UnitsData[transferModelUnitsDataIndex] != null)
+{
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].MoveRange);
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].UnitId);
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].UnitType != null);
+if (transferModel.UnitsData[transferModelUnitsDataIndex].UnitType != null)
+{
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].UnitType);
+}
+writer.Write(transferModel.UnitsData[transferModelUnitsDataIndex].VisionRange);
+}
+}
+}
 }
 }
 protected override PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage InternalRead(BinaryReader reader)
@@ -453,6 +464,27 @@ if (reader.ReadBoolean())
 {
 transferModel = new PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage();
 transferModel.PlayerId = reader.ReadInt32();
+if (reader.ReadBoolean())
+{
+var transferModelUnitsDataCount = reader.ReadInt32();
+transferModel.UnitsData = new List<PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage>();
+for (var transferModelUnitsDataIndex = 0; transferModelUnitsDataIndex < transferModelUnitsDataCount; transferModelUnitsDataIndex++)
+{
+PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage transferModelUnitsDataValue = default(PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage);
+if (reader.ReadBoolean())
+{
+transferModelUnitsDataValue = new PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage();
+transferModelUnitsDataValue.MoveRange = reader.ReadInt32();
+transferModelUnitsDataValue.UnitId = reader.ReadInt32();
+if (reader.ReadBoolean())
+{
+transferModelUnitsDataValue.UnitType = reader.ReadString();
+}
+transferModelUnitsDataValue.VisionRange = reader.ReadInt32();
+}
+transferModel.UnitsData.Add(transferModelUnitsDataValue);
+}
+}
 }
 return transferModel;
 }

@@ -44,8 +44,8 @@
             this.AddEntitySystem(new LocalClientCommunicatorSystem(this));
             this.AddEntitySystem(new ClientReceiveServerGameStartedAISystem());
             this.AddEntitySystem(new ClientRecieveServerYourTurnAISystem());
-            this.AddEntitySystem(new ClientReceiveServerClientConnectedAISystem());
             this.AddEntitySystem(new ClientRecieveServerYouConnectedAISystem());
+            this.AddEntitySystem(new ClientSendClientConnectDoneAISystem());
             this.AddEntitySystem(new ClientSendClientTurnDoneAISystem());
             this.AddEntitySystem(new ClientReceiveServerCurrentStateAISystem());
             this.AddEntitySystem(new ClientReceiveServerCurrentStateVisibleSystem(this));
@@ -68,22 +68,7 @@
                 for (var i = 0; i < config.ClientsCount; i++)
                 {
                     var player = this.CreateEntity();
-                    player.AddComponent<ClientComponent>().Message = new ClientConnectTransferMessage
-                    {
-                        PlayerName = $"Player {i}",
-                        UnitsData = new List<ClientConnectTransferMessage.UnitDescription>
-                        {
-                            new ClientConnectTransferMessage.UnitDescription
-                            {
-                                UnitType = nameof(RangerUnitType),
-                                Skills = new List<string>
-                                {
-                                    nameof(VisionRangeSkill)
-                                }
-                            }
-                        }
-                    };
-
+                    player.AddComponent<ClientComponent>();
                     player.AddComponent<AIComponent>().AIBot = new SimpleAI();
                     if (i == 0)
                     {
@@ -106,7 +91,7 @@
                 for (var i = 0; i < config.ClientsCount; i++)
                 {
                     var player = this.CreateEntity();
-                    player.AddComponent<ClientComponent>().Message = new ClientConnectTransferMessage { PlayerName = $"Player {i}" };
+                    player.AddComponent<ClientComponent>();
                     player.AddComponent(new NetworkClientComponent(new Uri("ws://127.0.0.1:8085")));
                     player.AddComponent<AIComponent>().AIBot = new SimpleAI();
 

@@ -18,7 +18,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 Height = 76
             };
 
-            var parser = new ServerGameStartedTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);

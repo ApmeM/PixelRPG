@@ -23,7 +23,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 }
             };
 
-            var parser = new ClientTurnDoneTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);
@@ -45,7 +45,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 NewPosition = new Dictionary<int, ClientTurnDoneTransferMessage.PointSubMessage>()
             };
 
-            var parser = new ClientTurnDoneTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);

@@ -4,7 +4,7 @@
     {
         public void Apply(Player player, Unit unit)
         {
-            unit.MoveRange += 2;
+            unit.MoveRange += 1;
         }
     }
 }

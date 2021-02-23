@@ -40,7 +40,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 Map = new int?[1, 2] { { 5, null } },
             };
 
-            var parser = new ServerCurrentStateTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);
@@ -75,7 +75,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 },
             };
 
-            var parser = new ServerCurrentStateTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);

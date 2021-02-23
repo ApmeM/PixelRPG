@@ -9,6 +9,7 @@ namespace PixelRPG.Base.EntitySystems
     using PixelRPG.Base.AdditionalStuff.BrainAI.Components;
     using PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems;
     using PixelRPG.Base.TransferMessages;
+    using System.Linq;
     #endregion
 
     public class ClientRecieveServerYouConnectedAISystem : ClientReceiveHandlerSystem<ServerYouConnectedTransferMessage>
@@ -22,6 +23,7 @@ namespace PixelRPG.Base.EntitySystems
             var ai = entity.GetComponent<AIComponent>();
             var simpleAI = (SimpleAI)ai.AIBot;
             simpleAI.MePlayerId = message.PlayerId;
+            simpleAI.UnitDesription = message.UnitsData.ToDictionary(a => a.UnitId);
         }
     }
 }

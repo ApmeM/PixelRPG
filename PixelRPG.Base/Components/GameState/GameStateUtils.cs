@@ -17,7 +17,8 @@ namespace PixelRPG.Base.Components.GameState
 
         private static ISkill[] SupporteSkills = new ISkill[]
         {
-            new VisionRangeSkill()
+            new VisionRangeSkill(),
+            new MoveRangeSkill(),
         };
 
         public static IUnitType FindUnitType(string unitType)

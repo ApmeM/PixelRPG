@@ -16,7 +16,7 @@ namespace PixelRPG.Tests.AdditionalContent
             {
             };
 
-            var parser = new ServerYourTurnTransferMessageParser();
+            var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
             var data = parser.Write(target);
             Console.WriteLine(data);
