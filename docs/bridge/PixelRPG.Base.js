@@ -5276,52 +5276,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         }
     });
 
-    Bridge.define("PixelRPG.Base.Components.GameState.GameStateUtils", {
-        statics: {
-            fields: {
-                SupportedUnitTypes: null,
-                SupporteSkills: null
-            },
-            ctors: {
-                init: function () {
-                    this.SupportedUnitTypes = System.Array.init([new PixelRPG.Base.EntitySystems.WarriorUnitType(), new PixelRPG.Base.EntitySystems.RogueUnitType(), new PixelRPG.Base.EntitySystems.MageUnitType(), new PixelRPG.Base.EntitySystems.RangerUnitType()], PixelRPG.Base.Components.GameState.IUnitType);
-                    this.SupporteSkills = System.Array.init([new PixelRPG.Base.Components.GameState.Skills.VisionRangeSkill(), new PixelRPG.Base.Components.GameState.Skills.MoveRangeSkill()], PixelRPG.Base.Components.GameState.ISkill);
-                }
-            },
-            methods: {
-                FindUnitType: function (unitType) {
-                    for (var i = 0; i < PixelRPG.Base.Components.GameState.GameStateUtils.SupportedUnitTypes.length; i = (i + 1) | 0) {
-                        if (Bridge.referenceEquals(Bridge.Reflection.getTypeName(Bridge.getType(PixelRPG.Base.Components.GameState.GameStateUtils.SupportedUnitTypes[System.Array.index(i, PixelRPG.Base.Components.GameState.GameStateUtils.SupportedUnitTypes)])), unitType)) {
-                            return PixelRPG.Base.Components.GameState.GameStateUtils.SupportedUnitTypes[System.Array.index(i, PixelRPG.Base.Components.GameState.GameStateUtils.SupportedUnitTypes)];
-                        }
-                    }
-
-                    return null;
-                },
-                GetUnitTypeName: function (unitType) {
-                    return Bridge.Reflection.getTypeName(Bridge.getType(unitType));
-                },
-                GetRandomUnitType: function () {
-                    return FateRandom.Fate.GlobalFate.Choose$4(PixelRPG.Base.Components.GameState.IUnitType, PixelRPG.Base.Components.GameState.GameStateUtils.SupportedUnitTypes);
-                },
-                FindSkill: function (skillType) {
-                    for (var i = 0; i < PixelRPG.Base.Components.GameState.GameStateUtils.SupporteSkills.length; i = (i + 1) | 0) {
-                        if (Bridge.referenceEquals(Bridge.Reflection.getTypeName(Bridge.getType(PixelRPG.Base.Components.GameState.GameStateUtils.SupporteSkills[System.Array.index(i, PixelRPG.Base.Components.GameState.GameStateUtils.SupporteSkills)])), skillType)) {
-                            return PixelRPG.Base.Components.GameState.GameStateUtils.SupporteSkills[System.Array.index(i, PixelRPG.Base.Components.GameState.GameStateUtils.SupporteSkills)];
-                        }
-                    }
-
-                    return null;
-                }
-            }
-        }
-    });
-
     Bridge.define("PixelRPG.Base.Components.GameState.ISkill", {
-        $kind: "interface"
-    });
-
-    Bridge.define("PixelRPG.Base.Components.GameState.IUnitType", {
         $kind: "interface"
     });
 
@@ -5335,7 +5290,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
     Bridge.define("PixelRPG.Base.Components.GameState.Unit", {
         fields: {
-            UnitTypeName: null,
+            UnitType: 0,
             UnitId: 0,
             Position: null,
             VisionRange: 0,
@@ -5358,6 +5313,92 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 this.AttackRadius = 1;
                 this.AttackDamage = 2;
                 this.AttackFriendlyFire = false;
+            }
+        }
+    });
+
+    Bridge.define("PixelRPG.Base.Components.GameState.UnitUtils", {
+        statics: {
+            fields: {
+                UnitTypeTemplates: null,
+                UnitTypeTemplateList: null,
+                SupporteSkills: null
+            },
+            ctors: {
+                init: function () {
+                    this.UnitTypeTemplates = $asm.$.PixelRPG.Base.Components.GameState.UnitUtils.f1(new (System.Collections.Generic.Dictionary$2(PixelRPG.Base.Components.GameState.UnitUtils.UnitType,PixelRPG.Base.Components.GameState.Unit))());
+                    this.UnitTypeTemplateList = new (System.Collections.Generic.List$1(PixelRPG.Base.Components.GameState.UnitUtils.UnitType)).ctor();
+                    this.SupporteSkills = $asm.$.PixelRPG.Base.Components.GameState.UnitUtils.f2(new (System.Collections.Generic.Dictionary$2(PixelRPG.Base.Components.GameState.UnitUtils.Skill,PixelRPG.Base.Components.GameState.ISkill))());
+                },
+                ctor: function () {
+                    PixelRPG.Base.Components.GameState.UnitUtils.UnitTypeTemplateList.AddRange(PixelRPG.Base.Components.GameState.UnitUtils.UnitTypeTemplates.getKeys());
+                }
+            },
+            methods: {
+                BuildUnit: function (unitType) {
+                    var unit = new PixelRPG.Base.Components.GameState.Unit();
+                    var template = PixelRPG.Base.Components.GameState.UnitUtils.UnitTypeTemplates.get(unitType);
+                    unit.UnitType = unitType;
+                    unit.UnitId = template.UnitId;
+                    unit.Position = template.Position.$clone();
+                    unit.VisionRange = template.VisionRange;
+                    unit.MoveRange = template.MoveRange;
+                    unit.MaxHp = template.MaxHp;
+                    unit.Hp = template.Hp;
+                    unit.AttackDistance = template.AttackDistance;
+                    unit.AttackRadius = template.AttackRadius;
+                    unit.AttackDamage = template.AttackDamage;
+                    unit.AttackFriendlyFire = template.AttackFriendlyFire;
+                    return unit;
+                },
+                GetRandomUnit: function () {
+                    return PixelRPG.Base.Components.GameState.UnitUtils.BuildUnit(FateRandom.Fate.GlobalFate.Choose$3(PixelRPG.Base.Components.GameState.UnitUtils.UnitType, PixelRPG.Base.Components.GameState.UnitUtils.UnitTypeTemplateList));
+                },
+                ApplySkill: function (player, unit, skill) {
+                    PixelRPG.Base.Components.GameState.UnitUtils.SupporteSkills.get(skill).PixelRPG$Base$Components$GameState$ISkill$Apply(player, unit);
+                }
+            }
+        }
+    });
+
+    Bridge.ns("PixelRPG.Base.Components.GameState.UnitUtils", $asm.$);
+
+    Bridge.apply($asm.$.PixelRPG.Base.Components.GameState.UnitUtils, {
+        f1: function (_o1) {
+            var $t;
+            _o1.add(PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Warrior, ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.MaxHp = 20, $t.Hp = 20, $t.AttackDamage = 3, $t));
+            _o1.add(PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Rogue, ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.AttackRadius = 2, $t));
+            _o1.add(PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Mage, ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.AttackDistance = 3, $t.AttackRadius = 2, $t.AttackFriendlyFire = true, $t));
+            _o1.add(PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Ranger, ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.VisionRange = 7, $t.AttackDistance = 3, $t));
+            _o1.add(PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Bat, ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.MoveRange = 2, $t.MaxHp = 5, $t.Hp = 5, $t));
+            return _o1;
+        },
+        f2: function (_o2) {
+            _o2.add(PixelRPG.Base.Components.GameState.UnitUtils.Skill.VisionRange, new PixelRPG.Base.Components.GameState.Skills.VisionRangeSkill());
+            _o2.add(PixelRPG.Base.Components.GameState.UnitUtils.Skill.MoveRange, new PixelRPG.Base.Components.GameState.Skills.MoveRangeSkill());
+            return _o2;
+        }
+    });
+
+    Bridge.define("PixelRPG.Base.Components.GameState.UnitUtils.Skill", {
+        $kind: "nested enum",
+        statics: {
+            fields: {
+                VisionRange: 0,
+                MoveRange: 1
+            }
+        }
+    });
+
+    Bridge.define("PixelRPG.Base.Components.GameState.UnitUtils.UnitType", {
+        $kind: "nested enum",
+        statics: {
+            fields: {
+                Warrior: 0,
+                Rogue: 1,
+                Mage: 2,
+                Ranger: 3,
+                Bat: 4
             }
         }
     });
@@ -6288,17 +6329,17 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
     Bridge.apply($asm.$.PixelRPG.Base.Screens.SimpleAI, {
         f1: function (_o1) {
-            _o1.add("VisionRangeSkill");
+            _o1.add(PixelRPG.Base.Components.GameState.UnitUtils.Skill.VisionRange);
             return _o1;
         },
         f2: function (_o2) {
-            _o2.add("MoveRangeSkill");
+            _o2.add(PixelRPG.Base.Components.GameState.UnitUtils.Skill.MoveRange);
             return _o2;
         },
         f3: function (_o3) {
             var $t;
-            _o3.add(($t = new PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage(), $t.UnitType = "RangerUnitType", $t.Skills = $asm.$.PixelRPG.Base.Screens.SimpleAI.f1(new (System.Collections.Generic.List$1(System.String)).ctor()), $t));
-            _o3.add(($t = new PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage(), $t.UnitType = "RogueUnitType", $t.Skills = $asm.$.PixelRPG.Base.Screens.SimpleAI.f2(new (System.Collections.Generic.List$1(System.String)).ctor()), $t));
+            _o3.add(($t = new PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage(), $t.UnitType = PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Ranger, $t.Skills = $asm.$.PixelRPG.Base.Screens.SimpleAI.f1(new (System.Collections.Generic.List$1(PixelRPG.Base.Components.GameState.UnitUtils.Skill)).ctor()), $t));
+            _o3.add(($t = new PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage(), $t.UnitType = PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Rogue, $t.Skills = $asm.$.PixelRPG.Base.Screens.SimpleAI.f2(new (System.Collections.Generic.List$1(PixelRPG.Base.Components.GameState.UnitUtils.Skill)).ctor()), $t));
             return _o3;
         }
     });
@@ -6307,7 +6348,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         $kind: "nested class",
         fields: {
             Skills: null,
-            UnitType: null
+            UnitType: 0
         }
     });
 
@@ -6330,7 +6371,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
     Bridge.define("PixelRPG.Base.TransferMessages.ServerClientConnectedTransferMessage.UnitSubMessage", {
         $kind: "nested class",
         fields: {
-            UnitType: null,
+            UnitType: 0,
             UnitId: 0
         }
     });
@@ -6363,7 +6404,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
     Bridge.define("PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage", {
         $kind: "nested class",
         fields: {
-            UnitType: null,
+            UnitType: 0,
             UnitId: 0,
             VisionRange: 0,
             MoveRange: 0,
@@ -8302,50 +8343,6 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         }
     });
 
-    Bridge.define("PixelRPG.Base.EntitySystems.MageUnitType", {
-        inherits: [PixelRPG.Base.Components.GameState.IUnitType],
-        alias: ["Generate", "PixelRPG$Base$Components$GameState$IUnitType$Generate"],
-        methods: {
-            Generate: function () {
-                var $t;
-                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.AttackDistance = 3, $t.AttackRadius = 2, $t.AttackFriendlyFire = true, $t);
-            }
-        }
-    });
-
-    Bridge.define("PixelRPG.Base.EntitySystems.RangerUnitType", {
-        inherits: [PixelRPG.Base.Components.GameState.IUnitType],
-        alias: ["Generate", "PixelRPG$Base$Components$GameState$IUnitType$Generate"],
-        methods: {
-            Generate: function () {
-                var $t;
-                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.VisionRange = 7, $t.AttackDistance = 3, $t);
-            }
-        }
-    });
-
-    Bridge.define("PixelRPG.Base.EntitySystems.RogueUnitType", {
-        inherits: [PixelRPG.Base.Components.GameState.IUnitType],
-        alias: ["Generate", "PixelRPG$Base$Components$GameState$IUnitType$Generate"],
-        methods: {
-            Generate: function () {
-                var $t;
-                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.MoveRange = 2, $t.AttackRadius = 2, $t);
-            }
-        }
-    });
-
-    Bridge.define("PixelRPG.Base.EntitySystems.WarriorUnitType", {
-        inherits: [PixelRPG.Base.Components.GameState.IUnitType],
-        alias: ["Generate", "PixelRPG$Base$Components$GameState$IUnitType$Generate"],
-        methods: {
-            Generate: function () {
-                var $t;
-                return ($t = new PixelRPG.Base.Components.GameState.Unit(), $t.MaxHp = 20, $t.Hp = 20, $t.AttackDamage = 3, $t);
-            }
-        }
-    });
-
     Bridge.define("PixelRPG.Base.TransferMessages.ClientConnectTransferMessage", {
         fields: {
             PlayerName: null,
@@ -8468,16 +8465,10 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                                 if (transferModel.UnitsData.getItem(transferModelUnitsDataIndex).Skills != null) {
                                     writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).Skills.Count);
                                     for (var transferModelUnitsDatatransferModelUnitsDataIndexSkillsIndex = 0; transferModelUnitsDatatransferModelUnitsDataIndexSkillsIndex < transferModel.UnitsData.getItem(transferModelUnitsDataIndex).Skills.Count; transferModelUnitsDatatransferModelUnitsDataIndexSkillsIndex = (transferModelUnitsDatatransferModelUnitsDataIndexSkillsIndex + 1) | 0) {
-                                        writer.Write(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).Skills.getItem(transferModelUnitsDatatransferModelUnitsDataIndexSkillsIndex) != null);
-                                        if (transferModel.UnitsData.getItem(transferModelUnitsDataIndex).Skills.getItem(transferModelUnitsDatatransferModelUnitsDataIndexSkillsIndex) != null) {
-                                            writer.Write$14(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).Skills.getItem(transferModelUnitsDatatransferModelUnitsDataIndexSkillsIndex));
-                                        }
+                                        writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).Skills.getItem(transferModelUnitsDatatransferModelUnitsDataIndexSkillsIndex));
                                     }
                                 }
-                                writer.Write(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType != null);
-                                if (transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType != null) {
-                                    writer.Write$14(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType);
-                                }
+                                writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType);
                             }
                         }
                     }
@@ -8499,18 +8490,14 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                                 transferModelUnitsDataValue = new PixelRPG.Base.TransferMessages.ClientConnectTransferMessage.UnitSubMessage();
                                 if (reader.ReadBoolean()) {
                                     var transferModelUnitsDataValueSkillsCount = reader.ReadInt32();
-                                    transferModelUnitsDataValue.Skills = new (System.Collections.Generic.List$1(System.String)).ctor();
+                                    transferModelUnitsDataValue.Skills = new (System.Collections.Generic.List$1(PixelRPG.Base.Components.GameState.UnitUtils.Skill)).ctor();
                                     for (var transferModelUnitsDataValueSkillsIndex = 0; transferModelUnitsDataValueSkillsIndex < transferModelUnitsDataValueSkillsCount; transferModelUnitsDataValueSkillsIndex = (transferModelUnitsDataValueSkillsIndex + 1) | 0) {
-                                        var transferModelUnitsDataValueSkillsValue = null;
-                                        if (reader.ReadBoolean()) {
-                                            transferModelUnitsDataValueSkillsValue = reader.ReadString();
-                                        }
+                                        var transferModelUnitsDataValueSkillsValue = 0;
+                                        transferModelUnitsDataValueSkillsValue = reader.ReadInt32();
                                         transferModelUnitsDataValue.Skills.add(transferModelUnitsDataValueSkillsValue);
                                     }
                                 }
-                                if (reader.ReadBoolean()) {
-                                    transferModelUnitsDataValue.UnitType = reader.ReadString();
-                                }
+                                transferModelUnitsDataValue.UnitType = reader.ReadInt32();
                             }
                             transferModel.UnitsData.add(transferModelUnitsDataValue);
                         }
@@ -8545,15 +8532,15 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                                 writer.Write$10(transferModelUnitActionsKVP.key);
                                 writer.Write(transferModelUnitActionsKVP.value != null);
                                 if (transferModelUnitActionsKVP.value != null) {
-                                    writer.Write(transferModelUnitActionsKVP.value.NewPosition != null);
-                                    if (transferModelUnitActionsKVP.value.NewPosition != null) {
-                                        writer.Write$10(transferModelUnitActionsKVP.value.NewPosition.X);
-                                        writer.Write$10(transferModelUnitActionsKVP.value.NewPosition.Y);
-                                    }
                                     writer.Write(transferModelUnitActionsKVP.value.AttackDirection != null);
                                     if (transferModelUnitActionsKVP.value.AttackDirection != null) {
                                         writer.Write$10(transferModelUnitActionsKVP.value.AttackDirection.X);
                                         writer.Write$10(transferModelUnitActionsKVP.value.AttackDirection.Y);
+                                    }
+                                    writer.Write(transferModelUnitActionsKVP.value.NewPosition != null);
+                                    if (transferModelUnitActionsKVP.value.NewPosition != null) {
+                                        writer.Write$10(transferModelUnitActionsKVP.value.NewPosition.X);
+                                        writer.Write$10(transferModelUnitActionsKVP.value.NewPosition.Y);
                                     }
                                 }
                             }
@@ -8579,14 +8566,14 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             if (reader.ReadBoolean()) {
                                 transferModelUnitActionsValue = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction();
                                 if (reader.ReadBoolean()) {
-                                    transferModelUnitActionsValue.NewPosition = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
-                                    transferModelUnitActionsValue.NewPosition.X = reader.ReadInt32();
-                                    transferModelUnitActionsValue.NewPosition.Y = reader.ReadInt32();
-                                }
-                                if (reader.ReadBoolean()) {
                                     transferModelUnitActionsValue.AttackDirection = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
                                     transferModelUnitActionsValue.AttackDirection.X = reader.ReadInt32();
                                     transferModelUnitActionsValue.AttackDirection.Y = reader.ReadInt32();
+                                }
+                                if (reader.ReadBoolean()) {
+                                    transferModelUnitActionsValue.NewPosition = new PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.PointSubMessage();
+                                    transferModelUnitActionsValue.NewPosition.X = reader.ReadInt32();
+                                    transferModelUnitActionsValue.NewPosition.Y = reader.ReadInt32();
                                 }
                             }
                             transferModel.UnitActions.set(transferModelUnitActionsKey, transferModelUnitActionsValue);
@@ -8624,10 +8611,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             writer.Write(transferModel.Units.getItem(transferModelUnitsIndex) != null);
                             if (transferModel.Units.getItem(transferModelUnitsIndex) != null) {
                                 writer.Write$10(transferModel.Units.getItem(transferModelUnitsIndex).UnitId);
-                                writer.Write(transferModel.Units.getItem(transferModelUnitsIndex).UnitType != null);
-                                if (transferModel.Units.getItem(transferModelUnitsIndex).UnitType != null) {
-                                    writer.Write$14(transferModel.Units.getItem(transferModelUnitsIndex).UnitType);
-                                }
+                                writer.Write$10(transferModel.Units.getItem(transferModelUnitsIndex).UnitType);
                             }
                         }
                     }
@@ -8651,9 +8635,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             if (reader.ReadBoolean()) {
                                 transferModelUnitsValue = new PixelRPG.Base.TransferMessages.ServerClientConnectedTransferMessage.UnitSubMessage();
                                 transferModelUnitsValue.UnitId = reader.ReadInt32();
-                                if (reader.ReadBoolean()) {
-                                    transferModelUnitsValue.UnitType = reader.ReadString();
-                                }
+                                transferModelUnitsValue.UnitType = reader.ReadInt32();
                             }
                             transferModel.Units.add(transferModelUnitsValue);
                         }
@@ -8891,10 +8873,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                                 writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).MaxHp);
                                 writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).MoveRange);
                                 writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitId);
-                                writer.Write(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType != null);
-                                if (transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType != null) {
-                                    writer.Write$14(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType);
-                                }
+                                writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).UnitType);
                                 writer.Write$10(transferModel.UnitsData.getItem(transferModelUnitsDataIndex).VisionRange);
                             }
                         }
@@ -8921,9 +8900,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                                 transferModelUnitsDataValue.MaxHp = reader.ReadInt32();
                                 transferModelUnitsDataValue.MoveRange = reader.ReadInt32();
                                 transferModelUnitsDataValue.UnitId = reader.ReadInt32();
-                                if (reader.ReadBoolean()) {
-                                    transferModelUnitsDataValue.UnitType = reader.ReadString();
-                                }
+                                transferModelUnitsDataValue.UnitType = reader.ReadInt32();
                                 transferModelUnitsDataValue.VisionRange = reader.ReadInt32();
                             }
                             transferModel.UnitsData.add(transferModelUnitsDataValue);
@@ -8982,34 +8959,39 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
                 for (var j = 0; j < message.Units.Count; j = (j + 1) | 0) {
                     var entityName = System.String.format("PlayerUnit{0}_{1}", Bridge.box(message.PlayerId, System.Int32), Bridge.box(message.Units.getItem(j).UnitId, System.Int32));
-                    var charAnimation = "";
+                    var playerUnit = this.scene.CreateEntity(entityName);
+                    playerUnit.AddComponent(SpineEngine.ECS.Components.PositionComponent);
+                    var unitComponent = playerUnit.AddComponent(PixelRPG.Base.Components.UnitComponent);
+
                     switch (message.Units.getItem(j).UnitType) {
-                        case "WarriorUnitType": 
+                        case PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Warrior: 
                             {
-                                charAnimation = PixelRPG.Base.ContentPaths.Assets.Characters.warrior;
+                                unitComponent.UnitAnimations = new PixelRPG.Base.Assets.UnitAnimations.HeroSprite(SpineEngine.Core.Instance.Content, PixelRPG.Base.ContentPaths.Assets.Characters.warrior, 6);
                                 break;
                             }
-                        case "MageUnitType": 
+                        case PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Mage: 
                             {
-                                charAnimation = PixelRPG.Base.ContentPaths.Assets.Characters.mage;
+                                unitComponent.UnitAnimations = new PixelRPG.Base.Assets.UnitAnimations.HeroSprite(SpineEngine.Core.Instance.Content, PixelRPG.Base.ContentPaths.Assets.Characters.mage, 6);
                                 break;
                             }
-                        case "RogueUnitType": 
+                        case PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Rogue: 
                             {
-                                charAnimation = PixelRPG.Base.ContentPaths.Assets.Characters.rogue;
+                                unitComponent.UnitAnimations = new PixelRPG.Base.Assets.UnitAnimations.HeroSprite(SpineEngine.Core.Instance.Content, PixelRPG.Base.ContentPaths.Assets.Characters.rogue, 6);
                                 break;
                             }
-                        case "RangerUnitType": 
+                        case PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Ranger: 
                             {
-                                charAnimation = PixelRPG.Base.ContentPaths.Assets.Characters.ranger;
+                                unitComponent.UnitAnimations = new PixelRPG.Base.Assets.UnitAnimations.HeroSprite(SpineEngine.Core.Instance.Content, PixelRPG.Base.ContentPaths.Assets.Characters.ranger, 6);
+                                break;
+                            }
+                        case PixelRPG.Base.Components.GameState.UnitUtils.UnitType.Bat: 
+                            {
+                                unitComponent.UnitAnimations = new BatSprite(SpineEngine.Core.Instance.Content);
                                 break;
                             }
                     }
 
 
-                    var playerUnit = this.scene.CreateEntity(entityName);
-                    playerUnit.AddComponent(SpineEngine.ECS.Components.PositionComponent);
-                    playerUnit.AddComponent(PixelRPG.Base.Components.UnitComponent).UnitAnimations = new PixelRPG.Base.Assets.UnitAnimations.HeroSprite(SpineEngine.Core.Instance.Content, charAnimation, 6);
                     visiblePlayer.KnownPlayers.add(playerUnit);
                     playerUnit.Enabled = false;
                 }
@@ -9301,25 +9283,20 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 var newPlayer = ($t = new PixelRPG.Base.Components.GameState.Player(), $t.PlayerId = ((connectionKey + 100500) | 0), $t.PlayerName = message.PlayerName, $t.Units = new (System.Collections.Generic.List$1(PixelRPG.Base.Components.GameState.Unit)).ctor(), $t);
                 var unitsCount = Math.min(message.UnitsData.Count, gameState.MaxUnitsCount);
                 for (var i = 0; i < unitsCount; i = (i + 1) | 0) {
-                    var unitType = PixelRPG.Base.Components.GameState.GameStateUtils.FindUnitType(message.UnitsData.getItem(i).UnitType);
-                    var newUnit = unitType.PixelRPG$Base$Components$GameState$IUnitType$Generate();
+                    var newUnit = PixelRPG.Base.Components.GameState.UnitUtils.BuildUnit(message.UnitsData.getItem(i).UnitType);
                     newUnit.UnitId = (i + 200) | 0;
-                    newUnit.UnitTypeName = PixelRPG.Base.Components.GameState.GameStateUtils.GetUnitTypeName(unitType);
 
                     var skillsCount = Math.min(message.UnitsData.getItem(i).Skills.Count, gameState.MaxSkillsCount);
                     for (var j = 0; j < skillsCount; j = (j + 1) | 0) {
-                        var skillType = PixelRPG.Base.Components.GameState.GameStateUtils.FindSkill(message.UnitsData.getItem(i).Skills.getItem(j));
-                        skillType.PixelRPG$Base$Components$GameState$ISkill$Apply(newPlayer, newUnit);
+                        PixelRPG.Base.Components.GameState.UnitUtils.ApplySkill(newPlayer, newUnit, message.UnitsData.getItem(i).Skills.getItem(j));
                     }
 
                     newPlayer.Units.add(newUnit);
                 }
 
                 for (var i1 = unitsCount; i1 < gameState.MaxUnitsCount; i1 = (i1 + 1) | 0) {
-                    var unitType1 = PixelRPG.Base.Components.GameState.GameStateUtils.GetRandomUnitType();
-                    var newUnit1 = unitType1.PixelRPG$Base$Components$GameState$IUnitType$Generate();
+                    var newUnit1 = PixelRPG.Base.Components.GameState.UnitUtils.GetRandomUnit();
                     newUnit1.UnitId = (i1 + 200) | 0;
-                    newUnit1.UnitTypeName = PixelRPG.Base.Components.GameState.GameStateUtils.GetUnitTypeName(unitType1);
 
                     newPlayer.Units.add(newUnit1);
                 }
@@ -9379,7 +9356,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 var result = new (System.Collections.Generic.List$1(PixelRPG.Base.TransferMessages.ServerClientConnectedTransferMessage.UnitSubMessage)).ctor();
                 for (var i = 0; i < units.Count; i = (i + 1) | 0) {
                     var unit = units.getItem(i);
-                    result.add(($t = new PixelRPG.Base.TransferMessages.ServerClientConnectedTransferMessage.UnitSubMessage(), $t.UnitId = unit.UnitId, $t.UnitType = unit.UnitTypeName, $t));
+                    result.add(($t = new PixelRPG.Base.TransferMessages.ServerClientConnectedTransferMessage.UnitSubMessage(), $t.UnitId = unit.UnitId, $t.UnitType = unit.UnitType, $t));
                 }
 
                 return result;
@@ -9392,7 +9369,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
     Bridge.apply($asm.$.PixelRPG.Base.EntitySystems.ServerReceiveClientConnectHandler, {
         f1: function (a) {
             var $t1;
-            return ($t1 = new PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage(), $t1.UnitId = a.UnitId, $t1.UnitType = a.UnitTypeName, $t1.VisionRange = a.VisionRange, $t1.MoveRange = a.MoveRange, $t1.AttackDamage = a.AttackDamage, $t1.AttackDistance = a.AttackDistance, $t1.AttackFriendlyFire = a.AttackFriendlyFire, $t1.AttackRadius = a.AttackRadius, $t1.Hp = a.Hp, $t1.MaxHp = a.MaxHp, $t1);
+            return ($t1 = new PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage.UnitSubMessage(), $t1.UnitId = a.UnitId, $t1.UnitType = a.UnitType, $t1.VisionRange = a.VisionRange, $t1.MoveRange = a.MoveRange, $t1.AttackDamage = a.AttackDamage, $t1.AttackDistance = a.AttackDistance, $t1.AttackFriendlyFire = a.AttackFriendlyFire, $t1.AttackRadius = a.AttackRadius, $t1.Hp = a.Hp, $t1.MaxHp = a.MaxHp, $t1);
         }
     });
 

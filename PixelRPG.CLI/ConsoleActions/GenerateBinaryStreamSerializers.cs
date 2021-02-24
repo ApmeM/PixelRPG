@@ -114,6 +114,10 @@
             {
                 sb.AppendLine($"writer.Write({baseName});");
             }
+            else if (t.IsEnum)
+            {
+                sb.AppendLine($"writer.Write((int){baseName});");
+            }
             else if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
             {
                 sb.AppendLine($"writer.Write({baseName} != null);");
@@ -203,6 +207,10 @@
             else if (typeof(bool).IsAssignableFrom(t))
             {
                 sb.AppendLine($"{baseName} = reader.ReadBoolean();");
+            }
+            else if (t.IsEnum)
+            {
+                sb.AppendLine($"{baseName} = ({t.FullName.Replace("+", ".")})reader.ReadInt32();");
             }
             else if (t.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
             {

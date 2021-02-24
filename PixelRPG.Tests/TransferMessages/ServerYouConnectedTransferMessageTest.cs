@@ -3,6 +3,7 @@ using System;
 using PixelRPG.Base.TransferMessages;
 using PixelRPG.Base.AdditionalStuff.ClientServer;
 using System.Collections.Generic;
+using PixelRPG.Base.Components.GameState;
 
 namespace PixelRPG.Tests.AdditionalContent
 {
@@ -39,7 +40,7 @@ namespace PixelRPG.Tests.AdditionalContent
                         MoveRange = 1,
                         VisionRange = 2,
                         UnitId = 3,
-                        UnitType = "type",
+                        UnitType = UnitUtils.UnitType.Ranger,
                         AttackFriendlyFire = true
                     }
                 }

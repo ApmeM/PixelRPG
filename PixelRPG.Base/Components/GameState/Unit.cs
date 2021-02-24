@@ -4,7 +4,7 @@
 
     public class Unit
     {
-        public string UnitTypeName;
+        public UnitUtils.UnitType UnitType;
         public int UnitId;
         public Point Position;
         public int VisionRange = 5;

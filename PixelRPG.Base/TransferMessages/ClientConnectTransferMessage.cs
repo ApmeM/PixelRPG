@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using PixelRPG.Base.Components.GameState;
+using System.Collections.Generic;
 
 namespace PixelRPG.Base.TransferMessages
 {
@@ -6,8 +7,8 @@ namespace PixelRPG.Base.TransferMessages
     {
         public class UnitSubMessage
         {
-            public List<string> Skills;
-            public string UnitType;
+            public List<UnitUtils.Skill> Skills;
+            public UnitUtils.UnitType UnitType;
         }
 
         public string PlayerName;

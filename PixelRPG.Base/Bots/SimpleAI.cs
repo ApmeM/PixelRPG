@@ -12,6 +12,7 @@
     using System;
     using PixelRPG.Base.EntitySystems;
     using PixelRPG.Base.Components.GameState.Skills;
+    using PixelRPG.Base.Components.GameState;
     #endregion
 
     public class SimpleAI : IAITurn
@@ -93,18 +94,18 @@
             {
                 new ClientConnectTransferMessage.UnitSubMessage
                 {
-                    UnitType = nameof(RangerUnitType),
-                    Skills = new List<string>
+                    UnitType = UnitUtils.UnitType.Ranger,
+                    Skills = new List<UnitUtils.Skill>
                     {
-                        nameof(VisionRangeSkill)
+                        UnitUtils.Skill.VisionRange
                     }
                 },
                 new ClientConnectTransferMessage.UnitSubMessage
                 {
-                    UnitType = nameof(RogueUnitType),
-                    Skills = new List<string>
+                    UnitType = UnitUtils.UnitType.Rogue,
+                    Skills = new List<UnitUtils.Skill>
                     {
-                        nameof(MoveRangeSkill)
+                        UnitUtils.Skill.MoveRange
                     }
                 }
             };
