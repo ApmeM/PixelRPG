@@ -3,6 +3,7 @@ using System;
 using PixelRPG.Base.TransferMessages;
 using System.Collections.Generic;
 using PixelRPG.Base.AdditionalStuff.ClientServer;
+using PixelRPG.Base.Components.GameState;
 
 namespace PixelRPG.Tests.AdditionalContent
 {
@@ -20,10 +21,10 @@ namespace PixelRPG.Tests.AdditionalContent
                 {
                     new ClientConnectTransferMessage.UnitSubMessage
                     {
-                        UnitType = "UnitType",
-                        Skills = new List<string>
+                        UnitType = UnitUtils.UnitType.Rogue,
+                        Skills = new List<UnitUtils.Skill>
                         {
-                            "Skill1"
+                            UnitUtils.Skill.VisionRange
                         }
                     }
                 }
@@ -51,7 +52,7 @@ namespace PixelRPG.Tests.AdditionalContent
                 {
                     new ClientConnectTransferMessage.UnitSubMessage
                     {
-                        UnitType = "UnitType",
+                        UnitType = UnitUtils.UnitType.Mage,
                     }
                 }
             };

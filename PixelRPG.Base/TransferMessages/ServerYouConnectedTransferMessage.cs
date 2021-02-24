@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using PixelRPG.Base.Components.GameState;
+using System.Collections.Generic;
 
 namespace PixelRPG.Base.TransferMessages
 {
@@ -9,7 +10,7 @@ namespace PixelRPG.Base.TransferMessages
 
         public class UnitSubMessage
         {
-            public string UnitType;
+            public UnitUtils.UnitType UnitType;
             public int UnitId;
             public int VisionRange;
             public int MoveRange;

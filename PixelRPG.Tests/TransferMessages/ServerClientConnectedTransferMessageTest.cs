@@ -3,6 +3,7 @@ using System;
 using PixelRPG.Base.TransferMessages;
 using System.Collections.Generic;
 using PixelRPG.Base.AdditionalStuff.ClientServer;
+using PixelRPG.Base.Components.GameState;
 
 namespace PixelRPG.Tests.AdditionalContent
 {
@@ -23,7 +24,7 @@ namespace PixelRPG.Tests.AdditionalContent
                     new ServerClientConnectedTransferMessage.UnitSubMessage
                     {
                         UnitId = 16,
-                        UnitType = "UnitType"
+                        UnitType = UnitUtils.UnitType.Warrior
                     }
                 }
             };

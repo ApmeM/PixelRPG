@@ -40,35 +40,40 @@
             for (var j = 0; j < message.Units.Count; j++)
             {
                 var entityName = $"PlayerUnit{message.PlayerId}_{message.Units[j].UnitId}";
-                var charAnimation = string.Empty;
+                var playerUnit = this.scene.CreateEntity(entityName);
+                playerUnit.AddComponent<PositionComponent>();
+                var unitComponent = playerUnit.AddComponent<UnitComponent>();
+
                 switch (message.Units[j].UnitType)
                 {
-                    case nameof(WarriorUnitType):
+                    case UnitUtils.UnitType.Warrior:
                         {
-                            charAnimation = ContentPaths.Assets.Characters.warrior;
+                            unitComponent.UnitAnimations = new HeroSprite(Core.Instance.Content, ContentPaths.Assets.Characters.warrior, 6);
                             break;
                         }
-                    case nameof(MageUnitType):
+                    case UnitUtils.UnitType.Mage:
                         {
-                            charAnimation = ContentPaths.Assets.Characters.mage;
+                            unitComponent.UnitAnimations = new HeroSprite(Core.Instance.Content, ContentPaths.Assets.Characters.mage, 6);
                             break;
                         }
-                    case nameof(RogueUnitType):
+                    case UnitUtils.UnitType.Rogue:
                         {
-                            charAnimation = ContentPaths.Assets.Characters.rogue;
+                            unitComponent.UnitAnimations = new HeroSprite(Core.Instance.Content, ContentPaths.Assets.Characters.rogue, 6);
                             break;
                         }
-                    case nameof(RangerUnitType):
+                    case UnitUtils.UnitType.Ranger:
                         {
-                            charAnimation = ContentPaths.Assets.Characters.ranger;
+                            unitComponent.UnitAnimations = new HeroSprite(Core.Instance.Content, ContentPaths.Assets.Characters.ranger, 6);
+                            break;
+                        }
+                    case UnitUtils.UnitType.Bat:
+                        {
+                            unitComponent.UnitAnimations = new BatSprite(Core.Instance.Content);
                             break;
                         }
                 }
 
 
-                var playerUnit = this.scene.CreateEntity(entityName);
-                playerUnit.AddComponent<PositionComponent>();
-                playerUnit.AddComponent<UnitComponent>().UnitAnimations = new HeroSprite(Core.Instance.Content, charAnimation, 6);
                 visiblePlayer.KnownPlayers.Add(playerUnit);
                 playerUnit.Enabled = false;
             }

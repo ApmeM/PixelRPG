@@ -28,16 +28,13 @@
             var unitsCount = Math.Min(message.UnitsData.Count, gameState.MaxUnitsCount);
             for (var i = 0; i < unitsCount; i++)
             {
-                var unitType = GameStateUtils.FindUnitType(message.UnitsData[i].UnitType);
-                var newUnit = unitType.Generate();
+                var newUnit = UnitUtils.BuildUnit(message.UnitsData[i].UnitType);
                 newUnit.UnitId = i + 200;
-                newUnit.UnitTypeName = GameStateUtils.GetUnitTypeName(unitType);
 
                 var skillsCount = Math.Min(message.UnitsData[i].Skills.Count, gameState.MaxSkillsCount);
                 for (var j = 0; j < skillsCount; j++)
                 {
-                    var skillType = GameStateUtils.FindSkill(message.UnitsData[i].Skills[j]);
-                    skillType.Apply(newPlayer, newUnit);
+                    UnitUtils.ApplySkill(newPlayer, newUnit, message.UnitsData[i].Skills[j]);
                 }
 
                 newPlayer.Units.Add(newUnit);
@@ -45,10 +42,8 @@
 
             for (var i = unitsCount; i < gameState.MaxUnitsCount; i++)
             {
-                var unitType = GameStateUtils.GetRandomUnitType();
-                var newUnit = unitType.Generate();
+                var newUnit = UnitUtils.GetRandomUnit();
                 newUnit.UnitId = i + 200;
-                newUnit.UnitTypeName = GameStateUtils.GetUnitTypeName(unitType);
 
                 newPlayer.Units.Add(newUnit);
             }
@@ -59,7 +54,7 @@
                 UnitsData = newPlayer.Units.Select(a => new ServerYouConnectedTransferMessage.UnitSubMessage
                 {
                     UnitId = a.UnitId,
-                    UnitType = a.UnitTypeName,
+                    UnitType = a.UnitType,
                     VisionRange = a.VisionRange,
                     MoveRange = a.MoveRange,
                     AttackDamage = a.AttackDamage,
@@ -123,7 +118,7 @@
                 result.Add(new ServerClientConnectedTransferMessage.UnitSubMessage
                 {
                     UnitId = unit.UnitId,
-                    UnitType = unit.UnitTypeName
+                    UnitType = unit.UnitType
                 });
             }
 
