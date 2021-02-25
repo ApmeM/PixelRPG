@@ -20,6 +20,8 @@
     using PixelRPG.Base.TransferMessages;
     using System.Collections.Generic;
     using PixelRPG.Base.Components.GameState.Skills;
+    using PixelRPG.Base.AdditionalStuff.FaceUI.ECS.EntitySystems;
+    using PixelRPG.Base.AdditionalStuff.FaceUI.ECS.Components;
 
     #endregion
 
@@ -56,6 +58,12 @@
             this.AddEntitySystem(new AnimationSpriteUpdateSystem());
             this.AddEntitySystem(new CharSpriteUpdateSystem());
             this.AddEntitySystem(new NetworkClientCommunicatorSystem());
+
+            this.AddEntitySystem(new UIUpdateSystem());
+            this.AddEntitySystem(new TextUIUpdateSystem());
+
+            var stat = this.CreateEntity("Stat");
+            stat.AddComponent<TextComponent>().Text = "text";
 
             if (config.IsServer)
             {

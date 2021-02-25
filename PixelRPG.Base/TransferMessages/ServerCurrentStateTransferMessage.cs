@@ -13,6 +13,8 @@ namespace PixelRPG.Base.TransferMessages
         {
             public int PlayerId;
             public List<UnitSubMessage> Units;
+            public int LevelScore;
+            public int TotalScore;
         }
 
         public class UnitSubMessage

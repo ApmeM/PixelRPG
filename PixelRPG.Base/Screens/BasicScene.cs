@@ -10,6 +10,7 @@
     using PixelRPG.Base.AdditionalStuff.FaceUI.ECS.Components;
     using FaceUI.Entities;
     using Microsoft.Xna.Framework;
+    using FaceUI;
 
     #endregion
 
@@ -22,7 +23,8 @@
 
             this.AddRenderer(new DefaultRenderer());
 
-            this.AddEntitySystem(new UIUpdateSystem(Core.Instance.Content));
+            UserInterface.Initialize(Core.Instance.Content, BuiltinThemes.hd);
+            this.AddEntitySystem(new UIUpdateSystem());
 
             var uiEntity = this.CreateEntity("UI");
             var ui = uiEntity.AddComponent<UIComponent>();

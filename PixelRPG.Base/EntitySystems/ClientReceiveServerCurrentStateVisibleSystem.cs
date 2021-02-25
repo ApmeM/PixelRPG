@@ -17,6 +17,7 @@
     using PixelRPG.Base.AdditionalStuff.TiledMap.ECS.Components;
     using PixelRPG.Base.AdditionalStuff.TiledMap.Models;
     using PixelRPG.Base.Screens;
+    using PixelRPG.Base.AdditionalStuff.FaceUI.ECS.Components;
     #endregion
 
     public class ClientReceiveServerCurrentStateVisibleSystem : ClientReceiveHandlerSystem<ServerCurrentStateTransferMessage>
@@ -37,14 +38,19 @@
                 visiblePlayer.KnownPlayers[i].Enabled = false;
             }
 
+            var stat = scene.FindEntity("Stat");
+            var text = stat.GetComponent<TextComponent>();
+            text.Text = "Statistic:\nPlayer | Lvl | Tot\n";
             for (var i = 0; i < message.Players.Count; i++)
-                for (var j = 0; j < message.Players[i].Units.Count; j++)
+            {
+                var player = message.Players[i];
+                for (var j = 0; j < player.Units.Count; j++)
                 {
-                    var entityName = $"PlayerUnit{message.Players[i].PlayerId}_{message.Players[i].Units[j].UnitId}";
+                    var entityName = $"PlayerUnit{player.PlayerId}_{player.Units[j].UnitId}";
                     var playerUnit = this.scene.FindEntity(entityName);
-                    var newPosition = new Vector2(message.Players[i].Units[j].Position.X * 16 + 8, message.Players[i].Units[j].Position.Y * 16 + 8);
+                    var newPosition = new Vector2(player.Units[j].Position.X * 16 + 8, player.Units[j].Position.Y * 16 + 8);
                     var positionComponent = playerUnit.GetComponent<PositionComponent>();
-                    if (message.Players[i].Units[j].Hp <= 0)
+                    if (player.Units[j].Hp <= 0)
                     {
                         playerUnit.GetComponent<UnitComponent>().State = Assets.UnitState.Dead;
                     }
@@ -60,6 +66,9 @@
                     positionComponent.Position = newPosition;
                     playerUnit.Enabled = true;
                 }
+
+                text.Text += $"{ player.PlayerId } | { player.LevelScore, 3 } | {player.TotalScore, 3}\n";
+            }
 
             var map = this.scene.FindEntity(visiblePlayer.MapEntityName);
             var tiledMap = map.GetComponent<TiledMapComponent>().TiledMap;

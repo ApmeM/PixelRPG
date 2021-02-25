@@ -7,5 +7,7 @@
         public int PlayerId;
         public List<Unit> Units;
         public string PlayerName;
+        public int LevelScore;
+        public int TotalScore;
     }
 }

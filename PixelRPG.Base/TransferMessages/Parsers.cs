@@ -272,7 +272,9 @@ for (var transferModelPlayersIndex = 0; transferModelPlayersIndex < transferMode
 writer.Write(transferModel.Players[transferModelPlayersIndex] != null);
 if (transferModel.Players[transferModelPlayersIndex] != null)
 {
+writer.Write(transferModel.Players[transferModelPlayersIndex].LevelScore);
 writer.Write(transferModel.Players[transferModelPlayersIndex].PlayerId);
+writer.Write(transferModel.Players[transferModelPlayersIndex].TotalScore);
 writer.Write(transferModel.Players[transferModelPlayersIndex].Units != null);
 if (transferModel.Players[transferModelPlayersIndex].Units != null)
 {
@@ -350,7 +352,9 @@ PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PlayerSubMessag
 if (reader.ReadBoolean())
 {
 transferModelPlayersValue = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PlayerSubMessage();
+transferModelPlayersValue.LevelScore = reader.ReadInt32();
 transferModelPlayersValue.PlayerId = reader.ReadInt32();
+transferModelPlayersValue.TotalScore = reader.ReadInt32();
 if (reader.ReadBoolean())
 {
 var transferModelPlayersValueUnitsCount = reader.ReadInt32();
