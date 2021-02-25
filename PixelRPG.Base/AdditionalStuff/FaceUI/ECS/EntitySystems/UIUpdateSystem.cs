@@ -23,10 +23,9 @@
 
         private TimeSpan totalTime = TimeSpan.Zero;
 
-        public UIUpdateSystem(ContentManager content)
+        public UIUpdateSystem()
             : base(new Matcher().All(typeof(UIComponent)))
         {
-            UserInterface.Initialize(content, BuiltinThemes.hd);
         }
 
         protected override void DoAction(Entity entity, TimeSpan gameTime)

@@ -2676,10 +2676,9 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 this.spriteBatchWrapper = new PixelRPG.Base.AdditionalStuff.FaceUI.Utils.MeshBatchWrapper();
                 this.totalTime = System.TimeSpan.zero;
             },
-            ctor: function (content) {
+            ctor: function () {
                 this.$initialize();
                 LocomotorECS.EntityProcessingSystem.ctor.call(this, new LocomotorECS.Matching.Matcher().All([PixelRPG.Base.AdditionalStuff.FaceUI.ECS.Components.UIComponent]));
-                FaceUI.UserInterface.Initialize(content, FaceUI.BuiltinThemes.hd);
             }
         },
         methods: {
@@ -5284,7 +5283,9 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         fields: {
             PlayerId: 0,
             Units: null,
-            PlayerName: null
+            PlayerName: null,
+            LevelScore: 0,
+            TotalScore: 0
         }
     });
 
@@ -5413,7 +5414,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
             MaxPlayersCount: 0,
             MaxUnitsCount: 0,
             MaxSkillsCount: 0,
-            CurrentTurn: null
+            CurrentTurn: null,
+            AtEnd: null
         },
         ctors: {
             init: function () {
@@ -5422,6 +5424,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 this.MaxUnitsCount = 4;
                 this.MaxSkillsCount = 1;
                 this.CurrentTurn = new (System.Collections.Generic.Dictionary$2(System.Int32,System.Collections.Generic.Dictionary$2(System.Int32,PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage.UnitActionSubAction)))();
+                this.AtEnd = new (System.Collections.Generic.HashSet$1(System.Int64)).ctor();
             }
         }
     });
@@ -5865,7 +5868,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
                     return ($t = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage(), $t.Players = System.Linq.Enumerable.from(gameState.Players.getValues()).select(function (a) {
                             var $t1;
-                            return ($t1 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PlayerSubMessage(), $t1.PlayerId = a.PlayerId, $t1.Units = System.Linq.Enumerable.from(a.Units).where(function (b) {
+                            return ($t1 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PlayerSubMessage(), $t1.PlayerId = a.PlayerId, $t1.LevelScore = a.LevelScore, $t1.TotalScore = a.TotalScore, $t1.Units = System.Linq.Enumerable.from(a.Units).where(function (b) {
                                     return PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y) || player.PlayerId === a.PlayerId;
                                 }).select($asm.$.PixelRPG.Base.EntitySystems.ServerLogic.f1).toList(PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage), $t1);
                         }).toList(PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PlayerSubMessage), $t.Exit = PixelRPG.Base.EntitySystems.ServerLogic.IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? ($t1 = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PointSubMessage(), $t1.X = gameState.Exit.X, $t1.Y = gameState.Exit.Y, $t1) : null, $t.Map = regions, $t.Doors = System.Linq.Enumerable.from(gameState.Doors).where(function (a) {
@@ -5874,7 +5877,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 },
                 IsVisible: function (fromPlayer, exitX, exitY, x, y) {
                     //ToDo: this can be calculated once when last unit died.
-                    var allDead = false;
+                    var allDead = true;
                     for (var i = 0; i < fromPlayer.Units.Count; i = (i + 1) | 0) {
                         var unit = fromPlayer.Units.getItem(i);
                         if (unit.Hp <= 0) {
@@ -5905,6 +5908,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 },
                 StartNewGame: function (gameState) {
                     var $t, $t1;
+                    gameState.AtEnd.clear();
+
                     var maze = new MazeGenerators.RoomMazeGenerator().Generate(($t = new MazeGenerators.RoomMazeGenerator.Settings(71, 41), $t.ExtraConnectorChance = 5, $t.WindingPercent = 50, $t));
                     gameState.Map = maze.Regions;
                     gameState.Doors = System.Linq.Enumerable.from(maze.Junctions).select($asm.$.PixelRPG.Base.EntitySystems.ServerLogic.f3).toList(Microsoft.Xna.Framework.Point);
@@ -5925,7 +5930,7 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             player.value.Units.getItem(1).Position = new Microsoft.Xna.Framework.Point.$ctor2(((((room.X + ((Bridge.Int.div(room.Width, 2)) | 0)) | 0) + 1) | 0), ((room.Y + ((Bridge.Int.div(room.Height, 2)) | 0)) | 0));
                             player.value.Units.getItem(2).Position = new Microsoft.Xna.Framework.Point.$ctor2(((room.X + ((Bridge.Int.div(room.Width, 2)) | 0)) | 0), ((((room.Y + ((Bridge.Int.div(room.Height, 2)) | 0)) | 0) - 1) | 0));
                             player.value.Units.getItem(3).Position = new Microsoft.Xna.Framework.Point.$ctor2(((room.X + ((Bridge.Int.div(room.Width, 2)) | 0)) | 0), ((((room.Y + ((Bridge.Int.div(room.Height, 2)) | 0)) | 0) + 1) | 0));
-
+                            player.value.LevelScore = 0;
                             for (var i = 0; i < player.value.Units.Count; i = (i + 1) | 0) {
                                 player.value.Units.getItem(i).Hp = player.value.Units.getItem(i).MaxHp;
                             }
@@ -6125,7 +6130,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
 
                 this.AddRenderer(SpineEngine.Graphics.Renderers.DefaultRenderer, new SpineEngine.Graphics.Renderers.DefaultRenderer());
 
-                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.FaceUI.ECS.EntitySystems.UIUpdateSystem(SpineEngine.Core.Instance.Content));
+                FaceUI.UserInterface.Initialize(SpineEngine.Core.Instance.Content, FaceUI.BuiltinThemes.hd);
+                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.FaceUI.ECS.EntitySystems.UIUpdateSystem());
 
                 var uiEntity = this.CreateEntity("UI");
                 var ui = uiEntity.AddComponent(PixelRPG.Base.AdditionalStuff.FaceUI.ECS.Components.UIComponent);
@@ -6188,6 +6194,12 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                 this.AddEntitySystem(new SpineEngine.ECS.EntitySystems.AnimationSpriteUpdateSystem());
                 this.AddEntitySystem(new PixelRPG.Base.EntitySystems.CharSpriteUpdateSystem());
                 this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems.NetworkClientCommunicatorSystem());
+
+                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.FaceUI.ECS.EntitySystems.UIUpdateSystem());
+                this.AddEntitySystem(new PixelRPG.Base.AdditionalStuff.FaceUI.ECS.EntitySystems.TextUIUpdateSystem());
+
+                var stat = this.CreateEntity("Stat");
+                stat.AddComponent(PixelRPG.Base.AdditionalStuff.FaceUI.ECS.Components.TextComponent).Text = "text";
 
                 if (config.IsServer) {
                     var server = this.CreateEntity("Server");
@@ -6380,7 +6392,9 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
         $kind: "nested class",
         fields: {
             PlayerId: 0,
-            Units: null
+            Units: null,
+            LevelScore: 0,
+            TotalScore: 0
         }
     });
 
@@ -8697,7 +8711,9 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                         for (var transferModelPlayersIndex = 0; transferModelPlayersIndex < transferModel.Players.Count; transferModelPlayersIndex = (transferModelPlayersIndex + 1) | 0) {
                             writer.Write(transferModel.Players.getItem(transferModelPlayersIndex) != null);
                             if (transferModel.Players.getItem(transferModelPlayersIndex) != null) {
+                                writer.Write$10(transferModel.Players.getItem(transferModelPlayersIndex).LevelScore);
                                 writer.Write$10(transferModel.Players.getItem(transferModelPlayersIndex).PlayerId);
+                                writer.Write$10(transferModel.Players.getItem(transferModelPlayersIndex).TotalScore);
                                 writer.Write(transferModel.Players.getItem(transferModelPlayersIndex).Units != null);
                                 if (transferModel.Players.getItem(transferModelPlayersIndex).Units != null) {
                                     writer.Write$10(transferModel.Players.getItem(transferModelPlayersIndex).Units.Count);
@@ -8760,7 +8776,9 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                             var transferModelPlayersValue = null;
                             if (reader.ReadBoolean()) {
                                 transferModelPlayersValue = new PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.PlayerSubMessage();
+                                transferModelPlayersValue.LevelScore = reader.ReadInt32();
                                 transferModelPlayersValue.PlayerId = reader.ReadInt32();
+                                transferModelPlayersValue.TotalScore = reader.ReadInt32();
                                 if (reader.ReadBoolean()) {
                                     var transferModelPlayersValueUnitsCount = reader.ReadInt32();
                                     transferModelPlayersValue.Units = new (System.Collections.Generic.List$1(PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage.UnitSubMessage)).ctor();
@@ -9051,13 +9069,17 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                     visiblePlayer.KnownPlayers.getItem(i).Enabled = false;
                 }
 
+                var stat = this.scene.FindEntity("Stat");
+                var text = stat.GetComponent(PixelRPG.Base.AdditionalStuff.FaceUI.ECS.Components.TextComponent);
+                text.Text = "Statistic:\nPlayer | Lvl | Tot\n";
                 for (var i1 = 0; i1 < message.Players.Count; i1 = (i1 + 1) | 0) {
-                    for (var j = 0; j < message.Players.getItem(i1).Units.Count; j = (j + 1) | 0) {
-                        var entityName = System.String.format("PlayerUnit{0}_{1}", Bridge.box(message.Players.getItem(i1).PlayerId, System.Int32), Bridge.box(message.Players.getItem(i1).Units.getItem(j).UnitId, System.Int32));
+                    var player = message.Players.getItem(i1);
+                    for (var j = 0; j < player.Units.Count; j = (j + 1) | 0) {
+                        var entityName = System.String.format("PlayerUnit{0}_{1}", Bridge.box(player.PlayerId, System.Int32), Bridge.box(player.Units.getItem(j).UnitId, System.Int32));
                         var playerUnit = this.scene.FindEntity(entityName);
-                        var newPosition = new Microsoft.Xna.Framework.Vector2.$ctor2(((Bridge.Int.mul(message.Players.getItem(i1).Units.getItem(j).Position.X, 16) + 8) | 0), ((Bridge.Int.mul(message.Players.getItem(i1).Units.getItem(j).Position.Y, 16) + 8) | 0));
+                        var newPosition = new Microsoft.Xna.Framework.Vector2.$ctor2(((Bridge.Int.mul(player.Units.getItem(j).Position.X, 16) + 8) | 0), ((Bridge.Int.mul(player.Units.getItem(j).Position.Y, 16) + 8) | 0));
                         var positionComponent = playerUnit.GetComponent(SpineEngine.ECS.Components.PositionComponent);
-                        if (message.Players.getItem(i1).Units.getItem(j).Hp <= 0) {
+                        if (player.Units.getItem(j).Hp <= 0) {
                             playerUnit.GetComponent(PixelRPG.Base.Components.UnitComponent).State = PixelRPG.Base.Assets.UnitState.Dead;
                         } else if (newPosition.X === positionComponent.Position.X && newPosition.Y === positionComponent.Position.Y) {
                             playerUnit.GetComponent(PixelRPG.Base.Components.UnitComponent).State = PixelRPG.Base.Assets.UnitState.Idle;
@@ -9068,6 +9090,8 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                         positionComponent.Position = newPosition.$clone();
                         playerUnit.Enabled = true;
                     }
+
+                    text.Text = (text.Text || "") + ((System.String.format("{0} | {1,3} | {2,3}\n", Bridge.box(player.PlayerId, System.Int32), Bridge.box(player.LevelScore, System.Int32), Bridge.box(player.TotalScore, System.Int32))) || "");
                 }
 
                 var map = this.scene.FindEntity(visiblePlayer.MapEntityName);
@@ -9515,7 +9539,6 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                     }
                 }
 
-
                 gameState.CurrentTurn.clear();
 
                 var allAtEnd = true;
@@ -9525,8 +9548,15 @@ Bridge.assembly("PixelRPG.Base", function ($asm, globals) {
                         var player4 = $t3.Current;
                         for (var i3 = 0; i3 < player4.value.Units.Count; i3 = (i3 + 1) | 0) {
                             var unit3 = player4.value.Units.getItem(i3);
-                            if (unit3.Hp > 0 && Microsoft.Xna.Framework.Point.op_Inequality(unit3.Position.$clone(), gameState.Exit.$clone())) {
-                                allAtEnd = false;
+                            var fullUnitId = (System.Int64(player4.value.PlayerId).shl(32)).or((System.Int64(unit3.UnitId).and(System.Int64([-1,0]))));
+                            if (Microsoft.Xna.Framework.Point.op_Inequality(unit3.Position.$clone(), gameState.Exit.$clone())) {
+                                if (unit3.Hp > 0) {
+                                    allAtEnd = false;
+                                }
+                            } else if (!gameState.AtEnd.contains(fullUnitId)) {
+                                gameState.AtEnd.add(fullUnitId);
+                                player4.value.LevelScore = (player4.value.LevelScore + (((Bridge.Int.mul(gameState.MaxUnitsCount, gameState.MaxPlayersCount) - System.Linq.Enumerable.from(gameState.AtEnd).count()) | 0))) | 0;
+                                player4.value.TotalScore = (player4.value.TotalScore + (((Bridge.Int.mul(gameState.MaxUnitsCount, gameState.MaxPlayersCount) - System.Linq.Enumerable.from(gameState.AtEnd).count()) | 0))) | 0;
                             }
                         }
                     }

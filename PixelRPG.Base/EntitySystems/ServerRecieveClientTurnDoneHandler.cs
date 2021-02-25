@@ -154,7 +154,6 @@
                 }
             }
 
-
             gameState.CurrentTurn.Clear();
 
             var allAtEnd = true;
@@ -163,9 +162,19 @@
                 for (var i = 0; i < player.Value.Units.Count; i++)
                 {
                     var unit = player.Value.Units[i];
-                    if (unit.Hp > 0 && unit.Position != gameState.Exit)
+                    var fullUnitId = ((long)player.Value.PlayerId << 32) | ((long)unit.UnitId & 0xFFFFFFFFL);
+                    if (unit.Position != gameState.Exit) 
                     {
-                        allAtEnd = false;
+                        if (unit.Hp > 0)
+                        {
+                            allAtEnd = false;
+                        }
+                    }
+                    else if (!gameState.AtEnd.Contains(fullUnitId))
+                    {
+                        gameState.AtEnd.Add(fullUnitId);
+                        player.Value.LevelScore += gameState.MaxUnitsCount * gameState.MaxPlayersCount - gameState.AtEnd.Count();
+                        player.Value.TotalScore += gameState.MaxUnitsCount * gameState.MaxPlayersCount - gameState.AtEnd.Count();
                     }
                 }
             }

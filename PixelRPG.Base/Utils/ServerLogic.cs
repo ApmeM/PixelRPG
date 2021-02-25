@@ -31,6 +31,8 @@
                 Players = gameState.Players.Values.Select(a => new ServerCurrentStateTransferMessage.PlayerSubMessage
                 {
                     PlayerId = a.PlayerId,
+                    LevelScore = a.LevelScore,
+                    TotalScore = a.TotalScore,
                     Units = a.Units
                         .Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y) || player.PlayerId == a.PlayerId)
                         .Select(b => new ServerCurrentStateTransferMessage.UnitSubMessage
@@ -55,14 +57,14 @@
                 {
                     X = a.X,
                     Y = a.Y
-                }).ToList()
+                }).ToList(),
             };
         }
 
         public static bool IsVisible(Player fromPlayer, int exitX, int exitY, int x, int y)
         {
             //ToDo: this can be calculated once when last unit died.
-            var allDead = false;
+            var allDead = true;
             for (var i = 0; i < fromPlayer.Units.Count; i++)
             {
                 var unit = fromPlayer.Units[i];
@@ -101,6 +103,8 @@
 
         public static ServerGameStartedTransferMessage StartNewGame(GameStateComponent gameState)
         {
+            gameState.AtEnd.Clear();
+
             var maze = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings(71, 41) { ExtraConnectorChance = 5, WindingPercent = 50 });
             gameState.Map = maze.Regions;
             gameState.Doors = maze.Junctions.Select(a => new Point(a.X, a.Y)).ToList();
@@ -119,7 +123,7 @@
                 player.Value.Units[1].Position = new Point(room.X + room.Width / 2 + 1, room.Y + room.Height / 2);
                 player.Value.Units[2].Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2 - 1);
                 player.Value.Units[3].Position = new Point(room.X + room.Width / 2, room.Y + room.Height / 2 + 1);
-                
+                player.Value.LevelScore = 0;
                 for (var i = 0; i < player.Value.Units.Count; i++)
                 {
                     player.Value.Units[i].Hp = player.Value.Units[i].MaxHp;
