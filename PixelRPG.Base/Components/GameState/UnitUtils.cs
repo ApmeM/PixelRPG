@@ -50,7 +50,7 @@ namespace PixelRPG.Base.Components.GameState
             {
                 UnitType.Bat, new Unit
                 {
-                    MoveRange = 2,
+                    MoveRange = 3,
                     MaxHp = 5,
                     Hp = 5
                 }

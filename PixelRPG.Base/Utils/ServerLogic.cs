@@ -105,7 +105,13 @@
         {
             gameState.AtEnd.Clear();
 
-            var maze = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings(71, 41) { ExtraConnectorChance = 5, WindingPercent = 50 });
+            var maze = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings { 
+                Width = 71,
+                Height = 41,
+                AdditionalPassages = 20, 
+                WindingPercent = 50,
+                RoomSize = 3
+            });
             gameState.Map = maze.Regions;
             gameState.Doors = maze.Junctions.Select(a => new Point(a.X, a.Y)).ToList();
             for (var x = 0; x < gameState.Map.GetLength(0); x++)
