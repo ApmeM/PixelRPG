@@ -4,7 +4,7 @@
     using LocomotorECS.Matching;
     using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
 
-    public abstract class ClientSendHandlerSystem<T> : EntityProcessingSystem
+    public abstract class ClientSendHandlerSystem<T> : EntityProcessingSystem where T: ITransferMessage
     {
         public ClientSendHandlerSystem(Matcher matcher) : base(matcher.All(typeof(ClientComponent)))
         {

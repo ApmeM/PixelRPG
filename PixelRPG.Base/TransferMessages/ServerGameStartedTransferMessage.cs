@@ -1,6 +1,8 @@
-﻿namespace PixelRPG.Base.TransferMessages
+﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+
+namespace PixelRPG.Base.TransferMessages
 {
-    public class ServerGameStartedTransferMessage
+    public partial class ServerGameStartedTransferMessage : ITransferMessage
     {
         public int Width;
         public int Height;

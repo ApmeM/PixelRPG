@@ -34,8 +34,8 @@
                     localServer.Clients.Add(tcpClient);
                     localServer.ConnectionKeyToClient[server.ConnectedPlayers] = tcpClient;
                     localServer.ClientToConnectionKey[tcpClient] = server.ConnectedPlayers;
-                    server.Request[localServer.ClientToConnectionKey[tcpClient]] = new Queue<object>();
-                    server.Response[localServer.ClientToConnectionKey[tcpClient]] = new Queue<object>();
+                    server.Request[localServer.ClientToConnectionKey[tcpClient]] = new Queue<ITransferMessage>();
+                    server.Response[localServer.ClientToConnectionKey[tcpClient]] = new Queue<ITransferMessage>();
                     localServer.Request[tcpClient] = new Queue<string>();
                     localServer.Response[tcpClient] = new Queue<string>();
                 }

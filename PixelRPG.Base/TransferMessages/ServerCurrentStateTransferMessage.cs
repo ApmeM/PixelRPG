@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using System.Collections.Generic;
 
 namespace PixelRPG.Base.TransferMessages
 {
-    public class ServerCurrentStateTransferMessage
+    public partial class ServerCurrentStateTransferMessage : ITransferMessage
     {
         public List<PlayerSubMessage> Players;
         public PointSubMessage Exit;

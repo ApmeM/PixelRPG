@@ -1,9 +1,10 @@
-﻿using PixelRPG.Base.Components.GameState;
+﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using PixelRPG.Base.Components.GameState;
 using System.Collections.Generic;
 
 namespace PixelRPG.Base.TransferMessages
 {
-    public class ClientConnectTransferMessage
+    public  class ClientConnectTransferMessage : ITransferMessage
     {
         public class UnitSubMessage
         {

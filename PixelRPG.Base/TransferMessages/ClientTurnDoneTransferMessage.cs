@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using System.Collections.Generic;
 
 namespace PixelRPG.Base.TransferMessages
 {
-    public class ClientTurnDoneTransferMessage
+    public partial class ClientTurnDoneTransferMessage : ITransferMessage
     {
         public Dictionary<int, UnitActionSubAction> UnitActions;
 

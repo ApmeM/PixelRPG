@@ -6,7 +6,7 @@ namespace PixelRPG.Base.AdditionalStuff.ClientServer
     {
         public static ITransferMessageParser[] AvailableParsers;
 
-        public static ITransferMessageParser FindWriter(object transferModel, ITransferMessageParser[] parsers = null)
+        public static ITransferMessageParser FindWriter(ITransferMessage transferModel, ITransferMessageParser[] parsers = null)
         {
             parsers = parsers ?? AvailableParsers;
             if (parsers == null)

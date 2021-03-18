@@ -1,9 +1,10 @@
-﻿using PixelRPG.Base.Components.GameState;
+﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using PixelRPG.Base.Components.GameState;
 using System.Collections.Generic;
 
 namespace PixelRPG.Base.TransferMessages
 {
-    public class ServerYouConnectedTransferMessage
+    public partial class ServerYouConnectedTransferMessage : ITransferMessage
     {
         public int PlayerId;
         public List<UnitSubMessage> UnitsData = new List<UnitSubMessage>();

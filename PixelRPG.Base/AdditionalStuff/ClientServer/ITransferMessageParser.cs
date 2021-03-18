@@ -3,8 +3,8 @@
     public interface ITransferMessageParser
     {
         bool IsReadable(string data);
-        bool IsWritable(object transferModel);
-        string Write(object transferModel);
-        object Read(string data);
+        bool IsWritable(ITransferMessage transferModel);
+        string Write(ITransferMessage transferModel);
+        ITransferMessage Read(string data);
     }
 }

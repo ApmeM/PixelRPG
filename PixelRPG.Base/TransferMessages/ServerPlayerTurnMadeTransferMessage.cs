@@ -1,6 +1,8 @@
-﻿namespace PixelRPG.Base.TransferMessages
+﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+
+namespace PixelRPG.Base.TransferMessages
 {
-    public class ServerPlayerTurnMadeTransferMessage
+    public partial class ServerPlayerTurnMadeTransferMessage : ITransferMessage
     {
         public int PlayerId;
     }

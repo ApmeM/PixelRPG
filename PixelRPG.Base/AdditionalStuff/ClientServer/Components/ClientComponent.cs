@@ -7,7 +7,7 @@
 
     public class ClientComponent : Component
     {
-        public object Message;
-        public object Response;
+        public ITransferMessage Message;
+        public ITransferMessage Response;
     }
 }
