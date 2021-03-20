@@ -21,7 +21,7 @@
         public int MaxPlayersCount;
         public int MaxUnitsCount = 4;
         public int MaxSkillsCount = 1;
-        public Dictionary<int, Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction>> CurrentTurn = new Dictionary<int, Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction>>();
+        public Dictionary<int, Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubMessage>> CurrentTurn = new Dictionary<int, Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubMessage>>();
         public HashSet<long> AtEnd = new HashSet<long>();
     }
 }

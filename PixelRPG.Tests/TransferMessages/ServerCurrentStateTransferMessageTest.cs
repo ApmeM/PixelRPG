@@ -2,7 +2,6 @@
 using System;
 using PixelRPG.Base.TransferMessages;
 using System.Collections.Generic;
-using Microsoft.Xna.Framework;
 using PixelRPG.Base.AdditionalStuff.ClientServer;
 
 namespace PixelRPG.Tests.AdditionalContent
@@ -15,30 +14,13 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void WithData_SerializedDeserialized_Success()
         {
-            var target = new ServerCurrentStateTransferMessage
-            {
-                Doors = new List<ServerCurrentStateTransferMessage.PointSubMessage>
-                {
-                    new ServerCurrentStateTransferMessage.PointSubMessage { X = 3,Y = 4 }
-                },
-                Exit = new ServerCurrentStateTransferMessage.PointSubMessage { X = 1, Y = 2 },
-                Players = new List<ServerCurrentStateTransferMessage.PlayerSubMessage>
-                {
-                    new ServerCurrentStateTransferMessage.PlayerSubMessage
-                    {
-                        PlayerId=43,
-                        Units = new List<ServerCurrentStateTransferMessage.UnitSubMessage>
-                        {
-                            new ServerCurrentStateTransferMessage.UnitSubMessage
-                            {
-                                UnitId = 3,
-                                Position = new ServerCurrentStateTransferMessage.PointSubMessage { X = 7,Y = 8 }
-                            }
-                        }
-                    }
-                },
-                Map = new int?[1, 2] { { 5, null } },
-            };
+            var target = ServerCurrentStateTransferMessage.Create()
+                .AddDoor(3,4)
+                .SetExit(1,2)
+                .AddPlayer(43, 5, 6)
+                .AddUnit(0, 3, 7, 8, 9);
+            target.Map.Add(10);
+            target.Map.Add(11);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
@@ -56,24 +38,16 @@ namespace PixelRPG.Tests.AdditionalContent
             Assert.AreEqual(target.Players[0].Units[0].UnitId, obj.Players[0].Units[0].UnitId);
             Assert.AreEqual(target.Players[0].Units[0].Position.X, obj.Players[0].Units[0].Position.X);
             Assert.AreEqual(target.Players[0].Units[0].Position.Y, obj.Players[0].Units[0].Position.Y);
-            Assert.AreEqual(target.Map.LongLength, obj.Map.LongLength);
-            Assert.AreEqual(target.Map[0, 0], obj.Map[0, 0]);
-            Assert.AreEqual(target.Map[0, 1], obj.Map[0, 1]);
+            Assert.AreEqual(target.Map.Count, obj.Map.Count);
+            Assert.AreEqual(target.Map[0], obj.Map[0]);
+            Assert.AreEqual(target.Map[1], obj.Map[1]);
         }
 
         [Test]
         public void WithoutData_SerializedDeserialized_Success()
         {
-            var target = new ServerCurrentStateTransferMessage
-            {
-                Players = new List<ServerCurrentStateTransferMessage.PlayerSubMessage>
-                {
-                    new ServerCurrentStateTransferMessage.PlayerSubMessage
-                    {
-                        PlayerId=43,
-                    }
-                },
-            };
+            var target = ServerCurrentStateTransferMessage.Create()
+                .AddPlayer(43, 2, 3);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));

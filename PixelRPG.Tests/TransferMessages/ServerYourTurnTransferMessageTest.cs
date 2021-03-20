@@ -12,9 +12,7 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void EmptyObject_SerializedDeserialized_Success()
         {
-            var target = new ServerYourTurnTransferMessage
-            {
-            };
+            var target = ServerYourTurnTransferMessage.Create();
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));

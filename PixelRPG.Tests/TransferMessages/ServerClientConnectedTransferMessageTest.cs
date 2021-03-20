@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
 using PixelRPG.Base.TransferMessages;
-using System.Collections.Generic;
 using PixelRPG.Base.AdditionalStuff.ClientServer;
 using PixelRPG.Base.Components.GameState;
 
@@ -13,21 +12,9 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void AllDataWithPlayerName_SerializedDeserialized_Success()
         {
-            var target = new ServerClientConnectedTransferMessage
-            {
-                CurrentCount = 12,
-                PlayerId = 34,
-                PlayerName = "Player1",
-                WaitingCount = 43,
-                Units = new List<ServerClientConnectedTransferMessage.UnitSubMessage>
-                {
-                    new ServerClientConnectedTransferMessage.UnitSubMessage
-                    {
-                        UnitId = 16,
-                        UnitType = UnitUtils.UnitType.Warrior
-                    }
-                }
-            };
+            var target = ServerClientConnectedTransferMessage.Create()
+                .SetData(34, "Player1", 43, 12)
+                .AddUnit(16, UnitUtils.UnitType.Warrior);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
@@ -46,13 +33,8 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void AllDataWithoutPlayerNameAndUnits_SerializedDeserialized_Success()
         {
-            var target = new ServerClientConnectedTransferMessage
-            {
-                CurrentCount = 12,
-                PlayerId = 34,
-                PlayerName = null,
-                WaitingCount = 43,
-            };
+            var target = ServerClientConnectedTransferMessage.Create()
+                .SetData(34, null, 43, 12);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
