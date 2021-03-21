@@ -76,11 +76,14 @@
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
             var fog = (TiledTileLayer)tiledMap.GetLayer("Fog");
 
-            for (var x = 0; x < message.Map.GetLength(0); x++)
-                for (var y = 0; y < message.Map.GetLength(1); y++)
+            var mapIdx = 0;
+            for (var x = 0; x < maze.Width; x++)
+                for (var y = 0; y < maze.Height; y++)
                 {
                     var fogTile = fog.GetTile(x, y);
-                    if (message.Map[x, y] == GameSceneConfig.UnknownRegionValue)
+                    var mapTile = message.Map[mapIdx];
+                    mapIdx++;
+                    if (mapTile == GameSceneConfig.UnknownRegionValue)
                     {
                         if (fogTile == null)
                         {
@@ -103,11 +106,11 @@
                         currentTile = new TiledTile();
                     }
 
-                    if (message.Map[x, y] == GameSceneConfig.WallRegionValue)
+                    if (mapTile == GameSceneConfig.WallRegionValue)
                     {
                         currentTile.Id = 17;
                     }
-                    else if (message.Map[x, y] == GameSceneConfig.PathRegionValue)
+                    else if (mapTile == GameSceneConfig.PathRegionValue)
                     {
                         currentTile.Id = 2;
                     }

@@ -12,10 +12,8 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void WithData_SerializedDeserialized_Success()
         {
-            var target = new ServerPlayerTurnMadeTransferMessage
-            {
-                PlayerId = 43
-            };
+            var target = ServerPlayerTurnMadeTransferMessage.Create()
+                .SetPlayerId(43);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));

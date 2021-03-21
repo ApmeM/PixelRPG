@@ -21,14 +21,13 @@ namespace PixelRPG.Base.EntitySystems
         {
             var ai = entity.GetComponent<AIComponent>();
             var simpleAI = (SimpleAI)ai.AIBot;
-            if (simpleAI.NextTurn == null)
+            if (!simpleAI.NeedAction)
             {
                 return null;
             }
 
-            var result = new ClientTurnDoneTransferMessage { UnitActions = simpleAI.NextTurn };
-            simpleAI.NextTurn = null;
-            return result;
+            simpleAI.NeedAction = false;
+            return simpleAI.GetNextTurn();
         }
     }
 }

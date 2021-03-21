@@ -17,11 +17,8 @@
 
             foreach (var player in gameState.Players)
             {
-                var responses = server.Response[player.Key];
-                responses.Enqueue(new ServerPlayerTurnMadeTransferMessage
-                {
-                    PlayerId = gameState.Players[connectionKey].PlayerId
-                });
+                server.Response[player.Key].Enqueue(ServerPlayerTurnMadeTransferMessage.Create()
+                    .SetPlayerId(gameState.Players[connectionKey].PlayerId));
             }
 
             if (gameState.CurrentTurn.Count() != gameState.MaxPlayersCount)
@@ -162,7 +159,7 @@
                 for (var i = 0; i < player.Value.Units.Count; i++)
                 {
                     var unit = player.Value.Units[i];
-                    var fullUnitId = ((long)player.Value.PlayerId << 32) | ((long)unit.UnitId & 0xFFFFFFFFL);
+                    var fullUnitId = ServerLogic.GetFullUnitId(player.Value, unit);
                     if (unit.Position != gameState.Exit) 
                     {
                         if (unit.Hp > 0)
@@ -179,10 +176,9 @@
                 }
             }
                 
-            ServerGameStartedTransferMessage startGameResponse = null;
             if (allAtEnd)
             {
-                startGameResponse = ServerLogic.StartNewGame(gameState);
+                ServerLogic.StartNewGame(gameState);
             }
 
             foreach (var player in gameState.Players)
@@ -190,11 +186,11 @@
                 var responses = server.Response[player.Key];
                 if (allAtEnd)
                 {
-                    responses.Enqueue(startGameResponse);
+                    responses.Enqueue(ServerGameStartedTransferMessage.Create().SetSize(gameState.Map.GetLength(0), gameState.Map.GetLength(1)));
                 }
 
                 responses.Enqueue(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
-                responses.Enqueue(new ServerYourTurnTransferMessage());
+                responses.Enqueue(ServerYourTurnTransferMessage.Create());
             }
         }
     }

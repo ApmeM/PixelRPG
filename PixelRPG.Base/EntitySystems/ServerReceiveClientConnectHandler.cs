@@ -48,81 +48,38 @@
                 newPlayer.Units.Add(newUnit);
             }
 
-            server.Response[connectionKey].Enqueue(new ServerYouConnectedTransferMessage
-            {
-                PlayerId = newPlayer.PlayerId,
-                UnitsData = newPlayer.Units.Select(a => new ServerYouConnectedTransferMessage.UnitSubMessage
-                {
-                    UnitId = a.UnitId,
-                    UnitType = a.UnitType,
-                    VisionRange = a.VisionRange,
-                    MoveRange = a.MoveRange,
-                    AttackDamage = a.AttackDamage,
-                    AttackDistance = a.AttackDistance,
-                    AttackFriendlyFire = a.AttackFriendlyFire,
-                    AttackRadius = a.AttackRadius,
-                    Hp = a.Hp,
-                    MaxHp = a.MaxHp,
-                }).ToList()
-            });
+            server.Response[connectionKey].Enqueue(ServerYouConnectedTransferMessage.Create()
+                .SetPlayerId(newPlayer.PlayerId)
+                .PopulateUnits(newPlayer.Units));
 
             foreach (var player in gameState.Players)
             {
-                var responses = server.Response[connectionKey];
-                responses.Enqueue(new ServerClientConnectedTransferMessage
-                {
-                    PlayerId = player.Value.PlayerId,
-                    PlayerName = player.Value.PlayerName,
-                    Units = BuildUnits(player.Value.Units),
-                    WaitingCount = gameState.MaxPlayersCount,
-                    CurrentCount = gameState.Players.Count
-                });
+                server.Response[connectionKey].Enqueue(ServerClientConnectedTransferMessage.Create()
+                    .SetData(player.Value.PlayerId, player.Value.PlayerName, gameState.MaxPlayersCount, gameState.Players.Count)
+                    .PopulateUnits(player.Value.Units));
             }
 
             gameState.Players[connectionKey] = newPlayer;
 
-            var units = BuildUnits(newPlayer.Units);
             foreach (var player in gameState.Players)
             {
-                var responses = server.Response[player.Key];
-                responses.Enqueue(new ServerClientConnectedTransferMessage
-                {
-                    PlayerId = newPlayer.PlayerId,
-                    PlayerName = message.PlayerName,
-                    Units = units,
-                    WaitingCount = gameState.MaxPlayersCount,
-                    CurrentCount = gameState.Players.Count
-                });
+                server.Response[player.Key].Enqueue(ServerClientConnectedTransferMessage.Create()
+                    .SetData(newPlayer.PlayerId, message.PlayerName, gameState.MaxPlayersCount, gameState.Players.Count)
+                    .PopulateUnits(newPlayer.Units));
             }
 
             if (gameState.Players.Count == gameState.MaxPlayersCount)
             {
-                var startGameResponse = ServerLogic.StartNewGame(gameState);
+                ServerLogic.StartNewGame(gameState);
 
                 foreach (var player in gameState.Players)
                 {
                     var responses = server.Response[player.Key];
-                    responses.Enqueue(startGameResponse);
+                    responses.Enqueue(ServerGameStartedTransferMessage.Create().SetSize(gameState.Map.GetLength(0), gameState.Map.GetLength(1)));
                     responses.Enqueue(ServerLogic.BuildCurrentStateForPlayer(gameState, player.Value));
-                    responses.Enqueue(new ServerYourTurnTransferMessage());
+                    responses.Enqueue(ServerYourTurnTransferMessage.Create());
                 }
             }
-        }
-
-        private List<ServerClientConnectedTransferMessage.UnitSubMessage> BuildUnits(List<Unit> units)
-        {
-            var result = new List<ServerClientConnectedTransferMessage.UnitSubMessage>();
-            for (var i = 0; i < units.Count; i++)
-            {
-                var unit = units[i];
-                result.Add(new ServerClientConnectedTransferMessage.UnitSubMessage
-                {
-                    UnitId = unit.UnitId,
-                    UnitType = unit.UnitType
-                });
-            }
-
-            return result;
         }
     }
 }

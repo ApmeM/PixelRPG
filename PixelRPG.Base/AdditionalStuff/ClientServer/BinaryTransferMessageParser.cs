@@ -3,7 +3,7 @@ using System.IO;
 
 namespace PixelRPG.Base.AdditionalStuff.ClientServer
 {
-    public abstract class BinaryTransferMessageParser<T> : ITransferMessageParser
+    public abstract class BinaryTransferMessageParser<T> : ITransferMessageParser where T : ITransferMessage
     {
         private MemoryStream ms;
         private BinaryReader reader;
@@ -32,12 +32,12 @@ namespace PixelRPG.Base.AdditionalStuff.ClientServer
             return reader.ReadInt32() == this.Identifier;
         }
 
-        public bool IsWritable(object transferModel)
+        public bool IsWritable(ITransferMessage transferModel)
         {
             return transferModel is T;
         }
 
-        public string Write(object transferModel)
+        public string Write(ITransferMessage transferModel)
         {
             ms.Seek(0, SeekOrigin.Begin);
             ms.SetLength(0);
@@ -48,7 +48,7 @@ namespace PixelRPG.Base.AdditionalStuff.ClientServer
             return Convert.ToBase64String(ms.ToArray());
         }
 
-        public object Read(string data)
+        public ITransferMessage Read(string data)
         {
             var baseData = Convert.FromBase64String(data);
             ms.Seek(0, SeekOrigin.Begin);

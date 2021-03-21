@@ -23,12 +23,7 @@ namespace PixelRPG.Base.EntitySystems
             }
 
             simpleAI.Connected = true;
-        
-            return new ClientConnectTransferMessage
-            {
-                PlayerName = simpleAI.PlayerName,
-                UnitsData = simpleAI.GenerateUnitData()
-            };
+            return simpleAI.GetPlayerData();
         }
     }
 }

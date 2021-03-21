@@ -10,7 +10,7 @@
     public class ServerComponent : Component
     {
         public int ConnectedPlayers;
-        public Dictionary<int, Queue<object>> Request = new Dictionary<int, Queue<object>>();
-        public Dictionary<int, Queue<object>> Response = new Dictionary<int, Queue<object>>();
+        public Dictionary<int, Queue<ITransferMessage>> Request = new Dictionary<int, Queue<ITransferMessage>>();
+        public Dictionary<int, Queue<ITransferMessage>> Response = new Dictionary<int, Queue<ITransferMessage>>();
     }
 }

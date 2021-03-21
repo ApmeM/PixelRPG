@@ -43,6 +43,8 @@
                 return;
             }
 
+            client.Response = null;
+            
             if (client.Message != null)
             {
                 var transferMessage = client.Message;
@@ -58,8 +60,6 @@
                 return;
             }
             
-            client.Response = null;
-
             if (networkClient.RecievingTask == null)
             {
                 networkClient.RecievingTask = networkClient.Client.ReceiveAsync(networkClient.RecievingBuffer, CancellationToken.None);

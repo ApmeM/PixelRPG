@@ -12,11 +12,8 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void WithData_SerializedDeserialized_Success()
         {
-            var target = new ServerGameStartedTransferMessage
-            {
-                Width = 32,
-                Height = 76
-            };
+            var target = ServerGameStartedTransferMessage.Create()
+                .SetSize(43, 76);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));

@@ -7,35 +7,6 @@
 Bridge.assembly("MazeGenerators", function ($asm, globals) {
     "use strict";
 
-    Bridge.define("MazeGenerators.Directions", {
-        statics: {
-            fields: {
-                CardinalDirs: null,
-                CompassDirs: null
-            },
-            ctors: {
-                init: function () {
-                    this.CardinalDirs = System.Array.init([
-                        new MazeGenerators.Utils.Vector2.$ctor1(1, 0), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(0, -1), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(-1, 0), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(0, 1)
-                    ], MazeGenerators.Utils.Vector2);
-                    this.CompassDirs = System.Array.init([
-                        new MazeGenerators.Utils.Vector2.$ctor1(1, 0), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(1, -1), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(0, -1), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(-1, -1), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(-1, 0), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(-1, 1), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(0, 1), 
-                        new MazeGenerators.Utils.Vector2.$ctor1(1, 1)
-                    ], MazeGenerators.Utils.Vector2);
-                }
-            }
-        }
-    });
-
     /** @namespace MazeGenerators */
 
     /**
@@ -68,80 +39,16 @@ Bridge.assembly("MazeGenerators", function ($asm, globals) {
                             continue;
                         }
                         regionId = (regionId + 1) | 0;
-                        this.GrowMaze(result, settings, pos.$clone(), regionId);
+                        MazeGenerators.Utils.RegionConnector.TreeMazeBuilderAlgorythm.GrowMaze(result, settings, pos.$clone(), regionId);
                     }
                 }
 
                 regionId = (regionId + 1) | 0;
                 this.ConnectRegions(result, settings, regionId);
-                this.RemoveDeadEnds(result, settings);
+                MazeGenerators.Utils.RegionConnector.RegionConnectorAlgorythm.ConnectRegions(result, settings, regionId);
+                MazeGenerators.Utils.DeadendRemover.DeadEndRemoverAlgorythm.RemoveDeadEnds(result, settings);
 
                 return result;
-            },
-            /**
-             * @instance
-             * @private
-             * @this MazeGenerators.RoomMazeGenerator
-             * @memberof MazeGenerators.RoomMazeGenerator
-             * @param   {MazeGenerators.RoomMazeGenerator.Result}      result      
-             * @param   {MazeGenerators.RoomMazeGenerator.Settings}    settings    
-             * @param   {MazeGenerators.Utils.Vector2}                 start       
-             * @param   {number}                                       regionId
-             * @return  {void}
-             */
-            GrowMaze: function (result, settings, start, regionId) {
-                var $t;
-                var cells = new (System.Collections.Generic.List$1(MazeGenerators.Utils.Vector2)).ctor();
-
-                result.SetTile(start.$clone(), regionId);
-
-                cells.add(start.$clone());
-
-                var lastDir = null;
-
-                while (cells.Count > 0) {
-                    var cell = cells.getItem(((cells.Count - 1) | 0)).$clone();
-
-                    // See which adjacent cells are open.
-                    var unmadeCells = new (System.Collections.Generic.List$1(MazeGenerators.Utils.Vector2)).ctor();
-
-                    $t = Bridge.getEnumerator(settings.Directions);
-                    try {
-                        while ($t.moveNext()) {
-                            var dir = $t.Current.$clone();
-                            if (this.CanCarve(result, cell.$clone(), dir.$clone())) {
-                                unmadeCells.add(dir.$clone());
-                            }
-                        }
-                    } finally {
-                        if (Bridge.is($t, System.IDisposable)) {
-                            $t.System$IDisposable$Dispose();
-                        }
-                    }
-
-                    if (unmadeCells.Count !== 0) {
-                        // Based on how "windy" passages are, try to prefer carving in the
-                        // same direction.
-                        var dir1 = new MazeGenerators.Utils.Vector2();
-                        if (lastDir != null && unmadeCells.contains(System.Nullable.getValue(lastDir).$clone()) && settings.Random.Next$1(100) > settings.WindingPercent) {
-                            dir1 = System.Nullable.getValue(lastDir).$clone();
-                        } else {
-                            dir1 = unmadeCells.getItem(settings.Random.Next$1(unmadeCells.Count)).$clone();
-                        }
-
-                        result.SetTile(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), dir1.$clone()), regionId);
-                        result.SetTile(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(dir1.$clone(), 2)), regionId);
-
-                        cells.add(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(dir1.$clone(), 2)));
-                        lastDir = dir1.$clone();
-                    } else {
-                        // No adjacent un carved cells.
-                        cells.removeAt(((cells.Count - 1) | 0));
-
-                        // This path has ended.
-                        lastDir = null;
-                    }
-                }
             },
             /**
              * @instance
@@ -160,7 +67,7 @@ Bridge.assembly("MazeGenerators", function ($asm, globals) {
                 // - It avoids creating rooms that are too rectangular: too tall and
                 //   narrow or too wide and flat.
                 // TODO: This isn't very flexible or tunable. Do something better here.
-                var size = (Bridge.Int.mul((((settings.Random.Next$1(((2 + settings.RoomExtraSize) | 0)) + 1) | 0)), 2) + 1) | 0;
+                var size = (Bridge.Int.mul((((settings.Random.Next$1(settings.RoomSize) + 1) | 0)), 2) + 1) | 0;
                 var rectangularity = Bridge.Int.mul(settings.Random.Next$1(((1 + ((Bridge.Int.div(size, 2)) | 0)) | 0)), 2);
                 var width = size;
                 var height = size;
@@ -176,18 +83,20 @@ Bridge.assembly("MazeGenerators", function ($asm, globals) {
                 var room = new MazeGenerators.Utils.Rectangle.$ctor1(x, y, width, height);
 
                 var overlaps = false;
-                $t = Bridge.getEnumerator(result.Rooms);
-                try {
-                    while ($t.moveNext()) {
-                        var other = $t.Current.$clone();
-                        if (room.Intersects(other.$clone())) {
-                            overlaps = true;
-                            break;
+                if (settings.PreventOverlappedRooms) {
+                    $t = Bridge.getEnumerator(result.Rooms);
+                    try {
+                        while ($t.moveNext()) {
+                            var other = $t.Current.$clone();
+                            if (room.Intersects(other.$clone())) {
+                                overlaps = true;
+                                break;
+                            }
                         }
-                    }
-                } finally {
-                    if (Bridge.is($t, System.IDisposable)) {
-                        $t.System$IDisposable$Dispose();
+                    } finally {
+                        if (Bridge.is($t, System.IDisposable)) {
+                            $t.System$IDisposable$Dispose();
+                        }
                     }
                 }
 
@@ -312,84 +221,10 @@ Bridge.assembly("MazeGenerators", function ($asm, globals) {
                                 return false;
                             }
 
-                            // This connecter isn't needed, but connect it occasionally so that the
-                            // dungeon isn't singly-connected.
-                            if (settings.Random.Next$1(100) < settings.ExtraConnectorChance) {
-                                result.SetTile(pos1.$clone(), connectorId);
-                                result.Junctions.add(pos1.$clone());
-                            }
-
                             return true;
                         };
                     })(this, connector));
                 }
-            },
-            RemoveDeadEnds: function (result, settings) {
-                var $t;
-                var done = false;
-
-                while (!done) {
-                    done = true;
-
-                    for (var x = 0; x < System.Array.getLength(result.Regions, 0); x = (x + 1) | 0) {
-                        for (var y = 0; y < System.Array.getLength(result.Regions, 1); y = (y + 1) | 0) {
-                            var pos = new MazeGenerators.Utils.Vector2.$ctor1(x, y);
-                            if (!System.Nullable.hasValue(result.GetTile(pos.$clone()))) {
-                                continue;
-                            }
-
-                            // If it only has one exit, it's a dead end.
-                            var exits = 0;
-                            $t = Bridge.getEnumerator(settings.Directions);
-                            try {
-                                while ($t.moveNext()) {
-                                    var dir = $t.Current.$clone();
-                                    if (!result.IsInRegion(MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), dir.$clone()))) {
-                                        continue;
-                                    }
-
-                                    if (!System.Nullable.hasValue(result.GetTile(MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), dir.$clone())))) {
-                                        continue;
-                                    }
-
-                                    exits = (exits + 1) | 0;
-                                }
-                            } finally {
-                                if (Bridge.is($t, System.IDisposable)) {
-                                    $t.System$IDisposable$Dispose();
-                                }
-                            }
-
-                            if (exits !== 1) {
-                                continue;
-                            }
-
-                            done = false;
-                            result.RemoveTile(pos.$clone());
-                        }
-                    }
-                }
-            },
-            /**
-             * @instance
-             * @private
-             * @this MazeGenerators.RoomMazeGenerator
-             * @memberof MazeGenerators.RoomMazeGenerator
-             * @param   {MazeGenerators.RoomMazeGenerator.Result}    result       
-             * @param   {MazeGenerators.Utils.Vector2}               pos          
-             * @param   {MazeGenerators.Utils.Vector2}               direction
-             * @return  {boolean}
-             */
-            CanCarve: function (result, pos, direction) {
-                // Must end in bounds.
-                var block = MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(direction.$clone(), 3));
-                if (!result.IsInRegion(block.$clone())) {
-                    return false;
-                }
-
-                // Destination must not be open.
-                var end = MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(direction.$clone(), 2));
-                return !System.Nullable.hasValue(result.GetTile(end.$clone()));
             }
         }
     });
@@ -402,70 +237,28 @@ Bridge.assembly("MazeGenerators", function ($asm, globals) {
         }
     });
 
-    Bridge.define("MazeGenerators.RoomMazeGenerator.Result", {
-        $kind: "nested class",
-        fields: {
-            Junctions: null,
-            Rooms: null,
-            Regions: null
-        },
-        methods: {
-            GetTile: function (pos) {
-                return this.Regions.get([pos.X, pos.Y]);
-            },
-            SetTile: function (pos, regionId) {
-                this.Regions.set([pos.X, pos.Y], regionId);
-            },
-            RemoveTile: function (pos) {
-                this.Regions.set([pos.X, pos.Y], null);
-            },
-            IsInRegion: function (loc) {
-                return loc.X >= 0 && loc.Y >= 0 && loc.X < System.Array.getLength(this.Regions, 0) && loc.Y < System.Array.getLength(this.Regions, 1);
-            }
-        }
+    Bridge.define("MazeGenerators.Utils.RegionConnector.ITreeMazeBuilderResult", {
+        $kind: "interface"
     });
 
-    Bridge.define("MazeGenerators.RoomMazeGenerator.Settings", {
-        $kind: "nested class",
-        fields: {
-            Width: 0,
-            Height: 0,
-            Random: null,
-            Directions: null,
-            NumRoomTries: 0,
-            /**
-             * @instance
-             * @public
-             * @memberof MazeGenerators.RoomMazeGenerator.Settings
-             * @default 20
-             * @type number
-             */
-            ExtraConnectorChance: 0,
-            /**
-             * @instance
-             * @public
-             * @memberof MazeGenerators.RoomMazeGenerator.Settings
-             * @default 0
-             * @type number
-             */
-            RoomExtraSize: 0,
-            WindingPercent: 0
-        },
-        ctors: {
-            init: function () {
-                this.Random = new System.Random.ctor();
-                this.Directions = MazeGenerators.Directions.CardinalDirs;
-                this.NumRoomTries = 100;
-                this.ExtraConnectorChance = 20;
-                this.RoomExtraSize = 0;
-                this.WindingPercent = 0;
-            },
-            ctor: function (width, height) {
-                this.$initialize();
-                this.Width = width;
-                this.Height = height;
-            }
-        }
+    Bridge.define("MazeGenerators.Utils.RegionConnector.IRegionConnectorResult", {
+        $kind: "interface"
+    });
+
+    Bridge.define("MazeGenerators.Utils.DeadendRemover.IDeadEndRemoverResult", {
+        $kind: "interface"
+    });
+
+    Bridge.define("MazeGenerators.Utils.RegionConnector.ITreeMazeBuilderSettings", {
+        $kind: "interface"
+    });
+
+    Bridge.define("MazeGenerators.Utils.RegionConnector.IRegionConnectorSettings", {
+        $kind: "interface"
+    });
+
+    Bridge.define("MazeGenerators.Utils.DeadendRemover.IDeadEndRemoverSettings", {
+        $kind: "interface"
     });
 
     Bridge.define("MazeGenerators.TreeMazeGenerator", {
@@ -476,114 +269,99 @@ Bridge.assembly("MazeGenerators", function ($asm, globals) {
                     throw new System.Exception("The stage must be odd-sized.");
                 }
 
-                var result = ($t = new MazeGenerators.TreeMazeGenerator.Result(), $t.Regions = System.Array.create(null, null, System.Nullable$1(System.Int32), settings.Width, settings.Height), $t);
+                var result = ($t = new MazeGenerators.TreeMazeGenerator.Result(), $t.Regions = System.Array.create(null, null, System.Nullable$1(System.Int32), settings.Width, settings.Height), $t.Junctions = new (System.Collections.Generic.List$1(MazeGenerators.Utils.Vector2)).ctor(), $t);
 
-                this.GrowMaze(result, settings, new MazeGenerators.Utils.Vector2.$ctor1(1, 1), 1);
+                MazeGenerators.Utils.RegionConnector.TreeMazeBuilderAlgorythm.GrowMaze(result, settings, new MazeGenerators.Utils.Vector2.$ctor1(1, 1), 1);
+                MazeGenerators.Utils.RegionConnector.RegionConnectorAlgorythm.ConnectRegions(result, settings, 2);
+                MazeGenerators.Utils.DeadendRemover.DeadEndRemoverAlgorythm.RemoveDeadEnds(result, settings);
 
                 return result;
-            },
-            GrowMaze: function (result, settings, start, regionId) {
-                var $t;
-                var cells = new (System.Collections.Generic.List$1(MazeGenerators.Utils.Vector2)).ctor();
+            }
+        }
+    });
 
-                result.SetTile(start.$clone(), regionId);
+    Bridge.define("MazeGenerators.Utils.DeadendRemover.DeadEndRemoverAlgorythm", {
+        statics: {
+            methods: {
+                RemoveDeadEnds: function (result, settings) {
+                    var $t;
+                    if (!settings.MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$RemoveDeadEnds) {
+                        return;
+                    }
 
-                cells.add(start.$clone());
+                    var done = false;
 
-                var lastDir = null;
+                    while (!done) {
+                        done = true;
 
-                while (cells.Count > 0) {
-                    var cell = cells.getItem(((cells.Count - 1) | 0)).$clone();
+                        for (var x = 0; x < settings.MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Width; x = (x + 1) | 0) {
+                            for (var y = 0; y < settings.MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Height; y = (y + 1) | 0) {
+                                var pos = new MazeGenerators.Utils.Vector2.$ctor1(x, y);
+                                if (!System.Nullable.hasValue(result.MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$GetTile(pos.$clone()))) {
+                                    continue;
+                                }
 
-                    var unmadeCells = new (System.Collections.Generic.List$1(MazeGenerators.Utils.Vector2)).ctor();
+                                // If it only has one exit, it's a dead end.
+                                var exits = 0;
+                                $t = Bridge.getEnumerator(settings.MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Directions);
+                                try {
+                                    while ($t.moveNext()) {
+                                        var dir = $t.Current.$clone();
+                                        if (!result.MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$IsInRegion(MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), dir.$clone()))) {
+                                            continue;
+                                        }
 
-                    $t = Bridge.getEnumerator(settings.Directions);
-                    try {
-                        while ($t.moveNext()) {
-                            var dir = $t.Current.$clone();
-                            if (this.CanCarve(result, cell.$clone(), dir.$clone())) {
-                                unmadeCells.add(dir.$clone());
+                                        if (!System.Nullable.hasValue(result.MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$GetTile(MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), dir.$clone())))) {
+                                            continue;
+                                        }
+
+                                        exits = (exits + 1) | 0;
+                                    }
+                                } finally {
+                                    if (Bridge.is($t, System.IDisposable)) {
+                                        $t.System$IDisposable$Dispose();
+                                    }
+                                }
+
+                                if (exits !== 1) {
+                                    continue;
+                                }
+
+                                done = false;
+                                result.MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$RemoveTile(pos.$clone());
                             }
                         }
-                    } finally {
-                        if (Bridge.is($t, System.IDisposable)) {
-                            $t.System$IDisposable$Dispose();
-                        }
-                    }
-
-                    if (unmadeCells.Count !== 0) {
-                        var dir1 = new MazeGenerators.Utils.Vector2();
-                        if (lastDir != null && unmadeCells.contains(System.Nullable.getValue(lastDir).$clone()) && settings.Random.Next$1(100) > settings.WindingPercent) {
-                            dir1 = System.Nullable.getValue(lastDir).$clone();
-                        } else {
-                            dir1 = unmadeCells.getItem(settings.Random.Next$1(unmadeCells.Count)).$clone();
-                        }
-
-                        result.SetTile(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), dir1.$clone()), regionId);
-                        result.SetTile(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(dir1.$clone(), 2)), regionId);
-
-                        cells.add(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(dir1.$clone(), 2)));
-                        lastDir = dir1.$clone();
-                    } else {
-                        cells.removeAt(((cells.Count - 1) | 0));
-                        lastDir = null;
                     }
                 }
-            },
-            CanCarve: function (result, pos, direction) {
-                // Must end in bounds.
-                var block = MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(direction.$clone(), 3));
-                if (!result.IsInRegion(block.$clone())) {
-                    return false;
-                }
-
-                // Destination must not be open.
-                var end = MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(direction.$clone(), 2));
-                return !System.Nullable.hasValue(result.GetTile(end.$clone()));
             }
         }
     });
 
-    Bridge.define("MazeGenerators.TreeMazeGenerator.Result", {
-        $kind: "nested class",
-        fields: {
-            Regions: null
-        },
-        methods: {
-            GetTile: function (pos) {
-                return this.Regions.get([pos.X, pos.Y]);
+    Bridge.define("MazeGenerators.Utils.Directions", {
+        statics: {
+            fields: {
+                CardinalDirs: null,
+                CompassDirs: null
             },
-            SetTile: function (pos, regionId) {
-                this.Regions.set([pos.X, pos.Y], regionId);
-            },
-            RemoveTile: function (pos) {
-                this.Regions.set([pos.X, pos.Y], null);
-            },
-            IsInRegion: function (loc) {
-                return loc.X >= 0 && loc.Y >= 0 && loc.X < System.Array.getLength(this.Regions, 0) && loc.Y < System.Array.getLength(this.Regions, 1);
-            }
-        }
-    });
-
-    Bridge.define("MazeGenerators.TreeMazeGenerator.Settings", {
-        $kind: "nested class",
-        fields: {
-            Width: 0,
-            Height: 0,
-            Random: null,
-            Directions: null,
-            WindingPercent: 0
-        },
-        ctors: {
-            init: function () {
-                this.Random = new System.Random.ctor();
-                this.Directions = MazeGenerators.Directions.CardinalDirs;
-                this.WindingPercent = 100;
-            },
-            ctor: function (width, height) {
-                this.$initialize();
-                this.Width = width;
-                this.Height = height;
+            ctors: {
+                init: function () {
+                    this.CardinalDirs = System.Array.init([
+                        new MazeGenerators.Utils.Vector2.$ctor1(1, 0), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(0, -1), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(-1, 0), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(0, 1)
+                    ], MazeGenerators.Utils.Vector2);
+                    this.CompassDirs = System.Array.init([
+                        new MazeGenerators.Utils.Vector2.$ctor1(1, 0), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(1, -1), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(0, -1), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(-1, -1), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(-1, 0), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(-1, 1), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(0, 1), 
+                        new MazeGenerators.Utils.Vector2.$ctor1(1, 1)
+                    ], MazeGenerators.Utils.Vector2);
+                }
             }
         }
     });
@@ -638,6 +416,132 @@ Bridge.assembly("MazeGenerators", function ($asm, globals) {
         }
     });
 
+    Bridge.define("MazeGenerators.Utils.RegionConnector.RegionConnectorAlgorythm", {
+        statics: {
+            methods: {
+                ConnectRegions: function (result, settings, connectorId) {
+                    var $t;
+                    for (var i = 0; i < settings.MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$AdditionalPassages; i = (i + 1) | 0) {
+                        var pos = new MazeGenerators.Utils.Vector2.$ctor1(((settings.MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Random.Next$1(((settings.MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Width - 2) | 0)) + 1) | 0), ((settings.MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Random.Next$1(((settings.MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Height - 2) | 0)) + 1) | 0));
+
+                        // Can't already be part of a region.
+                        if (System.Nullable.hasValue(result.MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$GetTile(pos.$clone()))) {
+                            i = (i - 1) | 0;
+                            continue;
+                        }
+
+                        var found = false;
+                        $t = Bridge.getEnumerator(settings.MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Directions);
+                        try {
+                            while ($t.moveNext()) {
+                                var dir = $t.Current.$clone();
+                                var loc1 = MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), dir.$clone());
+                                var loc2 = MazeGenerators.Utils.Vector2.op_Subtraction(pos.$clone(), dir.$clone());
+                                if (!result.MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$IsInRegion(loc1.$clone()) || !result.MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$IsInRegion(loc2.$clone())) {
+                                    continue;
+                                }
+
+                                var region1 = result.MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$GetTile(loc1.$clone());
+                                var region2 = result.MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$GetTile(loc2.$clone());
+                                if (region1 != null && region2 != null) {
+                                    found = true;
+                                }
+                            }
+                        } finally {
+                            if (Bridge.is($t, System.IDisposable)) {
+                                $t.System$IDisposable$Dispose();
+                            }
+                        }
+
+                        if (!found) {
+                            i = (i - 1) | 0;
+                            continue;
+                        }
+
+                        result.MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$SetTile(pos.$clone(), connectorId);
+                        result.MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$Junctions.add(pos.$clone());
+                    }
+                }
+            }
+        }
+    });
+
+    Bridge.define("MazeGenerators.Utils.RegionConnector.TreeMazeBuilderAlgorythm", {
+        statics: {
+            methods: {
+                GrowMaze: function (result, settings, start, regionId) {
+                    var $t;
+                    var cells = new (System.Collections.Generic.List$1(MazeGenerators.Utils.Vector2)).ctor();
+
+                    result.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$SetTile(start.$clone(), regionId);
+
+                    cells.add(start.$clone());
+
+                    var lastDir = null;
+
+                    while (cells.Count > 0) {
+                        var cell = cells.getItem(((cells.Count - 1) | 0)).$clone();
+
+                        var unmadeCells = new (System.Collections.Generic.List$1(MazeGenerators.Utils.Vector2)).ctor();
+
+                        $t = Bridge.getEnumerator(settings.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$Directions);
+                        try {
+                            while ($t.moveNext()) {
+                                var dir = $t.Current.$clone();
+                                if (MazeGenerators.Utils.RegionConnector.TreeMazeBuilderAlgorythm.CanCarve(result, cell.$clone(), dir.$clone())) {
+                                    unmadeCells.add(dir.$clone());
+                                }
+                            }
+                        } finally {
+                            if (Bridge.is($t, System.IDisposable)) {
+                                $t.System$IDisposable$Dispose();
+                            }
+                        }
+
+                        if (unmadeCells.Count !== 0) {
+                            var dir1 = new MazeGenerators.Utils.Vector2();
+                            if (lastDir != null && unmadeCells.contains(System.Nullable.getValue(lastDir).$clone()) && settings.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$Random.Next$1(100) > settings.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$WindingPercent) {
+                                dir1 = System.Nullable.getValue(lastDir).$clone();
+                            } else {
+                                dir1 = unmadeCells.getItem(settings.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$Random.Next$1(unmadeCells.Count)).$clone();
+                            }
+
+                            result.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$SetTile(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), dir1.$clone()), regionId);
+                            result.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$SetTile(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(dir1.$clone(), 2)), regionId);
+
+                            cells.add(MazeGenerators.Utils.Vector2.op_Addition(cell.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(dir1.$clone(), 2)));
+                            lastDir = dir1.$clone();
+                        } else {
+                            cells.removeAt(((cells.Count - 1) | 0));
+                            lastDir = null;
+                        }
+                    }
+                },
+                /**
+                 * @static
+                 * @private
+                 * @this MazeGenerators.Utils.RegionConnector.TreeMazeBuilderAlgorythm
+                 * @memberof MazeGenerators.Utils.RegionConnector.TreeMazeBuilderAlgorythm
+                 * @param   {MazeGenerators.Utils.RegionConnector.ITreeMazeBuilderResult}    result       
+                 * @param   {MazeGenerators.Utils.Vector2}                                   pos          
+                 * @param   {MazeGenerators.Utils.Vector2}                                   direction
+                 * @return  {boolean}
+                 */
+                CanCarve: function (result, pos, direction) {
+                    // Must end in bounds.
+                    var block = MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(direction.$clone(), 3));
+                    if (!result.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$IsInRegion(block.$clone())) {
+                        return false;
+                    }
+
+                    // Destination must not be open.
+                    var end = MazeGenerators.Utils.Vector2.op_Addition(pos.$clone(), MazeGenerators.Utils.Vector2.op_Multiply(direction.$clone(), 2));
+                    return !System.Nullable.hasValue(result.MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$GetTile(end.$clone()));
+                }
+            }
+        }
+    });
+
     Bridge.define("MazeGenerators.Utils.Vector2", {
         $kind: "struct",
         statics: {
@@ -687,6 +591,390 @@ Bridge.assembly("MazeGenerators", function ($asm, globals) {
                 s.X = this.X;
                 s.Y = this.Y;
                 return s;
+            }
+        }
+    });
+
+    Bridge.define("MazeGenerators.RoomMazeGenerator.Result", {
+        inherits: [MazeGenerators.Utils.DeadendRemover.IDeadEndRemoverResult,MazeGenerators.Utils.RegionConnector.IRegionConnectorResult,MazeGenerators.Utils.RegionConnector.ITreeMazeBuilderResult],
+        $kind: "nested class",
+        fields: {
+            /**
+             * Actual generated maze data
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Result
+             * @type Array.<?number>
+             */
+            Regions: null,
+            /**
+             * List of generated rooms.
+             Output number depends on {@link }
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Result
+             * @type System.Collections.Generic.List$1
+             */
+            Rooms: null
+        },
+        props: {
+            /**
+             * Junctions between different branches of a tree maze.
+             Output number depens on {@link }.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Result
+             * @function Junctions
+             * @type System.Collections.Generic.List$1
+             */
+            Junctions: null
+        },
+        alias: [
+            "Junctions", "MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$Junctions",
+            "GetTile", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$GetTile",
+            "GetTile", "MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$GetTile",
+            "GetTile", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$GetTile",
+            "SetTile", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$SetTile",
+            "SetTile", "MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$SetTile",
+            "RemoveTile", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$RemoveTile",
+            "IsInRegion", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$IsInRegion",
+            "IsInRegion", "MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$IsInRegion",
+            "IsInRegion", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$IsInRegion"
+        ],
+        methods: {
+            GetTile: function (pos) {
+                return this.Regions.get([pos.X, pos.Y]);
+            },
+            SetTile: function (pos, regionId) {
+                this.Regions.set([pos.X, pos.Y], regionId);
+            },
+            RemoveTile: function (pos) {
+                this.Regions.set([pos.X, pos.Y], null);
+            },
+            IsInRegion: function (loc) {
+                return loc.X >= 0 && loc.Y >= 0 && loc.X < System.Array.getLength(this.Regions, 0) && loc.Y < System.Array.getLength(this.Regions, 1);
+            }
+        }
+    });
+
+    Bridge.define("MazeGenerators.RoomMazeGenerator.Settings", {
+        inherits: [MazeGenerators.Utils.DeadendRemover.IDeadEndRemoverSettings,MazeGenerators.Utils.RegionConnector.IRegionConnectorSettings,MazeGenerators.Utils.RegionConnector.ITreeMazeBuilderSettings],
+        $kind: "nested class",
+        fields: {
+            /**
+             * Number of tries to add a room.
+             Number of rooms will probably be less then this number.
+             - When {@link } is true - some tries will fail.
+             - When {@link } is false - some rooms will contain eachother and will be invisible.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @default 100
+             * @type number
+             */
+            NumRoomTries: 0,
+            /**
+             * Specify if rooms overlapping is prevented or not.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @default true
+             * @type boolean
+             */
+            PreventOverlappedRooms: false,
+            /**
+             * Specify room size.
+             Size become random from 0 to {@link } and made odd-sized.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @default 2
+             * @type number
+             */
+            RoomSize: 0
+        },
+        props: {
+            /**
+             * Width of the maze. 
+             Must be odd-sized. 
+             Left and Right columns will always contains walls.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @function Width
+             * @type number
+             */
+            Width: 0,
+            /**
+             * Height of the maze. 
+             Must be odd-sized. 
+             Left and Right columns will always contains walls.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @function Height
+             * @type number
+             */
+            Height: 0,
+            /**
+             * Random generator. 
+             You can change it to your system wide random. 
+             Or set with specified seed to make it more predictable.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @function Random
+             * @type System.Random
+             */
+            Random: null,
+            /**
+             * Possible directions when building paths across maze.
+             Can be {@link }, {@link } or any custom array of normalized vectors.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @function Directions
+             * @type Array.<MazeGenerators.Utils.Vector2>
+             */
+            Directions: null,
+            /**
+             * Chance to turn direction during tree maze generation between rooms.
+             The less this value the longer stright paths will be generated.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @function WindingPercent
+             * @type number
+             */
+            WindingPercent: 0,
+            /**
+             * Specify The number of additional passages to make maze not single-connected.
+              Increasing this leads to more loosely connected maze.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @function AdditionalPassages
+             * @type number
+             */
+            AdditionalPassages: 0,
+            /**
+             * Specify if deadends from tree maze generation should be removed.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.RoomMazeGenerator.Settings
+             * @function RemoveDeadEnds
+             * @type boolean
+             */
+            RemoveDeadEnds: false
+        },
+        alias: [
+            "Width", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Width",
+            "Width", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Width",
+            "Height", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Height",
+            "Height", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Height",
+            "Random", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$Random",
+            "Random", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Random",
+            "Directions", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$Directions",
+            "Directions", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Directions",
+            "Directions", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Directions",
+            "WindingPercent", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$WindingPercent",
+            "AdditionalPassages", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$AdditionalPassages",
+            "RemoveDeadEnds", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$RemoveDeadEnds",
+            "RemoveDeadEnds", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$RemoveDeadEnds"
+        ],
+        ctors: {
+            init: function () {
+                this.NumRoomTries = 100;
+                this.PreventOverlappedRooms = true;
+                this.RoomSize = 2;
+                this.Width = 21;
+                this.Height = 21;
+                this.Random = new System.Random.ctor();
+                this.Directions = MazeGenerators.Utils.Directions.CardinalDirs;
+                this.WindingPercent = 0;
+                this.AdditionalPassages = 10;
+                this.RemoveDeadEnds = true;
+            }
+        }
+    });
+
+    Bridge.define("MazeGenerators.TreeMazeGenerator.Result", {
+        inherits: [MazeGenerators.Utils.DeadendRemover.IDeadEndRemoverResult,MazeGenerators.Utils.RegionConnector.IRegionConnectorResult,MazeGenerators.Utils.RegionConnector.ITreeMazeBuilderResult],
+        $kind: "nested class",
+        fields: {
+            /**
+             * Actual generated maze data
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Result
+             * @type Array.<?number>
+             */
+            Regions: null
+        },
+        props: {
+            /**
+             * Junctions between different branches of a tree maze.
+             Equal to {@link } number.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Result
+             * @function Junctions
+             * @type System.Collections.Generic.List$1
+             */
+            Junctions: null
+        },
+        alias: [
+            "Junctions", "MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$Junctions",
+            "GetTile", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$GetTile",
+            "GetTile", "MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$GetTile",
+            "GetTile", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$GetTile",
+            "SetTile", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$SetTile",
+            "SetTile", "MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$SetTile",
+            "RemoveTile", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$RemoveTile",
+            "IsInRegion", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderResult$IsInRegion",
+            "IsInRegion", "MazeGenerators$Utils$RegionConnector$IRegionConnectorResult$IsInRegion",
+            "IsInRegion", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverResult$IsInRegion"
+        ],
+        methods: {
+            GetTile: function (pos) {
+                return this.Regions.get([pos.X, pos.Y]);
+            },
+            SetTile: function (pos, regionId) {
+                this.Regions.set([pos.X, pos.Y], regionId);
+            },
+            RemoveTile: function (pos) {
+                this.Regions.set([pos.X, pos.Y], null);
+            },
+            IsInRegion: function (loc) {
+                return loc.X >= 0 && loc.Y >= 0 && loc.X < System.Array.getLength(this.Regions, 0) && loc.Y < System.Array.getLength(this.Regions, 1);
+            }
+        }
+    });
+
+    Bridge.define("MazeGenerators.TreeMazeGenerator.Settings", {
+        inherits: [MazeGenerators.Utils.DeadendRemover.IDeadEndRemoverSettings,MazeGenerators.Utils.RegionConnector.IRegionConnectorSettings,MazeGenerators.Utils.RegionConnector.ITreeMazeBuilderSettings],
+        $kind: "nested class",
+        props: {
+            /**
+             * Width of the maze. 
+             Must be odd-sized. 
+             Left and Right columns will always contains walls.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Settings
+             * @function Width
+             * @type number
+             */
+            Width: 0,
+            /**
+             * Height of the maze. 
+             Must be odd-sized. 
+             Left and Right columns will always contains walls.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Settings
+             * @function Height
+             * @type number
+             */
+            Height: 0,
+            /**
+             * Random generator. 
+             You can change it to your system wide random. 
+             Or set with specified seed to make it more predictable.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Settings
+             * @function Random
+             * @type System.Random
+             */
+            Random: null,
+            /**
+             * Possible directions when building paths across maze.
+             Can be {@link }, {@link } or any custom array of normalized vectors.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Settings
+             * @function Directions
+             * @type Array.<MazeGenerators.Utils.Vector2>
+             */
+            Directions: null,
+            /**
+             * Chance to turn direction during tree maze generation between rooms.
+             The less this value the longer stright paths will be generated.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Settings
+             * @function WindingPercent
+             * @type number
+             */
+            WindingPercent: 0,
+            /**
+             * Specify The number of additional passages to make maze not single-connected.
+             If {@link } set to 0 and {@link } is true - you will get empty maze as without additional passages tree maze is only deadends.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Settings
+             * @function AdditionalPassages
+             * @type number
+             */
+            AdditionalPassages: 0,
+            /**
+             * Specify if deadends from tree maze generation should be removed.
+             If {@link } set to 0 and {@link } is true - you will get empty maze as without additional passages tree maze is only deadends.
+             *
+             * @instance
+             * @public
+             * @memberof MazeGenerators.TreeMazeGenerator.Settings
+             * @function RemoveDeadEnds
+             * @type boolean
+             */
+            RemoveDeadEnds: false
+        },
+        alias: [
+            "Width", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Width",
+            "Width", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Width",
+            "Height", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Height",
+            "Height", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Height",
+            "Random", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$Random",
+            "Random", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Random",
+            "Directions", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$Directions",
+            "Directions", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$Directions",
+            "Directions", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$Directions",
+            "WindingPercent", "MazeGenerators$Utils$RegionConnector$ITreeMazeBuilderSettings$WindingPercent",
+            "AdditionalPassages", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$AdditionalPassages",
+            "RemoveDeadEnds", "MazeGenerators$Utils$RegionConnector$IRegionConnectorSettings$RemoveDeadEnds",
+            "RemoveDeadEnds", "MazeGenerators$Utils$DeadendRemover$IDeadEndRemoverSettings$RemoveDeadEnds"
+        ],
+        ctors: {
+            init: function () {
+                this.Width = 21;
+                this.Height = 21;
+                this.Random = new System.Random.ctor();
+                this.Directions = MazeGenerators.Utils.Directions.CardinalDirs;
+                this.WindingPercent = 100;
+                this.AdditionalPassages = 20;
+                this.RemoveDeadEnds = true;
             }
         }
     });

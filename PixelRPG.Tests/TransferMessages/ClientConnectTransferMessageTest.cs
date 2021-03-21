@@ -1,7 +1,6 @@
 ﻿using NUnit.Framework;
 using System;
 using PixelRPG.Base.TransferMessages;
-using System.Collections.Generic;
 using PixelRPG.Base.AdditionalStuff.ClientServer;
 using PixelRPG.Base.Components.GameState;
 
@@ -14,21 +13,10 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void AllData_SerializedDeserialized_Success()
         {
-            var target = new ClientConnectTransferMessage
-            {
-                PlayerName = "Player1",
-                UnitsData = new List<ClientConnectTransferMessage.UnitSubMessage>
-                {
-                    new ClientConnectTransferMessage.UnitSubMessage
-                    {
-                        UnitType = UnitUtils.UnitType.Rogue,
-                        Skills = new List<UnitUtils.Skill>
-                        {
-                            UnitUtils.Skill.VisionRange
-                        }
-                    }
-                }
-            };
+            var target = ClientConnectTransferMessage.Create()
+                .SetPlayerName("Player1")
+                .AddUnitType(UnitUtils.UnitType.Rogue)
+                .AddSkill(0, UnitUtils.Skill.VisionRange);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
@@ -45,17 +33,9 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void NoSkills_SerializedDeserialized_Success()
         {
-            var target = new ClientConnectTransferMessage
-            {
-                PlayerName = "Player1",
-                UnitsData = new List<ClientConnectTransferMessage.UnitSubMessage>
-                {
-                    new ClientConnectTransferMessage.UnitSubMessage
-                    {
-                        UnitType = UnitUtils.UnitType.Mage,
-                    }
-                }
-            };
+            var target = ClientConnectTransferMessage.Create()
+                .SetPlayerName("Player1")
+                .AddUnitType(UnitUtils.UnitType.Mage);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
@@ -71,7 +51,7 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void MinimumData_SerializedDeserialized_Success()
         {
-            var target = new ClientConnectTransferMessage();
+            var target = ClientConnectTransferMessage.Create();
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));

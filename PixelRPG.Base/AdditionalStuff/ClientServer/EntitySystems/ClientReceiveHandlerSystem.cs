@@ -4,7 +4,7 @@
     using LocomotorECS.Matching;
     using PixelRPG.Base.AdditionalStuff.ClientServer.Components;
 
-    public abstract class ClientReceiveHandlerSystem<T> : EntityProcessingSystem
+    public abstract class ClientReceiveHandlerSystem<T> : EntityProcessingSystem where T: ITransferMessage
     {
         public ClientReceiveHandlerSystem(Matcher matcher) : base(matcher.All(typeof(ClientComponent)))
         {
@@ -20,8 +20,7 @@
                 return;
             }
 
-            var message = (T)client.Response;
-            this.DoAction(message, entity, gameTime);
+            this.DoAction((T)client.Response, entity, gameTime);
         }
 
         protected abstract void DoAction(T message, Entity entity, System.TimeSpan gameTime);

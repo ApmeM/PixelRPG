@@ -8,7 +8,7 @@
         public int UnitId;
         public Point Position;
         public int VisionRange = 5;
-        public int MoveRange = 1;
+        public int MoveRange = 2;
         public int MaxHp = 10;
         public int Hp = 10;
         public int AttackDistance = 0;

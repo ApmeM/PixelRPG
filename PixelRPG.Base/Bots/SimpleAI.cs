@@ -25,7 +25,6 @@
         public AstarGridGraph Pathfinding;
 
         public bool NeedAction;
-        public Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction> NextTurn;
         public Dictionary<int, ServerYouConnectedTransferMessage.UnitSubMessage> UnitDesription;
 
         public bool Connected;
@@ -33,15 +32,13 @@
 
         public void Tick()
         {
-            if (!NeedAction)
-            {
-                return;
-            }
+        }
 
+        public ClientTurnDoneTransferMessage GetNextTurn()
+        {
             var me = FindMe();
 
-            NextTurn = new Dictionary<int, ClientTurnDoneTransferMessage.UnitActionSubAction>();
-
+            var result = ClientTurnDoneTransferMessage.Create();
             for (var i = 0; i < me.Units.Count; i++)
             {
                 if (!SearchPoint.ContainsKey(me.Units[i].UnitId) || SearchPoint[me.Units[i].UnitId] == null || 
@@ -71,44 +68,28 @@
                         SearchPoint[me.Units[i].UnitId] = null;
                     }
                 }
+
                 var unitDescription = UnitDesription[me.Units[i].UnitId];
 
                 var distance = Math.Min(unitDescription.MoveRange, path.Count - 1);
-                NextTurn[me.Units[i].UnitId] = new ClientTurnDoneTransferMessage.UnitActionSubAction
+                result.SetNewPosition(me.Units[i].UnitId, path[distance].X, path[distance].Y);
+                if (!unitDescription.AttackFriendlyFire)
                 {
-                    NewPosition = new ClientTurnDoneTransferMessage.PointSubMessage
-                    {
-                        X = path[distance].X,
-                        Y = path[distance].Y
-                    },
-                    AttackDirection = unitDescription.AttackFriendlyFire ? null : new ClientTurnDoneTransferMessage.PointSubMessage { X = 0, Y = 0 }
-                };
+                    result.SetAttackDirection(me.Units[i].UnitId, 0, 0);
+                }
             }
 
-            NeedAction = false;
+            return result;
         }
 
-        public List<ClientConnectTransferMessage.UnitSubMessage> GenerateUnitData()
+        public ClientConnectTransferMessage GetPlayerData()
         {
-            return new List<ClientConnectTransferMessage.UnitSubMessage>
-            {
-                new ClientConnectTransferMessage.UnitSubMessage
-                {
-                    UnitType = UnitUtils.UnitType.Ranger,
-                    Skills = new List<UnitUtils.Skill>
-                    {
-                        UnitUtils.Skill.VisionRange
-                    }
-                },
-                new ClientConnectTransferMessage.UnitSubMessage
-                {
-                    UnitType = UnitUtils.UnitType.Rogue,
-                    Skills = new List<UnitUtils.Skill>
-                    {
-                        UnitUtils.Skill.MoveRange
-                    }
-                }
-            };
+            return ClientConnectTransferMessage.Create()
+                .SetPlayerName(PlayerName)
+                .AddUnitType(UnitUtils.UnitType.Ranger)
+                .AddUnitType(UnitUtils.UnitType.Rogue)
+                .AddSkill(0, UnitUtils.Skill.VisionRange)
+                .AddSkill(1, UnitUtils.Skill.MoveRange);
         }
 
         private ServerCurrentStateTransferMessage.PlayerSubMessage FindMe()

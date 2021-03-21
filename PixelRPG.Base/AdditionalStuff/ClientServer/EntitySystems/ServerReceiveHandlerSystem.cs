@@ -25,7 +25,7 @@
             {
                 if (!server.Response.ContainsKey(req.Key))
                 {
-                    server.Response[req.Key] = new Queue<object>();
+                    server.Response[req.Key] = new Queue<ITransferMessage>();
                 }
 
                 var request = req.Value;

@@ -2,7 +2,6 @@
 using System;
 using PixelRPG.Base.TransferMessages;
 using PixelRPG.Base.AdditionalStuff.ClientServer;
-using System.Collections.Generic;
 using PixelRPG.Base.Components.GameState;
 
 namespace PixelRPG.Tests.AdditionalContent
@@ -14,9 +13,7 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void EmptyData_SerializedDeserialized_Success()
         {
-            var target = new ServerYouConnectedTransferMessage
-            {
-            };
+            var target = ServerYouConnectedTransferMessage.Create();
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));
@@ -30,21 +27,9 @@ namespace PixelRPG.Tests.AdditionalContent
         [Test]
         public void WithData_SerializedDeserialized_Success()
         {
-            var target = new ServerYouConnectedTransferMessage
-            {
-                PlayerId = 35,
-                UnitsData = new List<ServerYouConnectedTransferMessage.UnitSubMessage>
-                {
-                    new ServerYouConnectedTransferMessage.UnitSubMessage
-                    {
-                        MoveRange = 1,
-                        VisionRange = 2,
-                        UnitId = 3,
-                        UnitType = UnitUtils.UnitType.Ranger,
-                        AttackFriendlyFire = true
-                    }
-                }
-            };
+            var target = ServerYouConnectedTransferMessage.Create()
+                .SetPlayerId(35)
+                .AddUnit(3, UnitUtils.UnitType.Ranger, 2, 1, 0, 0, true, 0, 0, 0);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));

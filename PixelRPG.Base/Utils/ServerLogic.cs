@@ -10,6 +10,7 @@
     using MazeGenerators;
     using PixelRPG.Base.Screens;
     using PixelRPG.Base.Components.GameState;
+    using System.Collections.Generic;
 
     #endregion
 
@@ -17,48 +18,48 @@
     {
         public static ServerCurrentStateTransferMessage BuildCurrentStateForPlayer(GameStateComponent gameState, Player player)
         {
+            var result = ServerCurrentStateTransferMessage.Create();
+
             var width = gameState.Map.GetLength(0);
             var height = gameState.Map.GetLength(1);
-            var regions = new int?[width, height];
             for (var x = 0; x < width; x++)
                 for (var y = 0; y < height; y++)
                 {
-                    regions[x, y] = IsVisible(player, gameState.Exit.X, gameState.Exit.Y, x, y) ? gameState.Map[x, y] : (int?)null;
+                    result.Map.Add(IsVisible(player, gameState.Exit.X, gameState.Exit.Y, x, y) ? gameState.Map[x, y] : (int?)null);
                 }
 
-            return new ServerCurrentStateTransferMessage
+            var idx = 0;
+            foreach (var statePlayer in gameState.Players.Values)
             {
-                Players = gameState.Players.Values.Select(a => new ServerCurrentStateTransferMessage.PlayerSubMessage
+                result.AddPlayer(statePlayer.PlayerId, statePlayer.LevelScore, statePlayer.TotalScore);
+                for (var j = 0; j < statePlayer.Units.Count; j++)
                 {
-                    PlayerId = a.PlayerId,
-                    LevelScore = a.LevelScore,
-                    TotalScore = a.TotalScore,
-                    Units = a.Units
-                        .Where(b => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y) || player.PlayerId == a.PlayerId)
-                        .Select(b => new ServerCurrentStateTransferMessage.UnitSubMessage
-                        {
-                            UnitId = b.UnitId,
-                            Position = new ServerCurrentStateTransferMessage.PointSubMessage
-                            {
-                                X = b.Position.X,
-                                Y = b.Position.Y
-                            },
-                            Hp = b.Hp
-                        })
-                        .ToList()
-                }).ToList(),
-                Exit = IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y) ? new ServerCurrentStateTransferMessage.PointSubMessage
+                    var b = statePlayer.Units[j];
+                    if (!IsVisible(player, gameState.Exit.X, gameState.Exit.Y, b.Position.X, b.Position.Y) && player.PlayerId != statePlayer.PlayerId)
+                    {
+                        continue;
+                    }
+
+                    result.AddUnit(idx, b.UnitId, b.Position.X, b.Position.Y, b.Hp);
+                }
+                idx++;
+            }
+            if (IsVisible(player, gameState.Exit.X, gameState.Exit.Y, gameState.Exit.X, gameState.Exit.Y))
+            {
+                result.SetExit(gameState.Exit.X, gameState.Exit.Y);
+            }
+            for (var i = 0; i < gameState.Doors.Count; i++)
+            {
+                var door = gameState.Doors[i];
+                if (!IsVisible(player, gameState.Exit.X, gameState.Exit.Y, door.X, door.Y))
                 {
-                    X = gameState.Exit.X,
-                    Y = gameState.Exit.Y
-                } : null,
-                Map = regions,
-                Doors = gameState.Doors.Where(a => IsVisible(player, gameState.Exit.X, gameState.Exit.Y, a.X, a.Y)).Select(a => new ServerCurrentStateTransferMessage.PointSubMessage
-                {
-                    X = a.X,
-                    Y = a.Y
-                }).ToList(),
-            };
+                    continue;
+                }
+
+                result.AddDoor(door.X, door.Y);
+            }
+
+            return result;
         }
 
         public static bool IsVisible(Player fromPlayer, int exitX, int exitY, int x, int y)
@@ -101,11 +102,17 @@
             return false;
         }
 
-        public static ServerGameStartedTransferMessage StartNewGame(GameStateComponent gameState)
+        public static void StartNewGame(GameStateComponent gameState)
         {
             gameState.AtEnd.Clear();
 
-            var maze = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings(71, 41) { ExtraConnectorChance = 5, WindingPercent = 50 });
+            var maze = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings { 
+                Width = 71,
+                Height = 41,
+                AdditionalPassages = 20, 
+                WindingPercent = 50,
+                RoomSize = 3
+            });
             gameState.Map = maze.Regions;
             gameState.Doors = maze.Junctions.Select(a => new Point(a.X, a.Y)).ToList();
             for (var x = 0; x < gameState.Map.GetLength(0); x++)
@@ -131,12 +138,15 @@
             }
             
             gameState.Exit = new Point(maze.Rooms[maze.Rooms.Count - 1].X + maze.Rooms[maze.Rooms.Count - 1].Width / 2, maze.Rooms[maze.Rooms.Count - 1].Y + maze.Rooms[maze.Rooms.Count - 1].Height / 2);
+        }
 
-            return new ServerGameStartedTransferMessage
-            {
-                Width = gameState.Map.GetLength(0),
-                Height = gameState.Map.GetLength(1)
-            };
+        public static long GetFullUnitId(Player player, Unit unit)
+        {
+            return GetFullUnitId(player.PlayerId, unit.UnitId);
+        }
+        public static long GetFullUnitId(int playerId, int unitId)
+        {
+            return ((long)playerId << 32) | ((long)unitId & 0xFFFFFFFFL);
         }
     }
 }
