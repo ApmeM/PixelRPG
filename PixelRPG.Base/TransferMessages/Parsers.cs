@@ -5,7 +5,7 @@ namespace PixelRPG.Base.AdditionalStuff.ClientServer
 {
 public class ClientConnectTransferMessageParser : BinaryTransferMessageParser<PixelRPG.Base.TransferMessages.ClientConnectTransferMessage>
 {
-protected override int Identifier => 2;
+protected override int Identifier => 1;
 protected override void InternalWrite(PixelRPG.Base.TransferMessages.ClientConnectTransferMessage transferModel, BinaryWriter writer)
 {
 writer.Write(transferModel != null);
@@ -82,7 +82,7 @@ return transferModel;
 }
 public class ClientTurnDoneTransferMessageParser : BinaryTransferMessageParser<PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage>
 {
-protected override int Identifier => 3;
+protected override int Identifier => 2;
 protected override void InternalWrite(PixelRPG.Base.TransferMessages.ClientTurnDoneTransferMessage transferModel, BinaryWriter writer)
 {
 writer.Write(transferModel != null);
@@ -155,7 +155,7 @@ return transferModel;
 }
 public class ServerClientConnectedTransferMessageParser : BinaryTransferMessageParser<PixelRPG.Base.TransferMessages.ServerClientConnectedTransferMessage>
 {
-protected override int Identifier => 4;
+protected override int Identifier => 3;
 protected override void InternalWrite(PixelRPG.Base.TransferMessages.ServerClientConnectedTransferMessage transferModel, BinaryWriter writer)
 {
 writer.Write(transferModel != null);
@@ -220,7 +220,7 @@ return transferModel;
 }
 public class ServerCurrentStateTransferMessageParser : BinaryTransferMessageParser<PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage>
 {
-protected override int Identifier => 5;
+protected override int Identifier => 4;
 protected override void InternalWrite(PixelRPG.Base.TransferMessages.ServerCurrentStateTransferMessage transferModel, BinaryWriter writer)
 {
 writer.Write(transferModel != null);
@@ -383,7 +383,7 @@ return transferModel;
 }
 public class ServerGameStartedTransferMessageParser : BinaryTransferMessageParser<PixelRPG.Base.TransferMessages.ServerGameStartedTransferMessage>
 {
-protected override int Identifier => 6;
+protected override int Identifier => 5;
 protected override void InternalWrite(PixelRPG.Base.TransferMessages.ServerGameStartedTransferMessage transferModel, BinaryWriter writer)
 {
 writer.Write(transferModel != null);
@@ -407,7 +407,7 @@ return transferModel;
 }
 public class ServerPlayerTurnMadeTransferMessageParser : BinaryTransferMessageParser<PixelRPG.Base.TransferMessages.ServerPlayerTurnMadeTransferMessage>
 {
-protected override int Identifier => 7;
+protected override int Identifier => 6;
 protected override void InternalWrite(PixelRPG.Base.TransferMessages.ServerPlayerTurnMadeTransferMessage transferModel, BinaryWriter writer)
 {
 writer.Write(transferModel != null);
@@ -429,7 +429,7 @@ return transferModel;
 }
 public class ServerYouConnectedTransferMessageParser : BinaryTransferMessageParser<PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage>
 {
-protected override int Identifier => 8;
+protected override int Identifier => 7;
 protected override void InternalWrite(PixelRPG.Base.TransferMessages.ServerYouConnectedTransferMessage transferModel, BinaryWriter writer)
 {
 writer.Write(transferModel != null);
@@ -497,7 +497,7 @@ return transferModel;
 }
 public class ServerYourTurnTransferMessageParser : BinaryTransferMessageParser<PixelRPG.Base.TransferMessages.ServerYourTurnTransferMessage>
 {
-protected override int Identifier => 9;
+protected override int Identifier => 8;
 protected override void InternalWrite(PixelRPG.Base.TransferMessages.ServerYourTurnTransferMessage transferModel, BinaryWriter writer)
 {
 writer.Write(transferModel != null);

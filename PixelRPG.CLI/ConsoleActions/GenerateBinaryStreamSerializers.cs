@@ -3,6 +3,7 @@
     using System;
     using System.Collections;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using System.Reflection;
     using System.Text;
@@ -15,19 +16,16 @@
         [CommandArgument("d", "dllPath", Description = "Path to dll where classes exists.")]
         public string DllPath { get; set; }
 
-        [CommandArgument("c", "classSuffix", Description = "Part of a class name that should be suffixed all classes to be serialized.", DefaultValue = "TransferMessage")]
-        public string ClassName { get; set; }
-
         [CommandOutput]
         public IOutput Output { get; set; }
         
         public int Execute()
         {
-            var asm = Assembly.LoadFile(DllPath);
+            var asm = Assembly.LoadFile(Path.GetFullPath(DllPath));
 
             if (asm == null)
             {
-                Output.WriteError($"Can not load assembly from {DllPath}");
+                Output.WriteError($"Can not load assembly from {Path.GetFullPath(DllPath)}");
                 return ReturnCode.Failure;
             }
 
@@ -35,14 +33,16 @@
             try
             {
                 types = asm.GetTypes()
-                    .Where(t => t.Name.EndsWith(ClassName))
+                    .Where(t => IsTransferMessage(t))
+                    .Where(t => !t.IsNested)
                     .OrderBy(t => t.FullName)
                     .ToList();
             }
             catch (ReflectionTypeLoadException e)
             {
                 types = e.Types.Where(t => t != null)
-                    .Where(t => t.Name.EndsWith(ClassName))
+                    .Where(t => IsTransferMessage(t))
+                    .Where(t => !t.IsNested)
                     .OrderBy(t => t.FullName)
                     .ToList();
             }
@@ -92,6 +92,11 @@
             Output.WriteSuccess(sb.ToString());
 
             return ReturnCode.Success;
+        }
+
+        private bool IsTransferMessage(Type t)
+        {
+            return t.GetInterface("ITransferMessage") != null;
         }
 
         private void HandleTypeWrite(Type t, StringBuilder sb, string baseName)
