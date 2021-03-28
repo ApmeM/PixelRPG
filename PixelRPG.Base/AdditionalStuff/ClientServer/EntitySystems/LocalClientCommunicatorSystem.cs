@@ -43,10 +43,12 @@
                 var data = parser.Write(transferMessage);
                 localServer.Request[localClient.Identifier].Enqueue(data);
                 System.Diagnostics.Debug.WriteLine($"Local Client -> ({transferMessage}): {data}");
+                (client.Message as IPoolableTransferMessage)?.Free();
                 client.Message = null;
             }
 
             var response = localServer.Response[localClient.Identifier];
+            (client.Response as IPoolableTransferMessage)?.Free();
             client.Response = null;
             if (response.Count > 0)
             {

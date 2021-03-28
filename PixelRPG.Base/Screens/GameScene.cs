@@ -83,11 +83,11 @@
                         player.AddComponent(new VisiblePlayerComponent(map.Name));
                     }
 #if !Bridge
-                    if (i % 2 == 0)
-                    {
-                        player.AddComponent(new NetworkClientComponent(new Uri("ws://127.0.0.1:8085")));
-                    }
-                    else
+                    //if (i % 2 == 0)
+                    //{
+                    //    player.AddComponent(new NetworkClientComponent(new Uri("ws://127.0.0.1:8085")));
+                    //}
+                    //else
 #endif
                     {
                         player.AddComponent<LocalClientComponent>().ServerEntity = server.Name;

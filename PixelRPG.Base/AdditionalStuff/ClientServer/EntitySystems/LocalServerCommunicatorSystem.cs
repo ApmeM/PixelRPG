@@ -69,6 +69,7 @@
                         var data = parser.Write(transferMessage);
                         System.Diagnostics.Debug.WriteLine($"Local Server -> ({connectionKey}.{transferMessage}): {data}");
                         localServer.Response[client].Enqueue(data);
+                        (transferMessage as IPoolableTransferMessage)?.Free();
                     }
                 }
             }

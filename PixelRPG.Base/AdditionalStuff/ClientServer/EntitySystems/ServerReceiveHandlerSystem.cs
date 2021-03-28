@@ -33,6 +33,7 @@
                 {
                     var transferMessage = request.Dequeue();
                     handlers[transferMessage.GetType()].Handle(server, req.Key, transferMessage);
+                    (transferMessage as IPoolableTransferMessage).Free();
                 }
             }
         }

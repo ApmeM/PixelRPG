@@ -102,7 +102,7 @@
                     var parser = TransferMessageParserUtils.FindWriter(transferMessage, parsers);
                     var data = parser.Write(transferMessage);
                     System.Diagnostics.Debug.WriteLine($"Network Server -> ({connectionKey}.{transferMessage}): {data}");
-
+                    (transferMessage as IPoolableTransferMessage)?.Free();
                     byte[] frame = GetFrameFromBytes(Encoding.UTF8.GetBytes(data));
 
                     tcpClient.GetStream().Write(frame, 0, frame.Length);
