@@ -106,15 +106,20 @@
         {
             gameState.AtEnd.Clear();
 
-            var maze = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings { 
+            var maze = new RoomMazeGenerator().Generate(new RoomMazeGenerator.Settings {
                 Width = 71,
                 Height = 41,
-                AdditionalPassages = 20, 
+                AdditionalPassages = 20,
                 WindingPercent = 50,
                 RoomSize = 3
             });
             gameState.Map = maze.Regions;
-            gameState.Doors = maze.Junctions.Select(a => new Point(a.X, a.Y)).ToList();
+            gameState.Doors.Clear();
+            for (var i = 0; i < maze.Junctions.Count; i++)
+            {
+                gameState.Doors.Add(new Point(maze.Junctions[i].X, maze.Junctions[i].Y));
+            }
+
             for (var x = 0; x < gameState.Map.GetLength(0); x++)
                 for (var y = 0; y < gameState.Map.GetLength(1); y++)
                 {

@@ -7,13 +7,49 @@
     using PixelRPG.Base.AdditionalStuff.ClientServer.EntitySystems;
     using PixelRPG.Base.Components;
     using PixelRPG.Base.TransferMessages;
+    using SpineEngine.Utils.Collections;
 
-    public class ServerRecieveClientTurnDoneHandler : ServerReceiveHandlerSystem.Handler<ClientTurnDoneTransferMessage>
+    public partial class ServerRecieveClientTurnDoneHandler : ServerReceiveHandlerSystem.Handler<ClientTurnDoneTransferMessage>
     {
+        public partial class UnitAction : IPoolable
+        {
+            public int NewPositionX;
+            public int NewPositionY;
+            public int? AttackDirectionX;
+            public int? AttackDirectionY;
+
+            public static UnitAction Create()
+            {
+                return Pool<UnitAction>.Obtain();
+            }
+
+            public void Free()
+            {
+                Pool<UnitAction>.Free(this);
+            }
+
+            public void Reset()
+            {
+                this.NewPositionX = 0;
+                this.NewPositionY = 0;
+                this.AttackDirectionX = null;
+                this.AttackDirectionY = null;
+            }
+        }
+
         protected override void Handle(ServerComponent server, int connectionKey, ClientTurnDoneTransferMessage message)
         {
             var gameState = server.Entity.GetComponent<GameStateComponent>();
-            gameState.CurrentTurn[gameState.Players[connectionKey].PlayerId] = message.UnitActions;
+            gameState.PlayersMoved.Add(gameState.Players[connectionKey].PlayerId);
+            foreach(var actionKVP in message.UnitActions)
+            {
+                var fullId = ServerLogic.GetFullUnitId(gameState.Players[connectionKey].PlayerId, actionKVP.Key);
+                gameState.CurrentTurn[fullId] = UnitAction.Create();
+                gameState.CurrentTurn[fullId].NewPositionX = actionKVP.Value.NewPosition.X;
+                gameState.CurrentTurn[fullId].NewPositionY = actionKVP.Value.NewPosition.Y;
+                gameState.CurrentTurn[fullId].AttackDirectionX = actionKVP.Value.AttackDirection?.X;
+                gameState.CurrentTurn[fullId].AttackDirectionY = actionKVP.Value.AttackDirection?.Y;
+            }
 
             foreach (var player in gameState.Players)
             {
@@ -21,22 +57,23 @@
                     .SetPlayerId(gameState.Players[connectionKey].PlayerId));
             }
 
-            if (gameState.CurrentTurn.Count() != gameState.MaxPlayersCount)
+            if (gameState.PlayersMoved.Count() != gameState.MaxPlayersCount)
             {
                 return;
             }
-            
+            gameState.PlayersMoved.Clear();
+
             var playersList = gameState.Players.Values.ToList();
             Fate.GlobalFate.Shuffle(playersList);
 
             for (var i = 0; i < playersList.Count; i++)
             {
                 var player = playersList[i];
-                var unitActions = gameState.CurrentTurn[player.PlayerId];
                 for (var j = 0; j < player.Units.Count; j++)
                 {
                     var unit = player.Units[j];
-                    if (!unitActions.ContainsKey(unit.UnitId) && unit.Hp > 0 && unit.Hp < unit.MaxHp)
+                    var fullId = ServerLogic.GetFullUnitId(player, unit);
+                    if (!gameState.CurrentTurn.ContainsKey(fullId) && unit.Hp > 0 && unit.Hp < unit.MaxHp)
                     {
                         unit.Hp++;
                     }
@@ -47,18 +84,19 @@
             for (var i = 0; i < playersList.Count; i++)
             {
                 var player = playersList[i];
-                var unitActions = gameState.CurrentTurn[player.PlayerId];
                 for (var j = 0; j < player.Units.Count; j++)
                 {
                     var unit = player.Units[j];
-                    if (!unitActions.ContainsKey(unit.UnitId) || unit.Hp <= 0)
+                    var fullId = ServerLogic.GetFullUnitId(player, unit);
+                    if (!gameState.CurrentTurn.ContainsKey(fullId) || unit.Hp <= 0)
                     {
                         continue;
                     }
 
-                    var newPosition = unitActions[unit.UnitId].NewPosition;
+                    var newPositionX = gameState.CurrentTurn[fullId].NewPositionX;
+                    var newPositionY = gameState.CurrentTurn[fullId].NewPositionY;
                     var canMove = true;
-                    if (newPosition.X != gameState.Exit.X || newPosition.Y != gameState.Exit.Y)
+                    if (newPositionX != gameState.Exit.X || newPositionY != gameState.Exit.Y)
                     {
                         foreach (var playerKVP in gameState.Players)
                         {
@@ -66,7 +104,7 @@
                             for (var k = 0; k < otherPlayer.Units.Count; k++)
                             {
                                 var otherUnit = otherPlayer.Units[k];
-                                if (otherUnit.Hp > 0 && otherUnit.Position.X == newPosition.X && otherUnit.Position.Y == newPosition.Y)
+                                if (otherUnit.Hp > 0 && otherUnit.Position.X == newPositionX && otherUnit.Position.Y == newPositionY)
                                 {
                                     canMove = false;
                                     break;
@@ -82,12 +120,12 @@
 
                     if (canMove)
                     {
-                        var distance = Math.Abs(unit.Position.X - newPosition.X) + Math.Abs(unit.Position.Y - newPosition.Y);
+                        var distance = Math.Abs(unit.Position.X - newPositionX) + Math.Abs(unit.Position.Y - newPositionY);
 
                         if (distance <= unit.MoveRange)
                         {
-                            unit.Position.X = newPosition.X;
-                            unit.Position.Y = newPosition.Y;
+                            unit.Position.X = newPositionX;
+                            unit.Position.Y = newPositionY;
                         }
                     }
                 }
@@ -96,16 +134,17 @@
             for (var i = 0; i < playersList.Count; i++)
             {
                 var player = playersList[i];
-                var unitActions = gameState.CurrentTurn[player.PlayerId];
                 for (var j = 0; j < player.Units.Count; j++)
                 {
                     var unit = player.Units[j];
-                    if (!unitActions.ContainsKey(unit.UnitId) || unit.Hp <= 0)
+                    var fullId = ServerLogic.GetFullUnitId(player, unit);
+
+                    if (!gameState.CurrentTurn.ContainsKey(fullId) || unit.Hp <= 0)
                     {
                         continue;
                     }
 
-                    if (unitActions[unit.UnitId].AttackDirection == null)
+                    if (gameState.CurrentTurn[fullId].AttackDirectionX == null || gameState.CurrentTurn[fullId].AttackDirectionY == null)
                     {
                         continue;
                     }
@@ -115,9 +154,9 @@
                         continue;
                     }
 
-                    var attackToX = unitActions[unit.UnitId].NewPosition.X + unitActions[unit.UnitId].AttackDirection.X;
-                    var attackToY = unitActions[unit.UnitId].NewPosition.Y + unitActions[unit.UnitId].AttackDirection.Y;
-                    var distance = unitActions[unit.UnitId].AttackDirection.X + unitActions[unit.UnitId].AttackDirection.Y;
+                    var attackToX = gameState.CurrentTurn[fullId].NewPositionX + gameState.CurrentTurn[fullId].AttackDirectionX.Value;
+                    var attackToY = gameState.CurrentTurn[fullId].NewPositionY + gameState.CurrentTurn[fullId].AttackDirectionY.Value;
+                    var distance = gameState.CurrentTurn[fullId].AttackDirectionX + gameState.CurrentTurn[fullId].AttackDirectionY;
                     if (distance > unit.AttackDistance)
                     {
                         continue;
@@ -151,6 +190,10 @@
                 }
             }
 
+            foreach(var actionKVP in gameState.CurrentTurn)
+            {
+                actionKVP.Value.Free();
+            }
             gameState.CurrentTurn.Clear();
 
             var allAtEnd = true;

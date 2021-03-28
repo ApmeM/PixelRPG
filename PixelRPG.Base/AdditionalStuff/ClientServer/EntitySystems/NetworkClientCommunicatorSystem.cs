@@ -43,6 +43,7 @@
                 return;
             }
 
+            (client.Response as IPoolableTransferMessage)?.Free();
             client.Response = null;
             
             if (client.Message != null)
@@ -56,6 +57,7 @@
                     WebSocketMessageType.Text,
                     true,
                     CancellationToken.None);
+                (client.Message as IPoolableTransferMessage)?.Free();
                 client.Message = null;
                 return;
             }

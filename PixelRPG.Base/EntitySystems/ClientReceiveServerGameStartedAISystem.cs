@@ -25,6 +25,7 @@ namespace PixelRPG.Base.EntitySystems
             var simpleAI = (SimpleAI)ai.AIBot;
             simpleAI.Pathfinding = new AstarGridGraph(message.Width, message.Height);
             simpleAI.Regions = new int?[message.Width, message.Height];
+            simpleAI.Exit?.Free();
             simpleAI.Exit = null;
         }
     }
