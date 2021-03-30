@@ -252,11 +252,7 @@ if (transferModel.Map != null)
 writer.Write(transferModel.Map.Count);
 for (var transferModelMapIndex = 0; transferModelMapIndex < transferModel.Map.Count; transferModelMapIndex++)
 {
-writer.Write(transferModel.Map[transferModelMapIndex] != null);
-if (transferModel.Map[transferModelMapIndex] != null)
-{
-writer.Write(transferModel.Map[transferModelMapIndex].Value);
-}
+writer.Write((int)transferModel.Map[transferModelMapIndex]);
 }
 }
 writer.Write(transferModel.Players != null);
@@ -330,11 +326,8 @@ var transferModelMapCount = reader.ReadInt32();
 transferModel.Map.Clear();
 for (var transferModelMapIndex = 0; transferModelMapIndex < transferModelMapCount; transferModelMapIndex++)
 {
-System.Nullable<System.Int32> transferModelMapValue = default(System.Nullable<System.Int32>);
-if (reader.ReadBoolean())
-{
-transferModelMapValue = reader.ReadInt32();
-}
+PixelRPG.Base.Screens.RegionValue transferModelMapValue = default(PixelRPG.Base.Screens.RegionValue);
+transferModelMapValue = (PixelRPG.Base.Screens.RegionValue)reader.ReadInt32();
 transferModel.Map.Add(transferModelMapValue);
 }
 }

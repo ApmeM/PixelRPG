@@ -19,8 +19,8 @@ namespace PixelRPG.Tests.AdditionalContent
                 .SetExit(1,2)
                 .AddPlayer(43, 5, 6)
                 .AddUnit(0, 3, 7, 8, 9);
-            target.Map.Add(10);
-            target.Map.Add(11);
+            target.Map.Add(Base.Screens.RegionValue.Path);
+            target.Map.Add(Base.Screens.RegionValue.Wall);
 
             var parser = TransferMessageParserUtils.FindWriter(target);
             Assert.IsTrue(parser.IsWritable(target));

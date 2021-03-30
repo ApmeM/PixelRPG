@@ -55,21 +55,29 @@ namespace PixelRPG.Base.EntitySystems
                 simpleAI.Exit.Y = message.Exit.Y;
             }
 
-            var mapIdx = 0;
-            for (var x = 0; x < simpleAI.Regions.GetLength(0); x++)
-                for (var y = 0; y < simpleAI.Regions.GetLength(1); y++)
+            var width = simpleAI.Regions.GetLength(0);
+            var height = simpleAI.Regions.GetLength(1);
+            for (var x = 0; x < width; x++)
+                for (var y = 0; y < height; y++)
                 {
-                    var map = message.Map[mapIdx];
-                    mapIdx++;
-                    if (map == GameSceneConfig.UnknownRegionValue)
+                    var map = message.Map[x * height + y];
+                    switch (map)
                     {
-                        continue;
-                    }
-                    
-                    simpleAI.Regions[x, y] = map;
-                    if (map == GameSceneConfig.WallRegionValue)
-                    {
-                        simpleAI.Pathfinding.Walls.Add(new BrainAI.Pathfinding.Point(x, y));
+                        case RegionValue.Unknown:
+                            {
+                                break;
+                            }
+                        case RegionValue.Path:
+                            {
+                                simpleAI.Regions[x, y] = map;
+                                break;
+                            }
+                        case RegionValue.Wall:
+                            {
+                                simpleAI.Regions[x, y] = map;
+                                simpleAI.Pathfinding.Walls.Add(new BrainAI.Pathfinding.Point(x, y));
+                                break;
+                            }
                     }
                 }
         }

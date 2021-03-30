@@ -25,7 +25,7 @@
             for (var x = 0; x < width; x++)
                 for (var y = 0; y < height; y++)
                 {
-                    result.Map.Add(IsVisible(player, gameState.Exit.X, gameState.Exit.Y, x, y) ? gameState.Map[x, y] : (int?)null);
+                    result.Map.Add(!IsVisible(player, gameState.Exit.X, gameState.Exit.Y, x, y) ? RegionValue.Unknown : gameState.Map[x, y]);
                 }
 
             var idx = 0;
@@ -113,7 +113,7 @@
                 WindingPercent = 50,
                 RoomSize = 3
             });
-            gameState.Map = maze.Regions;
+            gameState.Map = new RegionValue[maze.Regions.GetLength(0), maze.Regions.GetLength(1)];
             gameState.Doors.Clear();
             for (var i = 0; i < maze.Junctions.Count; i++)
             {
@@ -123,7 +123,7 @@
             for (var x = 0; x < gameState.Map.GetLength(0); x++)
                 for (var y = 0; y < gameState.Map.GetLength(1); y++)
                 {
-                    gameState.Map[x, y] = gameState.Map[x, y] == null ? GameSceneConfig.WallRegionValue : GameSceneConfig.PathRegionValue;
+                    gameState.Map[x, y] = maze.Regions[x, y] == null ? RegionValue.Wall : RegionValue.Path;
                 }
 
             var roomIdx = 0;

@@ -1,4 +1,5 @@
 ﻿using PixelRPG.Base.AdditionalStuff.ClientServer;
+using PixelRPG.Base.Screens;
 using SpineEngine.Utils.Collections;
 using System.Collections.Generic;
 
@@ -8,7 +9,7 @@ namespace PixelRPG.Base.TransferMessages
     {
         public readonly List<PlayerSubMessage> Players = new List<PlayerSubMessage>();
         public PointSubMessage Exit;
-        public readonly List<int?> Map = new List<int?>();
+        public readonly List<RegionValue> Map = new List<RegionValue>();
         public readonly List<PointSubMessage> Doors = new List<PointSubMessage>();
 
         public static ServerCurrentStateTransferMessage Create()

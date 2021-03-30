@@ -76,64 +76,41 @@
             var maze = (TiledTileLayer)tiledMap.GetLayer("Maze");
             var fog = (TiledTileLayer)tiledMap.GetLayer("Fog");
 
-            var mapIdx = 0;
             for (var x = 0; x < maze.Width; x++)
                 for (var y = 0; y < maze.Height; y++)
                 {
-                    var fogTile = fog.GetTile(x, y);
-                    var mapTile = message.Map[mapIdx];
-                    mapIdx++;
-                    if (mapTile == GameSceneConfig.UnknownRegionValue)
+                    var mapTile = message.Map[x * maze.Height + y];
+                    switch (mapTile)
                     {
-                        if (fogTile == null)
-                        {
-                            fogTile = new TiledTile { Id = 70 };
-                            fog.SetTile(x, y, fogTile);
-                            continue;
-                        }
-
-                        fogTile.Id = 70;
-                        continue;
+                        case RegionValue.Unknown:
+                            {
+                                fog.GetTile(x, y).Id = 70;
+                                break;
+                            }
+                        case RegionValue.Wall:
+                            {
+                                fog.GetTile(x, y).Id = 71;
+                                maze.GetTile(x, y).Id = 17;
+                                break;
+                            }
+                        case RegionValue.Path:
+                            {
+                                fog.GetTile(x, y).Id = 71;
+                                maze.GetTile(x, y).Id = 2;
+                                break;
+                            }
                     }
-                    if (fogTile != null)
-                    {
-                        fogTile.Id = 71;
-                    }
-
-                    var currentTile = maze.GetTile(x, y);
-                    if (currentTile == null)
-                    {
-                        currentTile = new TiledTile();
-                    }
-
-                    if (mapTile == GameSceneConfig.WallRegionValue)
-                    {
-                        currentTile.Id = 17;
-                    }
-                    else if (mapTile == GameSceneConfig.PathRegionValue)
-                    {
-                        currentTile.Id = 2;
-                    }
-                    maze.SetTile(x, y, currentTile);
                 }
 
             for (var i = 0; i < message.Doors.Count; i++)
             {
                 var junction = message.Doors[i];
-                var tile = maze.GetTile(junction.X, junction.Y);
-                tile.Id = 6;
+                maze.GetTile(junction.X, junction.Y).Id = 6;
             }
 
             if (message.Exit != null)
             {
-                var currentTile = maze.GetTile(message.Exit.X, message.Exit.Y);
-                if (currentTile == null)
-                {
-                    currentTile = new TiledTile();
-                    maze.SetTile(message.Exit.X, message.Exit.Y, currentTile);
-                }
-
-                currentTile.Id = 9;
+                maze.GetTile(message.Exit.X, message.Exit.Y).Id = 9;
             }
         }
     }

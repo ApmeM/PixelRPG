@@ -242,7 +242,7 @@ if (this.Map != null)
 for (var thisMapIndex = 0; thisMapIndex < this.Map.Count; thisMapIndex++)
 {
 var thisMapListValue = this.Map[thisMapIndex];
-thisMapListValue = null;
+thisMapListValue = 0;
 }
 }
 this.Map.Clear();

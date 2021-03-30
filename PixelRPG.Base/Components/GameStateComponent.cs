@@ -9,13 +9,14 @@
     using Microsoft.Xna.Framework;
     using PixelRPG.Base.Components.GameState;
     using PixelRPG.Base.EntitySystems;
+    using PixelRPG.Base.Screens;
     using PixelRPG.Base.TransferMessages;
 
     #endregion
 
     public class GameStateComponent : Component
     {
-        public int?[,] Map;
+        public RegionValue[,] Map;
         public readonly List<Point> Doors = new List<Point>();
         public readonly Dictionary<int, Player> Players = new Dictionary<int, Player>();
         public Point Exit;

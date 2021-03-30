@@ -17,7 +17,7 @@
     public class SimpleAI : IAITurn
     {
         public int MePlayerId;
-        public int?[,] Regions;
+        public RegionValue[,] Regions;
         public AIPoint Exit;
         public readonly List<AIPlayerState> Players = new List<AIPlayerState>();
         public readonly Dictionary<int, AIPoint> SearchPoint = new Dictionary<int, AIPoint>();
@@ -64,19 +64,19 @@
                     SearchPoint[me.Units[i].UnitId] = null;
                     continue;
                 }
-                
+
+                var unitDescription = UnitDesription[me.Units[i].UnitId];
+                var distance = Math.Min(unitDescription.MoveRange, path.Count - 1);
+
                 for (var j = 0; j < me.Units.Count; j++)
                 {
-                    if (me.Units[j].Position.X == path[1].X && me.Units[j].Position.Y == path[1].Y)
+                    if (me.Units[j].Position.X == path[distance].X && me.Units[j].Position.Y == path[distance].Y)
                     {
                         SearchPoint[me.Units[i].UnitId]?.Free();
                         SearchPoint[me.Units[i].UnitId] = null;
                     }
                 }
-                var unitDescription = UnitDesription[me.Units[i].UnitId];
-
-                var distance = Math.Min(unitDescription.MoveRange, path.Count - 1);
-
+                
                 result.SetNewPosition(me.Units[i].UnitId, path[distance].X, path[distance].Y);
                 if (!unitDescription.AttackFriendlyFire)
                 {
