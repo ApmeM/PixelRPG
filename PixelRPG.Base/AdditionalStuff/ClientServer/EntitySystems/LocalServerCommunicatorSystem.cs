@@ -54,7 +54,6 @@
                         var data = request.Dequeue();
                         var parser = TransferMessageParserUtils.FindReader(data, parsers);
                         var transferMessage = parser.Read(data);
-                        System.Diagnostics.Debug.WriteLine($"Local Server <- ({connectionKey}.{transferMessage}): {data}");
                         server.Request[connectionKey].Enqueue(transferMessage);
                     }
                 }
@@ -67,7 +66,6 @@
                         var transferMessage = response.Dequeue();
                         var parser = TransferMessageParserUtils.FindWriter(transferMessage, parsers);
                         var data = parser.Write(transferMessage);
-                        System.Diagnostics.Debug.WriteLine($"Local Server -> ({connectionKey}.{transferMessage}): {data}");
                         localServer.Response[client].Enqueue(data);
                         (transferMessage as IPoolableTransferMessage)?.Free();
                     }

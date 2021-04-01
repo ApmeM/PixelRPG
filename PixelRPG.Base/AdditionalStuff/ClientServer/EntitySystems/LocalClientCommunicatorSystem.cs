@@ -42,7 +42,6 @@
                 var parser = TransferMessageParserUtils.FindWriter(transferMessage, this.parsers);
                 var data = parser.Write(transferMessage);
                 localServer.Request[localClient.Identifier].Enqueue(data);
-                System.Diagnostics.Debug.WriteLine($"Local Client -> ({transferMessage}): {data}");
                 (client.Message as IPoolableTransferMessage)?.Free();
                 client.Message = null;
             }
@@ -56,7 +55,6 @@
                 var parser = TransferMessageParserUtils.FindReader(data, parsers);
                 var transferMessage = parser.Read(data);
                 client.Response = transferMessage;
-                System.Diagnostics.Debug.WriteLine($"Local Client <- ({transferMessage}): {data}");
             }
         }
     }

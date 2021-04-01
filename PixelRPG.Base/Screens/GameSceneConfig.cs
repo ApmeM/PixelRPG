@@ -9,8 +9,8 @@
 
     public enum RegionValue
     {
+        Unknown,
         Wall,
-        Path,
-        Unknown
+        Path
     }
 }

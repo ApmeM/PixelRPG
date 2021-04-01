@@ -91,7 +91,6 @@
                     var parser = TransferMessageParserUtils.FindReader(data, parsers);
                     var transferMessage = parser.Read(data);
                     server.Request[connectionKey].Enqueue(transferMessage);
-                    System.Diagnostics.Debug.WriteLine($"Network Server <- ({connectionKey}.{transferMessage}): {data}");
                     continue;
                 }
 
@@ -101,7 +100,6 @@
                     var transferMessage = response.Dequeue();
                     var parser = TransferMessageParserUtils.FindWriter(transferMessage, parsers);
                     var data = parser.Write(transferMessage);
-                    System.Diagnostics.Debug.WriteLine($"Network Server -> ({connectionKey}.{transferMessage}): {data}");
                     (transferMessage as IPoolableTransferMessage)?.Free();
                     byte[] frame = GetFrameFromBytes(Encoding.UTF8.GetBytes(data));
 

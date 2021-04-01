@@ -51,7 +51,6 @@
                 var transferMessage = client.Message;
                 var parser = TransferMessageParserUtils.FindWriter(transferMessage, parsers);
                 var data = parser.Write(transferMessage);
-                System.Diagnostics.Debug.WriteLine($"Network Client -> ({transferMessage}): {data}");
                 networkClient.Client.SendAsync(
                     new ArraySegment<byte>(Encoding.UTF8.GetBytes(data)),
                     WebSocketMessageType.Text,
@@ -88,7 +87,6 @@
                 var parser = TransferMessageParserUtils.FindReader(data, parsers);
                 var transferMessage = parser.Read(data);
                 client.Response = transferMessage;
-                System.Diagnostics.Debug.WriteLine($"Network Client <- ({transferMessage}): {data}");
             }
         }
     }
